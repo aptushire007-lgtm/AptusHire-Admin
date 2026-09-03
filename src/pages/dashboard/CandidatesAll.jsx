@@ -8,7 +8,7 @@ import { Input, Select } from "../../components/ui/Field.jsx";
 import { ALL_STAGES, stageLabel, stageTone, normalizeStage } from "../../lib/pipeline.js";
 
 export default function CandidatesAll() {
-  const { allCandidates, loading } = useCompanyData();
+  const { allCandidates, loading, loadError } = useCompanyData();
   const [search, setSearch] = useState("");
   const [searchParams] = useSearchParams();
   // Seeds the filter from `?stage=` so Reports' funnel rows can drill straight
@@ -93,6 +93,8 @@ export default function CandidatesAll() {
             </div>
           ))}
         </Card>
+      ) : loadError ? (
+        <EmptyState icon={AlertTriangle} title="Could not load candidates" description={loadError} />
       ) : filtered.length === 0 ? (
         <EmptyState icon={Users} title="No candidates found" description="Applicants will appear here once they apply to your jobs." />
       ) : (

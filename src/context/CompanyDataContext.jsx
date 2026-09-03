@@ -27,7 +27,7 @@ export function CompanyDataProvider({ children }) {
         api.get("/auth/me"),
         api.get("/jobs"),
         api.get("/interview-queue"),
-        api.get("/candidates", { params: { limit: 500 } }).catch(() => ({ data: { items: [] } })),
+        api.get("/candidates", { params: { limit: 500 } }),
       ]);
       setLoadError("");
       setMe(meRes.data);
