@@ -128,7 +128,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-canvas text-slate-900 transition-colors dark:text-slate-100">
+    <div className="min-h-screen bg-canvas text-slate-900 transition-colors">
       <MarketingNavbar />
 
       {/* Hero — H2 split diptych at 7/5. Never wrapped in Reveal: above-the-fold

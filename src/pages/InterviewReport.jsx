@@ -845,7 +845,7 @@ function EvidenceClip({ clip }) {
       )}
 
       {src ? (
-        <video src={src} controls className="w-full rounded-lg bg-black" />
+        <video src={src} controls className="w-full rounded-lg bg-canvas" />
       ) : (
         <button
           onClick={loadClip}
@@ -881,9 +881,9 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
       )}
 
       <div className="mt-4 flex items-center gap-4">
-        <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-slate-900 text-white">
+        <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary text-white">
           <span className="text-2xl font-bold">{proctoring.displayRiskScore ?? 0}</span>
-          <span className="text-[10px] text-slate-300">Risk</span>
+          <span className="text-[10px] text-white/80">Risk</span>
         </div>
         <div className="flex-1 space-y-2">
           <IdentityRow identityMatch={proctoring.identityMatch} />
@@ -1000,13 +1000,13 @@ function CandidateRecording({ candidateId }) {
       <p className="mb-2 text-sm font-semibold text-slate-900">Candidate recording</p>
       {state.status === "completed" ? (
         state.url ? (
-          <video src={state.url} controls className="w-full max-w-md rounded-lg bg-slate-900" />
+        <video src={state.url} controls className="w-full max-w-md rounded-lg bg-canvas" />
         ) : (
           <button
             type="button"
             onClick={loadVideo}
             disabled={loading}
-            className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-60"
+            className="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-brand-100 disabled:opacity-60"
           >
             {loading ? "Loading…" : "▶ Play interview recording (audit-logged)"}
           </button>
@@ -1231,9 +1231,9 @@ function EvaluationCard({ interview, ev, rec }) {
           )}
 
           <div className="mt-4 flex items-center gap-4">
-            <div className={`flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl text-white ${ev.generatedBy === "fallback" ? "bg-slate-400" : "bg-slate-900"}`}>
+            <div className={`flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl text-white ${ev.generatedBy === "fallback" ? "bg-text-faint" : "bg-primary"}`}>
               <span className="text-2xl font-bold">{ev.overallScore ?? "—"}</span>
-              <span className="text-[10px] text-slate-300">{ev.generatedBy === "fallback" ? "Placeholder" : "Overall"}</span>
+              <span className="text-[10px] text-white/80">{ev.generatedBy === "fallback" ? "Placeholder" : "Overall"}</span>
             </div>
             {interview.competencyTriplet ? (
               <div className="grid flex-1 gap-3 sm:grid-cols-3">

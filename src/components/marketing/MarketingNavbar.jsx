@@ -37,7 +37,7 @@ export default function MarketingNavbar() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md transition-colors dark:border-slate-800/80 dark:bg-slate-950/90">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/90 backdrop-blur-md transition-colors">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-5 sm:px-8">
         <Wordmark />
 
@@ -47,7 +47,7 @@ export default function MarketingNavbar() {
             <a
               key={link.label}
               href={link.href}
-              className={`text-sm font-medium whitespace-nowrap text-slate-600 transition-colors duration-150 hover:text-brand-700 dark:text-slate-300 dark:hover:text-white ${LINK_FOCUS}`}
+              className={`text-sm font-medium whitespace-nowrap text-text-muted transition-colors duration-150 hover:text-primary ${LINK_FOCUS}`}
             >
               {link.label}
             </a>
@@ -66,7 +66,7 @@ export default function MarketingNavbar() {
 
         <button
           type="button"
-          className={`-mr-2 flex h-11 w-11 items-center justify-center text-slate-700 md:hidden ${LINK_FOCUS}`}
+          className={`-mr-2 flex h-11 w-11 items-center justify-center text-text-muted md:hidden ${LINK_FOCUS}`}
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="marketing-nav-sheet"
@@ -77,20 +77,20 @@ export default function MarketingNavbar() {
       </div>
 
       {open && (
-        <div id="marketing-nav-sheet" className="border-t border-slate-200 bg-white px-5 pt-3 pb-5 md:hidden">
+        <div id="marketing-nav-sheet" className="border-t border-border bg-surface px-5 pt-3 pb-5 md:hidden">
           <nav aria-label="Main" className="flex flex-col">
             {LINKS.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className={`flex min-h-11 items-center text-sm font-medium whitespace-nowrap text-slate-700 ${LINK_FOCUS}`}
+                className={`flex min-h-11 items-center text-sm font-medium whitespace-nowrap text-text-muted ${LINK_FOCUS}`}
                 onClick={() => setOpen(false)}
               >
                 {link.label}
               </a>
             ))}
           </nav>
-          <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4">
+          <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
             <Button variant="outline" className="whitespace-nowrap" onClick={() => navigate("/login")}>
               Sign in
             </Button>

@@ -64,12 +64,12 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
             criterion or stage label is arbitrary rubric text, not a fixed
             word, and the `value` on the right must never be the side that
             gives way. */}
-        <span className="flex min-w-0 items-center gap-1.5 font-medium text-slate-700">
-          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />}
+        <span className="flex min-w-0 items-center gap-1.5 font-medium text-text-muted">
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-brand-green" aria-hidden="true" />}
           <span className="truncate">{label}</span>
         </span>
         <span className="shrink-0 tabular-nums text-slate-500">
-          <span className="font-semibold text-slate-800">{value}</span> <span className="text-slate-500">· {pct}%</span>
+          <span className="font-semibold text-text">{value}</span> <span className="text-text-muted">· {pct}%</span>
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
@@ -81,7 +81,7 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
   return (
     <Link
       to={to}
-      className="-m-1.5 block rounded-lg p-1.5 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      className="-m-1.5 block rounded-control p-1.5 transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
     >
       {content}
     </Link>
@@ -93,15 +93,15 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
 function RankedRow({ label, value, maxValue, tone = "brand" }) {
   const pct = maxValue ? Math.max(value ? 6 : 0, Math.round((value / maxValue) * 100)) : 0;
   return (
-    <div className="relative overflow-hidden rounded-lg bg-slate-50">
+    <div className="relative overflow-hidden rounded-control border border-border bg-background">
       <div className={`absolute inset-y-0 left-0 ${TONE_FILL[tone]} opacity-[0.14]`} style={{ width: `${pct}%` }} />
       <div className="relative flex items-center justify-between gap-3 px-3 py-2 text-sm">
         {/* The wrapper above is `overflow-hidden` for the proportional fill
             behind it, which used to double as an unintentional (and
             ellipsis-free) clip for a long criterion label. `truncate` here
             makes that clipping visible and legible instead of a silent cut. */}
-        <span className="min-w-0 truncate text-slate-700">{label}</span>
-        <span className="shrink-0 tabular-nums font-semibold text-slate-800">{value}</span>
+        <span className="min-w-0 truncate text-text-muted">{label}</span>
+        <span className="shrink-0 tabular-nums font-semibold text-text">{value}</span>
       </div>
     </div>
   );
@@ -124,7 +124,7 @@ function VerdictSplit({ verified, contradicted, inconclusive, total, legend = fa
           {verified} verified · {contradicted} contradicted · {inconclusive} unclear
         </p>
       )}
-      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-lime-soft">
         <div className="bg-chart-positive ring-1 ring-inset ring-verdict-positive/70" style={{ width: seg(verified) }} />
         <div className="bg-chart-negative ring-1 ring-inset ring-verdict-negative/70" style={{ width: seg(contradicted) }} />
         <div className="bg-verdict-pending-tint ring-1 ring-inset ring-verdict-pending/70" style={{ width: seg(inconclusive) }} />
@@ -136,12 +136,12 @@ function VerdictSplit({ verified, contradicted, inconclusive, total, legend = fa
 function KpiStat({ icon: Icon, label, value, hint }) {
   return (
     <div className="flex min-w-0 flex-col gap-2 px-5 py-4">
-      <div className="flex min-w-0 items-center gap-1.5 text-slate-500">
-        {Icon && <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
-        <span className="truncate text-xs font-semibold text-slate-500">{label}</span>
+      <div className="flex min-w-0 items-center gap-1.5 text-text-muted">
+        {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-brand-green" aria-hidden="true" />}
+        <span className="truncate text-xs font-semibold text-text-muted">{label}</span>
       </div>
-      <p className="text-3xl font-bold tabular-nums text-slate-900">{value ?? "—"}</p>
-      {hint && <p className="text-[11px] leading-snug text-slate-500">{hint}</p>}
+      <p className="text-3xl font-bold tabular-nums text-text">{value ?? "—"}</p>
+      {hint && <p className="text-[11px] leading-snug text-text-muted">{hint}</p>}
     </div>
   );
 }

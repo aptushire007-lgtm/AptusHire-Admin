@@ -55,11 +55,11 @@ function QuotePair({ probe }) {
   return (
     <div className="mt-3 grid gap-2 sm:grid-cols-2">
       {claim && (
-        <figure className="min-w-0 rounded-lg border border-slate-200 bg-canvas p-2.5">
-          <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-slate-500 uppercase">
+        <figure className="min-w-0 rounded-lg border border-border bg-canvas p-2.5">
+          <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-text-faint uppercase">
             What the CV claimed
           </figcaption>
-          <blockquote className="mt-1 text-[11px] leading-relaxed text-slate-700 italic [overflow-wrap:anywhere]">
+          <blockquote className="mt-1 text-[11px] leading-relaxed text-text-muted italic [overflow-wrap:anywhere]">
             &ldquo;{claim}&rdquo;
           </blockquote>
         </figure>
@@ -69,7 +69,7 @@ function QuotePair({ probe }) {
           <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-brand-700 uppercase">
             What they said when asked
           </figcaption>
-          <blockquote className="mt-1 text-[11px] leading-relaxed text-slate-700 italic [overflow-wrap:anywhere]">
+          <blockquote className="mt-1 text-[11px] leading-relaxed text-text-muted italic [overflow-wrap:anywhere]">
             &ldquo;{answer}&rdquo;
           </blockquote>
         </figure>
@@ -83,7 +83,7 @@ function Row({ row, open, onToggle }) {
   const kind = KIND_MARK[row.kind] || KIND_MARK.nice_to_have;
 
   return (
-    <li className="border-b border-slate-100 last:border-b-0">
+    <li className="border-b border-border last:border-b-0">
       <button
         type="button"
         onClick={onToggle}
@@ -98,9 +98,9 @@ function Row({ row, open, onToggle }) {
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {kind.badge && <Badge tone={kind.badge}>{kind.label}</Badge>}
-            <span className="text-sm font-semibold text-slate-900 [overflow-wrap:anywhere]">{row.label}</span>
+            <span className="text-sm font-semibold text-text-strong [overflow-wrap:anywhere]">{row.label}</span>
           </span>
-          <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{row.evidence}</span>
+          <span className="mt-0.5 block text-[11px] leading-snug text-text-muted">{row.evidence}</span>
         </span>
 
         {/* Glyph AND word, never colour alone — the green/red pair only clears
@@ -116,7 +116,7 @@ function Row({ row, open, onToggle }) {
         </span>
 
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-text-faint transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>
@@ -125,13 +125,11 @@ function Row({ row, open, onToggle }) {
         <div className="px-1 pb-4 pl-[1.1rem]">
           <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-[11px]">
             <div className="flex items-baseline gap-1.5">
-              <dt className="text-slate-500">Share of role</dt>
-              <dd className="font-bold tabular-nums text-slate-900">{pctOf(row.weight)}%</dd>
+              <dt className="text-text-muted">Share of role</dt><dd className="font-bold tabular-nums text-text-strong">{pctOf(row.weight)}%</dd>
             </div>
             {row.assessmentDetail?.itemCount > 0 && (
               <div className="flex items-baseline gap-1.5">
-                <dt className="text-slate-500">Test items</dt>
-                <dd className="font-semibold tabular-nums text-slate-700">
+                <dt className="text-text-muted">Test items</dt><dd className="font-semibold tabular-nums text-text">
                   {row.assessmentDetail.correctCount}/{row.assessmentDetail.itemCount}
                 </dd>
               </div>
@@ -139,7 +137,7 @@ function Row({ row, open, onToggle }) {
           </dl>
 
           {row.anchorCovered && row.anchorTerms?.length > 0 && (
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-[11px] text-text-muted">
               Came up via their CV: {row.anchorTerms.join(", ")}. That proves the subject was raised, not what the
               answer showed.
             </p>
@@ -148,13 +146,13 @@ function Row({ row, open, onToggle }) {
           <QuotePair probe={row.decidingProbe} />
 
           {row.untestedCause && UNTESTED_CAUSE_COPY[row.untestedCause] && (
-            <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+            <p className="mt-3 rounded-lg bg-brand-50 px-3 py-2 text-[11px] leading-relaxed text-text-muted">
               {UNTESTED_CAUSE_COPY[row.untestedCause]}
             </p>
           )}
 
           {row.underpowered && (
-            <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+            <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
               We didn&apos;t ask enough here to say either way. Not their fault — ours.
             </p>
           )}
@@ -187,12 +185,12 @@ export default function RubricAccordion({ coverage, id, provenance }) {
 
   return (
     <Card id={id} className="scroll-mt-32">
-      <h3 className="font-display text-base font-bold tracking-tight text-slate-900">
-        Assessment Rubrics <span className="font-normal text-slate-500">({all.length})</span>
+      <h3 className="font-display text-base font-bold tracking-tight text-text-strong">
+        Assessment Rubrics <span className="font-normal text-text-muted">({all.length})</span>
       </h3>
       {provenance}
 
-      <ul className="mt-3 border-t border-slate-100">
+      <ul className="mt-3 border-t border-border">
         {rows.map((r) => (
           <Row key={r.criterionId} row={r} open={open.has(r.criterionId)} onToggle={() => toggle(r.criterionId)} />
         ))}

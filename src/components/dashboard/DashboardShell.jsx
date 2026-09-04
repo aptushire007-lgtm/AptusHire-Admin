@@ -18,10 +18,10 @@ import {
   Scale,
   Video,
   Search,
-  ShieldCheck,
   Building2,
   Sparkles,
   CreditCard,
+  Zap,
 } from "lucide-react";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
 import { clearAdminAuth, getAdminRefreshToken } from "../../auth/adminAuth.js";
@@ -31,29 +31,22 @@ import { NotificationProvider } from "../../context/NotificationContext.jsx";
 import Modal from "../ui/Modal.jsx";
 import NotificationBell from "./NotificationBell.jsx";
 import BrandLogo, { AptusMark } from "../ui/BrandLogo.jsx";
-import ThemeToggle from "../ui/ThemeToggle.jsx";
 
 const SIDEBAR_COLLAPSED_KEY = "admin_sidebar_collapsed:v1";
 
 function readSidebarCollapsed() {
-  try {
-    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
+  try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; }
+  catch { return false; }
 }
 
 function writeSidebarCollapsed(v) {
-  try {
-    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(v));
-  } catch {
-    // ignore
-  }
+  try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(v)); }
+  catch { /* ignore */ }
 }
 
 const NAV_GROUPS = [
   {
-    label: "Recruitment Operations",
+    label: "Recruitment",
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
       { to: "/jobs", label: "Active Jobs", icon: Briefcase },
@@ -64,7 +57,7 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "Intelligence & Team",
+    label: "Intelligence",
     items: [
       { to: "/recordings", label: "Recordings", icon: Video },
       { to: "/reports", label: "Analytics & Reports", icon: BarChart3 },
@@ -72,9 +65,9 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "Organization & Settings",
+    label: "Workspace",
     items: [
-      { to: "/settings", label: "Workspace Settings", icon: Settings },
+      { to: "/settings", label: "Settings", icon: Settings },
     ],
   },
 ];
@@ -82,13 +75,22 @@ const NAV_GROUPS = [
 function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
   const { user } = useAdminAuth();
   const { me } = useCompanyData();
-  const roleName = user?.role === "super_admin" ? "Platform Admin" : me?.role === "owner" ? "Head of Recruitment" : "Recruiter";
+  const roleName =
+    user?.role === "super_admin"
+      ? "Platform Admin"
+      : me?.role === "owner"
+      ? "Head of Recruitment"
+      : "Recruiter";
 
   return (
     <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden">
       <div>
-        {/* Brand Lockup */}
-        <div className={`flex h-16 items-center border-b border-slate-200/80 px-4 dark:border-slate-800/80 ${collapsed ? "justify-center px-2" : "justify-between"}`}>
+        {/* ── Brand Header ─────────────────────────────────────── */}
+        <div
+          className={`flex h-16 shrink-0 items-center border-b border-border bg-surface px-4 ${
+            collapsed ? "justify-center" : "justify-between"
+          }`}
+        >
           {collapsed ? (
             <AptusMark size="md" onClick={onNavigate} />
           ) : (
@@ -96,17 +98,17 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           )}
         </div>
 
-        {/* Role / Workspace Capsule */}
+        {/* ── Workspace Capsule ─────────────────────────────────── */}
         {!collapsed && (
-          <div className="mx-3 mt-4 mb-2 flex items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2.5 dark:border-slate-800/80 dark:bg-slate-900/60">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 font-bold text-white shadow-xs dark:bg-brand-500">
-              <Building2 className="h-4.5 w-4.5" />
+          <div className="mx-3 mt-4 mb-1 flex items-center gap-2.5 rounded-card border border-border bg-brand-50 p-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white shadow-card">
+              <Building2 className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-slate-900 dark:text-white">
+              <p className="truncate text-xs font-bold text-text-strong">
                 {me?.company?.name || "Aptus Workspace"}
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 dark:text-accent-400">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
                 <Sparkles className="h-3 w-3" />
                 {roleName}
               </span>
@@ -114,16 +116,19 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           </div>
         )}
 
-        {/* Navigation Sections */}
-        <nav aria-label="Dashboard Navigation" className="mt-3 flex flex-1 flex-col gap-5 px-3">
+        {/* ── Navigation ────────────────────────────────────────── */}
+        <nav
+          aria-label="Dashboard Navigation"
+          className="mt-3 flex flex-1 flex-col gap-5 px-3"
+        >
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               {!collapsed && (
-                <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-text-faint">
                   {group.label}
                 </p>
               )}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-px">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.to}
@@ -132,17 +137,30 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
                     onClick={onNavigate}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) =>
-                      `group relative flex items-center gap-3 rounded-[10px] py-2.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
-                        collapsed ? "justify-center px-2.5" : "px-3.5"
+                      `group relative flex items-center gap-3 rounded-control py-2.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                        collapsed ? "justify-center px-2.5" : "px-3"
                       } ${
                         isActive
-                          ? "bg-brand-100 text-brand-800 font-semibold dark:bg-brand-100 dark:text-brand-800"
-                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                          ? "before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-primary bg-brand-50 font-semibold text-primary"
+                          : "text-text-muted hover:bg-brand-50 hover:text-text"
                       }`
                     }
                   >
-                    <item.icon className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    {({ isActive }) => (
+                      <>
+                        <item.icon
+                          className={`h-4 w-4 shrink-0 transition-colors ${
+                            isActive
+                              ? "text-primary"
+                              : "text-text-faint group-hover:text-text-muted"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        {!collapsed && (
+                          <span className="truncate">{item.label}</span>
+                        )}
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </div>
@@ -151,27 +169,27 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
         </nav>
       </div>
 
-      {/* Sidebar Footer with Workspace Plan Card (Air Pay style) & Collapse Toggle */}
-      <div className="border-t border-slate-200/80 p-3 space-y-3 dark:border-slate-800/80">
+      {/* ── Sidebar Footer ────────────────────────────────────────── */}
+      <div className="space-y-2 border-t border-border p-3">
         {!collapsed && (
-          <div className="relative overflow-hidden rounded-[14px] border border-slate-200 bg-white p-3.5 text-slate-900 shadow-card">
+          <div className="rounded-card border border-brand-200 bg-gradient-to-br from-brand-50 to-primary-light p-3.5">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-brand-800">
-                <Sparkles className="h-3.5 w-3.5" /> Aptus Intelligence
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <Zap className="h-3.5 w-3.5" /> Aptus Intelligence
               </span>
-              <span className="rounded-md bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-800">
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
                 Live
               </span>
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">
-              Deterministic rubric scoring and live audio interview engine active.
+            <p className="mt-1.5 text-[11px] leading-4 text-text-muted">
+              Rubric scoring and live interview engine active.
             </p>
             <NavLink
               to="/settings"
               onClick={onNavigate}
-              className="mt-2.5 flex items-center justify-center gap-1.5 rounded-[9px] border border-slate-200 bg-slate-50 py-1.5 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-100"
+              className="mt-2.5 flex items-center justify-center gap-1.5 rounded-control border border-primary/25 bg-white py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-brand-50"
             >
-              <CreditCard className="h-3.5 w-3.5 text-brand-700" />
+              <CreditCard className="h-3.5 w-3.5" />
               <span>Workspace Plan</span>
             </NavLink>
           </div>
@@ -181,7 +199,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="flex w-full items-center justify-center gap-2 rounded-control py-2 text-xs font-medium text-text-faint transition-colors hover:bg-brand-50 hover:text-text-muted"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
@@ -189,7 +207,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4" />
-                <span>Collapse Sidebar</span>
+                <span>Collapse</span>
               </>
             )}
           </button>
@@ -199,125 +217,144 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
   );
 }
 
-function TopNav({ onMenuClick, collapsed }) {
+function TopNav({ onMenuClick }) {
   const { user } = useAdminAuth();
   const { me } = useCompanyData();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
   const companyName = me?.company?.name || "Your Workspace";
-  const roleName = user?.role === "super_admin" ? "Platform Admin" : me?.role === "owner" ? "Head of Recruitment" : "Recruiter";
+  const roleName =
+    user?.role === "super_admin"
+      ? "Platform Admin"
+      : me?.role === "owner"
+      ? "Head of Recruitment"
+      : "Recruiter";
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return undefined;
+    function handle(e) {
+      if (!profileRef.current?.contains(e.target)) setProfileOpen(false);
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [profileOpen]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200/80 bg-white/80 px-4 backdrop-blur-md transition-colors dark:border-slate-800/80 dark:bg-slate-950/80 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface px-4 shadow-card sm:px-6">
+      {/* Left — mobile burger + workspace identity */}
       <div className="flex min-w-0 items-center gap-3">
         <button
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+          className="tap-target inline-flex items-center justify-center rounded-control text-text-muted hover:bg-brand-50 hover:text-primary lg:hidden"
           onClick={onMenuClick}
-          aria-label="Open menu"
+          aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-sm font-bold text-slate-900 dark:text-white">{companyName}</h2>
-            <span className="hidden rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-accent-400 sm:inline-block">
+            <h2 className="truncate text-sm font-bold text-text-strong">
+              {companyName}
+            </h2>
+            <span className="hidden rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-primary sm:inline-block">
               {roleName}
             </span>
           </div>
-          <p className="truncate text-xs tabular-nums text-slate-500 dark:text-slate-400">
-            Workspace ID: {me?.company?.companyCode || "APT-01"}
+          <p className="truncate text-[11px] tabular-nums text-text-faint">
+            {me?.company?.companyCode || "APT-01"}
           </p>
         </div>
       </div>
 
-      {/* Global Quick Search Mock Trigger */}
+      {/* Centre — global search trigger */}
       <div className="hidden max-w-xs flex-1 md:block lg:max-w-sm">
-        <div
+        <button
+          type="button"
           onClick={() => navigate("/candidates")}
-          className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-slate-700"
+          className="flex w-full cursor-pointer items-center justify-between rounded-control border border-border bg-canvas px-3 py-2 text-xs text-text-muted transition-colors hover:border-primary/40 hover:bg-brand-50"
         >
-          <div className="flex items-center gap-2">
-            <Search className="h-3.5 w-3.5" />
-            <span>Search candidates, jobs, rubrics...</span>
-          </div>
-          <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 shadow-2xs dark:bg-slate-800 dark:text-slate-400">
-            ⌘K
+          <span className="flex items-center gap-2">
+            <Search className="h-3.5 w-3.5 text-text-faint" />
+            <span>Search candidates, jobs, rubrics…</span>
+          </span>
+          <kbd className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-text-faint">
+            Ctrl K
           </kbd>
-        </div>
+        </button>
       </div>
 
-      <div className="flex items-center gap-2.5">
-        {/* Dark / Light Mode Switch */}
-        <ThemeToggle />
-
-        {/* Realtime Notification Bell */}
+      {/* Right — notifications + user menu */}
+      <div className="flex shrink-0 items-center gap-2">
         <NotificationBell />
 
-        {/* User Profile Capsule Dropdown */}
-        <div className="relative">
+        {/* Profile capsule */}
+        <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 pr-2.5 transition-all hover:bg-slate-100 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+            className="flex items-center gap-2 rounded-card border border-border bg-canvas px-2.5 py-1.5 text-xs font-semibold text-text-strong transition-colors hover:border-primary/40 hover:bg-brand-50"
             aria-expanded={profileOpen}
+            aria-haspopup="true"
             aria-label="User menu"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-brand-600 font-bold text-xs text-white shadow-xs dark:bg-brand-500">
+            <span className="flex h-6 w-6 items-center justify-center rounded-control bg-primary text-[11px] font-bold text-white">
               {(user?.name || "A")[0].toUpperCase()}
             </span>
-            <span className="hidden text-xs font-semibold text-slate-800 dark:text-slate-200 sm:block">
+            <span className="hidden max-w-[7rem] truncate sm:block">
               {user?.name || "Recruiter"}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="h-3.5 w-3.5 text-text-faint" />
           </button>
 
           {profileOpen && (
-            <div
-              className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-lift backdrop-blur-md dark:border-slate-800/90 dark:bg-slate-900/95"
-              onMouseLeave={() => setProfileOpen(false)}
-            >
-              <div className="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
-                <p className="truncate text-xs font-bold text-slate-900 dark:text-white">{user?.name}</p>
-                <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{user?.email}</p>
-                <span className="mt-1 inline-block rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-accent-400">
+            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface p-1.5 shadow-lift">
+              {/* User info header */}
+              <div className="border-b border-border px-3 py-2.5">
+                <p className="truncate text-[13px] font-bold text-text-strong">
+                  {user?.name}
+                </p>
+                <p className="truncate text-[11px] text-text-muted">
+                  {user?.email}
+                </p>
+                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  <Sparkles className="h-2.5 w-2.5" />
                   {roleName}
                 </span>
               </div>
 
+              {/* Menu items */}
               <div className="py-1">
                 <button
-                  onClick={() => {
-                    setProfileOpen(false);
-                    navigate("/settings");
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  onClick={() => { setProfileOpen(false); navigate("/settings"); }}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-xs font-medium text-text-muted transition-colors hover:bg-brand-50 hover:text-primary"
                 >
-                  <Settings className="h-4 w-4 text-slate-400" /> Workspace Settings
+                  <Settings className="h-4 w-4 text-text-faint" />
+                  Workspace Settings
                 </button>
                 <button
-                  onClick={() => {
-                    setProfileOpen(false);
-                    navigate("/ai-interviews");
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  onClick={() => { setProfileOpen(false); navigate("/ai-interviews"); }}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-xs font-medium text-text-muted transition-colors hover:bg-brand-50 hover:text-primary"
                 >
-                  <Bot className="h-4 w-4 text-slate-400" /> AI Interviews
+                  <Bot className="h-4 w-4 text-text-faint" />
+                  AI Interviews
                 </button>
               </div>
 
-              <div className="border-t border-slate-100 pt-1 dark:border-slate-800">
+              {/* Logout */}
+              <div className="border-t border-border pt-1">
                 <button
                   onClick={() => {
                     const refreshToken = getAdminRefreshToken();
-                    if (refreshToken) {
-                      api.post("/auth/logout", { refreshToken }).catch(() => {});
-                    }
+                    if (refreshToken) api.post("/auth/logout", { refreshToken }).catch(() => {});
                     clearAdminAuth();
                     navigate("/login");
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-xs font-semibold text-verdict-negative transition-colors hover:bg-verdict-negative-tint"
                 >
-                  <LogOut className="h-4 w-4" /> Log Out
+                  <LogOut className="h-4 w-4" />
+                  Log Out
                 </button>
               </div>
             </div>
@@ -354,34 +391,29 @@ function ShellInner({ children }) {
   }, [mobileOpen]);
 
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (firstRender.current) { firstRender.current = false; return; }
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-slate-900 transition-colors dark:text-slate-100">
+    <div className="flex min-h-screen flex-col bg-canvas text-text">
+      {/* Skip link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-xl focus:bg-brand-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-deep"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-card focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
       >
         Skip to main content
       </a>
 
+      {/* View-as banner */}
       {viewAs && (
-        <div className="flex items-center justify-between gap-3 bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-xs">
+        <div className="flex items-center justify-between gap-3 bg-accent-gold px-4 py-2 text-sm font-medium text-white shadow-card">
           <span>
-            Viewing as tenant <span className="font-bold">{viewAs.name}</span> — read-only. Every mutation is rejected by
-            the server.
+            Viewing as tenant <span className="font-bold">{viewAs.name}</span> — read-only mode.
           </span>
           <button
-            onClick={() => {
-              setViewAsCompany(null);
-              window.location.assign("/platform");
-            }}
-            className="shrink-0 rounded-lg bg-white/20 px-3 py-1 text-xs font-semibold hover:bg-white/30"
+            onClick={() => { setViewAsCompany(null); window.location.assign("/platform"); }}
+            className="shrink-0 rounded-control bg-white/20 px-3 py-1 text-xs font-semibold hover:bg-white/30"
           >
             Exit view-as
           </button>
@@ -389,10 +421,10 @@ function ShellInner({ children }) {
       )}
 
       <div className="flex min-h-0 flex-1">
-        {/* Desktop Collapsible Sidebar */}
+        {/* ── Desktop Collapsible Sidebar ──────────────────────── */}
         <aside
-          className={`hidden shrink-0 flex-col border-r border-slate-200/80 bg-white/90 backdrop-blur-md transition-all duration-200 dark:border-slate-800/80 dark:bg-slate-950/90 lg:flex ${
-            collapsed ? "w-20" : "w-64"
+          className={`hidden shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 lg:flex ${
+            collapsed ? "w-[4.5rem]" : "w-64"
           }`}
         >
           <SidebarContent
@@ -401,37 +433,33 @@ function ShellInner({ children }) {
           />
         </aside>
 
-        {/* Mobile Navigation Drawer Modal */}
+        {/* ── Mobile Navigation Drawer ─────────────────────────── */}
         <Modal
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           placement="left"
           label="Navigation menu"
-          panelClassName="w-68 bg-white dark:bg-slate-950"
+          panelClassName="w-72 border-r border-border bg-surface"
         >
           <button
-            className="absolute right-3 top-4 inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-control text-text-muted hover:bg-brand-50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
-          <SidebarContent
-            collapsed={false}
-            onNavigate={() => setMobileOpen(false)}
-          />
+          <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} />
         </Modal>
 
-        {/* Main Content Viewport */}
+        {/* ── Main Content Column ───────────────────────────────── */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopNav onMenuClick={() => setMobileOpen(true)} collapsed={collapsed} />
+          <TopNav onMenuClick={() => setMobileOpen(true)} />
           <main
             key={pathname}
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            data-page-enter=""
-            className="flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
           >
             {children}
           </main>

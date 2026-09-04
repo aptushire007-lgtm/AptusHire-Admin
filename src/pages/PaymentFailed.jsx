@@ -38,8 +38,8 @@ export default function PaymentFailed() {
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
             <XCircle className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">{cancelled ? "Payment Cancelled" : "Payment Failed"}</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-text-strong">{cancelled ? "Payment Cancelled" : "Payment Failed"}</h1>
+          <p className="mt-2 text-sm text-text-muted">
             {cancelled
               ? "You closed the checkout before completing payment."
               : "We couldn't process your payment. You can try again or choose a different plan."}

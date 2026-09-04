@@ -24,7 +24,7 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-full p-2 text-slate-500 transition-colors duration-150 hover:bg-slate-100"
+        className="tap-target relative inline-flex items-center justify-center rounded-control p-2 text-text-muted transition-colors duration-150 hover:bg-lime-soft hover:text-primary"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -44,7 +44,7 @@ export default function NotificationBell() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white shadow-soft"
+              className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface shadow-soft"
             >
               <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                 <p className="text-sm font-semibold text-slate-800">Notifications</p>

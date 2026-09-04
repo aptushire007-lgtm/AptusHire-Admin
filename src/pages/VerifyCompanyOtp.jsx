@@ -106,8 +106,8 @@ export default function VerifyCompanyOtp() {
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Email verified</h3>
-              <p className="mt-1.5 text-sm text-slate-500">Taking you to plans…</p>
+              <h3 className="text-lg font-semibold text-text-strong">Email verified</h3>
+              <p className="mt-1.5 text-sm text-text-muted">Taking you to plans…</p>
             </motion.div>
           ) : (
             <>
@@ -115,8 +115,8 @@ export default function VerifyCompanyOtp() {
                 <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-600">
                   <MailCheck className="h-5.5 w-5.5" />
                 </div>
-                <h1 className="text-xl font-bold text-slate-900">Verify Your Email</h1>
-                <p className="mt-1.5 text-sm text-slate-500">
+                <h1 className="text-xl font-bold text-text-strong">Verify Your Email</h1>
+                <p className="mt-1.5 text-sm text-text-muted">
                   Enter the 6-digit code we sent to your admin email address.
                 </p>
               </div>
@@ -146,7 +146,7 @@ export default function VerifyCompanyOtp() {
                         onKeyDown={(e) => handleKeyDown(i, e)}
                         inputMode="numeric"
                         maxLength={1}
-                        className="h-12 w-9 rounded-xl border border-slate-300 text-center text-lg font-bold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100 sm:w-12"
+                        className="h-12 w-9 rounded-xl border border-border text-center text-lg font-bold text-text-strong shadow-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-brand-100 sm:w-12"
                       />
                     ))}
                   </div>
@@ -158,7 +158,7 @@ export default function VerifyCompanyOtp() {
 
               <div className="mt-5 text-center text-sm">
                 {cooldown > 0 ? (
-                  <span className="text-slate-500">Resend code in {cooldown}s</span>
+                  <span className="text-text-muted">Resend code in {cooldown}s</span>
                 ) : (
                   <button
                     type="button"
@@ -171,7 +171,7 @@ export default function VerifyCompanyOtp() {
                   </button>
                 )}
               </div>
-              <p className="mt-4 text-center text-sm text-slate-500">
+              <p className="mt-4 text-center text-sm text-text-muted">
                 <Link to="/login" className="hover:underline">
                   Back to login
                 </Link>

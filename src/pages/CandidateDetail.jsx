@@ -15,7 +15,7 @@ import { useCompanyData } from "../context/CompanyDataContext.jsx";
 function Section({ title, children }) {
   return (
     <Card>
-      <h3 className="mb-3 text-base font-semibold text-slate-900">{title}</h3>
+      <h3 className="mb-3 text-base font-semibold text-text-strong">{title}</h3>
       {children}
     </Card>
   );
@@ -39,7 +39,7 @@ const PROVENANCE_LABELS = {
     // blue and violet was a free hue; now that the brand ramp *is* violet, a
     // violet chip here would read as a brand accent rather than as a
     // provenance warning about where a field came from.
-    className: "border-slate-300 bg-slate-100 text-slate-700",
+    className: "border-border bg-canvas text-text-muted",
   },
 };
 
@@ -63,7 +63,7 @@ function ProvenanceSource({ provenance }) {
   return (
     <div className="mt-2 space-y-1">
       {provenance.spans.map((s, i) => (
-        <blockquote key={i} className="border-l-2 border-slate-300 pl-2 text-xs italic text-slate-500">
+        <blockquote key={i} className="border-l-2 border-border-mid pl-2 text-xs italic text-text-muted">
           “{s.quote}”
         </blockquote>
       ))}
@@ -117,7 +117,7 @@ function StageProgress({ status }) {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="text-xs font-semibold tracking-[0.06em] text-slate-500 uppercase">Hiring progress</p>
+        <p className="text-xs font-semibold tracking-[0.06em] text-text-muted uppercase">Hiring progress</p>
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -135,10 +135,9 @@ function StageProgress({ status }) {
       ) : (
         <>
           <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-lg font-bold tracking-tight text-slate-900">{stageLabel(current)}</span>
+            <span className="text-lg font-bold tracking-tight text-text-strong">{stageLabel(current)}</span>
             {currentIdx >= 0 && (
-              <span className="text-xs text-slate-500">
-                stage {currentIdx + 1} of {STAGES.length}
+              <span className="text-xs text-text-muted">                stage {currentIdx + 1} of {STAGES.length}
                 {next ? ` · next: ${stageLabel(next)}` : " · final stage"}
               </span>
             )}
@@ -166,7 +165,7 @@ function StageProgress({ status }) {
       )}
 
       {expanded && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
           {STAGES.map((st, i) => {
             const reached = !rejected && currentIdx >= i;
             const isCurrent = !rejected && currentIdx === i;
@@ -179,7 +178,7 @@ function StageProgress({ status }) {
                     ? "bg-brand-600 text-white"
                     : reached
                       ? "bg-brand-50 text-brand-700"
-                      : "bg-slate-50 text-slate-400")
+                      : "bg-canvas text-text-faint")
                 }
               >
                 {reached && !isCurrent && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
@@ -660,11 +659,11 @@ export default function CandidateDetail() {
           </div>
         )}
 
-        <div className="mt-5 border-t border-slate-100 pt-5">
+        <div className="mt-5 border-t border-border pt-5">
           <StageProgress status={candidate.status} />
         </div>
 
-        <div className="mt-5 grid gap-3 border-t border-slate-100 pt-5 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 border-t border-border pt-5 sm:grid-cols-2">
           {/* `min-w-0` on each cell, `shrink-0` on each icon, `overflow-wrap:
               anywhere` on each value: an address and an uploaded filename are
               unbreakable tokens, and as a grid item's min-content they sized the
@@ -849,7 +848,7 @@ export default function CandidateDetail() {
                     ))}
                   </div>
                   {(assessment.session.result.claimVerdicts || []).length > 0 && (
-                    <div className="mt-2 border-t border-slate-100 pt-2 text-xs text-slate-500">
+                    <div className="mt-2 border-t border-border pt-2 text-xs text-slate-500">
                       <p className="font-semibold text-slate-600">Résumé-claim verdicts (targeted items):</p>
                       {assessment.session.result.claimVerdicts.map((v) => (
                         <p key={v.claimId}>
@@ -918,7 +917,7 @@ export default function CandidateDetail() {
                 </Button>
               </div>
 
-              <div className="mt-5 grid items-end gap-3 border-t border-slate-100 pt-5 sm:grid-cols-[1fr_auto]">
+              <div className="mt-5 grid items-end gap-3 border-t border-border pt-5 sm:grid-cols-[1fr_auto]">
                 <FormGroup className="mb-0">
                   <Label>Reschedule to</Label>
                   <Input
@@ -982,8 +981,7 @@ export default function CandidateDetail() {
                     <Clock className="h-3 w-3" /> {formatWhen(h.at)}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
-                  by {h.by || "system"}
+                <p className="text-xs text-text-muted">                  by {h.by || "system"}
                   {h.note ? ` · ${h.note}` : ""}
                 </p>
               </li>
@@ -1123,8 +1121,7 @@ export default function CandidateDetail() {
                 </p>
                 <ProvenanceTag provenance={exp.provenance} />
               </div>
-              <p className="text-xs text-slate-500">
-                {exp.startDate} — {exp.currentlyWorking ? "Present" : exp.endDate}
+              <p className="text-xs text-text-muted">                {exp.startDate} — {exp.currentlyWorking ? "Present" : exp.endDate}
               </p>
               {exp.description && <p className="mt-2 text-sm text-slate-600">{exp.description}</p>}
               <ProvenanceSource provenance={exp.provenance} />
@@ -1145,8 +1142,7 @@ export default function CandidateDetail() {
                 </p>
                 <ProvenanceTag provenance={edu.provenance} />
               </div>
-              <p className="text-xs text-slate-500">
-                {edu.startYear} — {edu.endYear} {edu.grade && `· Grade: ${edu.grade}`}
+              <p className="text-xs text-text-muted">                {edu.startYear} — {edu.endYear} {edu.grade && `· Grade: ${edu.grade}`}
               </p>
               <ProvenanceSource provenance={edu.provenance} />
             </div>
@@ -1203,8 +1199,7 @@ export default function CandidateDetail() {
                 <p className="font-semibold text-slate-800">{cert.name}</p>
                 <ProvenanceTag provenance={cert.provenance} />
               </div>
-              <p className="text-xs text-slate-500">
-                {cert.issuer} {cert.issueDate && `· ${cert.issueDate}`}
+              <p className="text-xs text-text-muted">                {cert.issuer} {cert.issueDate && `· ${cert.issueDate}`}
               </p>
               {cert.credentialUrl && (
                 <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">

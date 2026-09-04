@@ -34,7 +34,7 @@ const CHIP_TONE = {
   pending: "bg-verdict-pending-tint text-verdict-pending",
   negative: "bg-verdict-negative-tint text-verdict-negative",
   // The Honest Reading Rule: a withheld verdict must not wear a verdict colour.
-  neutral: "bg-slate-100 text-slate-600 border border-dashed border-slate-300",
+  neutral: "bg-canvas text-text-muted border border-dashed border-border",
 };
 
 const CX = 100;
@@ -73,7 +73,7 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
         role="img"
         aria-label={`${label || "Score"}: ${has ? `${value} out of ${max}` : "no reading"}${verdict ? `, ${verdict.label}` : ""}`}
       >
-        <path d={sector(180, 360)} className="fill-slate-100" />
+        <path d={sector(180, 360)} className="fill-brand-100" />
         {frac > 0.004 && (
           <path
             d={sector(180, end)}
@@ -89,7 +89,7 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
           x={CX}
           y={CY - 6}
           textAnchor="middle"
-          className="fill-slate-900 font-display text-[34px] font-extrabold tabular-nums"
+          className="fill-text-strong font-display text-[34px] font-extrabold tabular-nums"
           style={{ letterSpacing: "-0.02em" }}
         >
           {shown}
@@ -106,7 +106,7 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
         </span>
       )}
 
-      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-slate-500">{caption}</figcaption>}
+      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-text-muted">{caption}</figcaption>}
     </figure>
   );
 }

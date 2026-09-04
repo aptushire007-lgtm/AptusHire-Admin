@@ -134,8 +134,8 @@ export default function Checkout() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Clock3 className="h-6 w-6" />
               </div>
-              <h1 className="text-lg font-semibold text-slate-900">Payments Coming Soon</h1>
-              <p className="mt-2 text-sm text-slate-500">
+              <h1 className="text-lg font-semibold text-text-strong">Payments Coming Soon</h1>
+              <p className="mt-2 text-sm text-text-muted">
                 Payments aren't configured on this platform yet. Please contact support, or try again once payments
                 are enabled.
               </p>
@@ -148,7 +148,7 @@ export default function Checkout() {
           {status === "error" && (
             <>
               <h1 className="text-lg font-semibold text-red-700">Checkout Error</h1>
-              <p className="mt-2 text-sm text-slate-500">{error}</p>
+              <p className="mt-2 text-sm text-text-muted">{error}</p>
               <Link to="/pricing" className="mt-5 inline-block text-sm font-semibold text-brand-700 hover:underline">
                 Back to pricing
               </Link>
@@ -160,9 +160,9 @@ export default function Checkout() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-              <h1 className="text-lg font-semibold text-slate-900">Preparing Checkout…</h1>
-              <p className="mt-2 text-sm text-slate-500">Please wait while we set up your secure payment.</p>
-              <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+              <h1 className="text-lg font-semibold text-text-strong">Preparing Checkout…</h1>
+              <p className="mt-2 text-sm text-text-muted">Please wait while we set up your secure payment.</p>
+              <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-text-muted">
                 <ShieldCheck className="h-3.5 w-3.5" /> Secured by Razorpay
               </div>
             </>

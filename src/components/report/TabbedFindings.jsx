@@ -46,11 +46,11 @@ export default function TabbedFindings({ tabs, emptyHint }) {
               aria-selected={isActive}
               onClick={() => setActive(t.key)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
-                isActive ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-700"
+                isActive ? "bg-primary text-white" : "bg-canvas text-text-muted hover:bg-brand-50 hover:text-primary"
               }`}
             >
               {t.label}
-              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-slate-400"}`}>{t.items?.length ?? 0}</span>
+              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-text-faint"}`}>{t.items?.length ?? 0}</span>
             </button>
           );
         })}
@@ -62,12 +62,12 @@ export default function TabbedFindings({ tabs, emptyHint }) {
             {current.items.map((item, i) => (
               <li key={i} className="flex items-start gap-2">
                 <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone.glyph}`} aria-hidden="true" />
-                <span className="min-w-0 text-sm leading-relaxed text-slate-700">{item}</span>
+                <span className="min-w-0 text-sm leading-relaxed text-text">{item}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500 italic">{current.empty || emptyHint || "None recorded."}</p>
+          <p className="text-sm text-text-muted italic">{current.empty || emptyHint || "None recorded."}</p>
         )}
       </div>
     </div>
