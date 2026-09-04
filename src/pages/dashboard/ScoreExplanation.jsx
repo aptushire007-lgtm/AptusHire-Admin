@@ -76,7 +76,7 @@ function CopyHash({ value }) {
       type="button"
       onClick={copy}
       disabled={!value || value === "undefined"}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-slate-500 ${FOCUS_RING}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-[#6B6B6B] transition-colors duration-150 hover:bg-[#F5F5F0] hover:text-[#1A1A1A] active:bg-[#F5F5F0]-deep disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:hover:text-[#6B6B6B] ${FOCUS_RING}`}
     >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
@@ -95,30 +95,30 @@ function LedgerRow({ finding }) {
   const available = (Number(finding.weight) || 0) * 100;
 
   return (
-    <li className="border-b border-slate-100 py-5 first:pt-0">
+    <li className="border-b border-[#E8E8E4] py-5 first:pt-0">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <Badge tone={meta.tone}>{meta.label}</Badge>
-          <span className="font-medium [overflow-wrap:anywhere] text-slate-800">{finding.label}</span>
-          {finding.kind === "nice_to_have" && <span className="text-xs text-slate-500">nice-to-have</span>}
+          <span className="font-medium [overflow-wrap:anywhere] text-[#1A1A1A]">{finding.label}</span>
+          {finding.kind === "nice_to_have" && <span className="text-xs text-[#6B6B6B]">nice-to-have</span>}
         </div>
         <div className="flex items-baseline tabular-nums">
-          <span className={`${COL_WEIGHT} text-sm text-slate-500`}>{available.toFixed(0)}%</span>
+          <span className={`${COL_WEIGHT} text-sm text-[#6B6B6B]`}>{available.toFixed(0)}%</span>
           <span className={COL_EARNED}>
-            <span className="text-base font-semibold text-slate-900">{earned.toFixed(1)}</span>
-            <span className="text-sm text-slate-500"> / {available.toFixed(1)}</span>
+            <span className="text-base font-semibold text-[#1A1A1A]">{earned.toFixed(1)}</span>
+            <span className="text-sm text-[#6B6B6B]"> / {available.toFixed(1)}</span>
           </span>
         </div>
       </div>
 
-      {finding.reasoning && <p className="mt-2.5 max-w-prose text-sm text-slate-600">{finding.reasoning}</p>}
+      {finding.reasoning && <p className="mt-2.5 max-w-prose text-sm text-[#6B6B6B]">{finding.reasoning}</p>}
 
       {finding.evidence?.length > 0 && (
-        <div className="mt-3 space-y-3 border-l border-slate-200 pl-4">
+        <div className="mt-3 space-y-3 border-l border-[#E8E8E4] pl-4">
           {finding.evidence.map((e) => (
             <figure key={e.claimId} className="max-w-prose">
-              <blockquote className="text-sm leading-relaxed [overflow-wrap:anywhere] text-slate-700">“{e.quote}”</blockquote>
-              <figcaption className="mt-1 text-xs text-slate-500">
+              <blockquote className="text-sm leading-relaxed [overflow-wrap:anywhere] text-[#1A1A1A]">“{e.quote}”</blockquote>
+              <figcaption className="mt-1 text-xs text-[#6B6B6B]">
                 {e.statement} · {e.specificity} · {VERIFICATION_LABEL[e.verificationStatus] || e.verificationStatus}
               </figcaption>
             </figure>
@@ -127,7 +127,7 @@ function LedgerRow({ finding }) {
       )}
 
       {finding.evidence?.length === 0 && finding.status === "absent" && (
-        <p className="mt-2.5 text-sm text-slate-500">No claim in the résumé addresses this criterion.</p>
+        <p className="mt-2.5 text-sm text-[#6B6B6B]">No claim in the résumé addresses this criterion.</p>
       )}
     </li>
   );
@@ -154,7 +154,7 @@ export default function ScoreExplanation() {
   const backLink = (
     <Link
       to={`/candidates/${id}`}
-      className={`inline-flex items-center gap-1.5 rounded-lg text-sm whitespace-nowrap text-slate-500 hover:text-slate-700 ${FOCUS_RING}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg text-sm whitespace-nowrap text-[#6B6B6B] hover:text-[#1A1A1A] ${FOCUS_RING}`}
     >
       <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to candidate
     </Link>
@@ -205,15 +205,15 @@ export default function ScoreExplanation() {
       {/* Masthead — the decision, not the number. The figure is derived below. */}
       <header className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">Why this score</h1>
-          <p className="mt-1 max-w-prose text-sm [overflow-wrap:anywhere] text-slate-500">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Why this score</h1>
+          <p className="mt-1 max-w-prose text-sm [overflow-wrap:anywhere] text-[#6B6B6B]">
             {data.candidateName} — scored against rubric v{data.rubricVersion},{" "}
             {data.mode === "shadow" ? "shadow run (did not drive the decision)" : "live"}
           </p>
         </div>
         <div className="flex flex-col items-start gap-1.5 sm:items-end">
           <Badge tone={band.tone}>{band.label}</Badge>
-          <p className="text-xs tabular-nums text-slate-500">
+          <p className="text-xs tabular-nums text-[#6B6B6B]">
             advance ≥ {data.thresholds?.advance ?? "—"} · review ≥ {data.thresholds?.review ?? "—"}
           </p>
         </div>
@@ -228,12 +228,12 @@ export default function ScoreExplanation() {
 
       {/* The ledger. Each criterion is a line item; the column sums to the total. */}
       <Card>
-        <h2 className="text-base font-semibold text-slate-900">Criterion ledger</h2>
-        <p className="mt-1 max-w-prose text-sm text-slate-500">
+        <h2 className="text-base font-semibold text-[#1A1A1A]">Criterion ledger</h2>
+        <p className="mt-1 max-w-prose text-sm text-[#6B6B6B]">
           Earned points = evidence quality × criterion weight. Nothing here was assigned by a model.
         </p>
 
-        <div className="mt-5 hidden items-baseline justify-between gap-x-6 border-b border-slate-200 pb-2 text-xs font-semibold text-slate-500 sm:flex">
+        <div className="mt-5 hidden items-baseline justify-between gap-x-6 border-b border-[#E8E8E4] pb-2 text-xs font-semibold text-[#6B6B6B] sm:flex">
           <span>Criterion and the evidence behind it</span>
           <span className="flex items-baseline">
             <span className={COL_WEIGHT}>Weight</span>
@@ -248,30 +248,30 @@ export default function ScoreExplanation() {
         </ul>
 
         {/* Double rule — the accountant's total. */}
-        <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t-4 border-double border-slate-300 pt-4">
-          <span className="font-semibold text-slate-900">Total</span>
+        <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t-4 border-double border-[#E8E8E4]-mid pt-4">
+          <span className="font-semibold text-[#1A1A1A]">Total</span>
           <span className="flex items-baseline tabular-nums">
-            <span className={`${COL_WEIGHT} text-sm text-slate-500`}>{totalAvailable.toFixed(0)}%</span>
+            <span className={`${COL_WEIGHT} text-sm text-[#6B6B6B]`}>{totalAvailable.toFixed(0)}%</span>
             <span className={COL_EARNED}>
-              <span className="text-xl font-bold text-slate-900">{totalEarned.toFixed(1)}</span>
-              <span className="text-sm text-slate-500"> / {totalAvailable.toFixed(1)}</span>
+              <span className="text-xl font-bold text-[#1A1A1A]">{totalEarned.toFixed(1)}</span>
+              <span className="text-sm text-[#6B6B6B]"> / {totalAvailable.toFixed(1)}</span>
             </span>
           </span>
         </div>
 
-        <p className="mt-3 max-w-prose text-sm text-slate-600">
-          Recorded score <span className="font-semibold tabular-nums text-slate-900">{data.overallScore}</span> — the
+        <p className="mt-3 max-w-prose text-sm text-[#6B6B6B]">
+          Recorded score <span className="font-semibold tabular-nums text-[#1A1A1A]">{data.overallScore}</span> — the
           total above, rounded to a whole number. Add the column yourself; it reconciles by construction.
         </p>
       </Card>
 
       {hasMovement && (
         <Card>
-          <h2 className="text-base font-semibold text-slate-900">What moved this total</h2>
+          <h2 className="text-base font-semibold text-[#1A1A1A]">What moved this total</h2>
 
           {hasStageDelta && (
             <div className="mt-4">
-              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 text-sm text-slate-700">
+              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 text-sm text-[#1A1A1A]">
                 <span className="tabular-nums">
                   Interview verdicts moved the score{" "}
                   <span className="font-semibold">{data.stages.pre.overallScore}</span> →{" "}
@@ -282,7 +282,7 @@ export default function ScoreExplanation() {
                   {data.stages.delta}
                 </Badge>
               </p>
-              <p className="mt-2 max-w-prose text-sm text-slate-600">
+              <p className="mt-2 max-w-prose text-sm text-[#6B6B6B]">
                 Claims proven in the interview count fully; claims the interview contradicted count zero.
                 {data.stage === "pre_interview" && " You are viewing the pre-interview assessment."}
                 {data.stage === "post_interview" && " You are viewing the post-interview assessment."}
@@ -291,8 +291,8 @@ export default function ScoreExplanation() {
           )}
 
           {data.calibration && (
-            <div className={hasStageDelta ? "mt-5 border-t border-slate-100 pt-5" : "mt-4"}>
-              <p className="max-w-prose text-sm text-slate-700">
+            <div className={hasStageDelta ? "mt-5 border-t border-[#E8E8E4] pt-5" : "mt-4"}>
+              <p className="max-w-prose text-sm text-[#1A1A1A]">
                 Candidates scoring{" "}
                 <span className="tabular-nums">
                   {data.calibration.band.lo}–{data.calibration.band.hi}
@@ -301,7 +301,7 @@ export default function ScoreExplanation() {
                 <span className="font-semibold tabular-nums">{Math.round(data.calibration.probability * 100)}%</span> of
                 the time.
               </p>
-              <p className="mt-1.5 max-w-prose text-xs tabular-nums text-slate-500">
+              <p className="mt-1.5 max-w-prose text-xs tabular-nums text-[#6B6B6B]">
                 n={data.calibration.n} · 95% CI {Math.round(data.calibration.ciLow * 100)}–
                 {Math.round(data.calibration.ciHigh * 100)}% · {data.calibration.sampleSize} decided outcomes ·
                 display-only, never feeds the score
@@ -313,19 +313,19 @@ export default function ScoreExplanation() {
 
       {disqualifiers.length > 0 && (
         <Card>
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
             <ShieldAlert className="h-4 w-4 text-red-500" aria-hidden="true" /> Knock-out gates
           </h2>
-          <p className="mt-1 max-w-prose text-sm text-slate-500">
+          <p className="mt-1 max-w-prose text-sm text-[#6B6B6B]">
             Pass/fail conditions. They carry no weight and add no points — a triggered gate bypasses the ledger entirely.
           </p>
           <ul className="mt-4">
             {disqualifiers.map((f) => (
               <li
                 key={f.criterionId}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-slate-100 py-3 text-sm first:pt-0 last:border-b-0 last:pb-0"
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-[#E8E8E4] py-3 text-sm first:pt-0 last:border-b-0 last:pb-0"
               >
-                <span className="min-w-0 [overflow-wrap:anywhere] text-slate-700">{f.label}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] text-[#1A1A1A]">{f.label}</span>
                 <Badge tone={f.status === "satisfied" ? "red" : f.status === "partial" ? "amber" : "green"}>
                   {f.status === "satisfied" ? "Triggered" : f.status === "partial" ? "Ambiguous — human review" : "Clear"}
                 </Badge>
@@ -337,17 +337,17 @@ export default function ScoreExplanation() {
 
       {(data.internalContradictions?.length > 0 || data.unverifiedHighWeightClaims?.length > 0) && (
         <Card>
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
             <AlertTriangle className="h-4 w-4 text-amber-500" aria-hidden="true" /> Open questions for the interview
           </h2>
 
           {data.internalContradictions?.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-semibold text-slate-700">Internal inconsistencies</p>
-              <p className="mt-0.5 text-xs text-slate-500">Never scored — they become probe targets.</p>
-              <ul className="mt-2.5 space-y-2 border-l border-slate-200 pl-4">
+              <p className="text-sm font-semibold text-[#1A1A1A]">Internal inconsistencies</p>
+              <p className="mt-0.5 text-xs text-[#6B6B6B]">Never scored — they become probe targets.</p>
+              <ul className="mt-2.5 space-y-2 border-l border-[#E8E8E4] pl-4">
                 {data.internalContradictions.map((c, i) => (
-                  <li key={i} className="max-w-prose text-sm text-slate-600">
+                  <li key={i} className="max-w-prose text-sm text-[#6B6B6B]">
                     {c.description}
                   </li>
                 ))}
@@ -357,11 +357,11 @@ export default function ScoreExplanation() {
 
           {data.unverifiedHighWeightClaims?.length > 0 && (
             <p
-              className={`max-w-prose text-sm text-slate-600 ${
-                data.internalContradictions?.length > 0 ? "mt-5 border-t border-slate-100 pt-5" : "mt-4"
+              className={`max-w-prose text-sm text-[#6B6B6B] ${
+                data.internalContradictions?.length > 0 ? "mt-5 border-t border-[#E8E8E4] pt-5" : "mt-4"
               }`}
             >
-              <span className="font-semibold tabular-nums text-slate-800">
+              <span className="font-semibold tabular-nums text-[#1A1A1A]">
                 {data.unverifiedHighWeightClaims.length}
               </span>{" "}
               high-weight claim{data.unverifiedHighWeightClaims.length === 1 ? " is" : "s are"} self-reported and
@@ -373,28 +373,28 @@ export default function ScoreExplanation() {
 
       {/* Colophon — how this record was produced. Deliberately uncarded: it closes
           the document rather than adding another object to it. */}
-      <footer className="border-t border-slate-200 pt-6">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+      <footer className="border-t border-[#E8E8E4] pt-6">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
           <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden="true" /> How this record was produced
         </h2>
 
         <dl className="mt-4 grid gap-x-8 gap-y-4 text-sm sm:grid-cols-3">
           <div>
-            <dt className="text-xs font-semibold text-slate-500">Quality gate</dt>
-            <dd className="mt-1 text-slate-800">
+            <dt className="text-xs font-semibold text-[#6B6B6B]">Quality gate</dt>
+            <dd className="mt-1 text-[#1A1A1A]">
               {data.qa?.outcome || "—"}
-              {data.qa?.mode && <span className="text-slate-500"> ({data.qa.mode})</span>}
+              {data.qa?.mode && <span className="text-[#6B6B6B]"> ({data.qa.mode})</span>}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold text-slate-500">Model agreement</dt>
-            <dd className="mt-1 tabular-nums text-slate-800">
+            <dt className="text-xs font-semibold text-[#6B6B6B]">Model agreement</dt>
+            <dd className="mt-1 tabular-nums text-[#1A1A1A]">
               {data.qa?.agreement != null ? `${Math.round(data.qa.agreement * 100)}%` : "not boundary-tested"}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold text-slate-500">Bias counterfactual</dt>
-            <dd className="mt-1 text-slate-800">
+            <dt className="text-xs font-semibold text-[#6B6B6B]">Bias counterfactual</dt>
+            <dd className="mt-1 text-[#1A1A1A]">
               {data.qa?.counterfactual?.ran
                 ? data.qa.counterfactual.identical
                   ? "zero delta (identical input)"
@@ -405,13 +405,13 @@ export default function ScoreExplanation() {
         </dl>
 
         {data.qa?.reasons?.length > 0 && (
-          <p className="mt-4 max-w-prose text-sm text-slate-500">Gate notes: {data.qa.reasons.join(" · ")}</p>
+          <p className="mt-4 max-w-prose text-sm text-[#6B6B6B]">Gate notes: {data.qa.reasons.join(" · ")}</p>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#E8E8E4] pt-4 text-xs text-[#6B6B6B]">
           <span className="inline-flex flex-wrap items-center gap-1.5">
             Reproducibility hash
-            <span className="tabular-nums tracking-tight break-all text-slate-700">
+            <span className="tabular-nums tracking-tight break-all text-[#1A1A1A]">
               {String(data.reproducibilityHash).slice(0, 16)}…
             </span>
             <CopyHash value={String(data.reproducibilityHash)} />
@@ -420,7 +420,7 @@ export default function ScoreExplanation() {
           {data.promptVersions?.length > 0 && <span>Prompts {data.promptVersions.join(", ")}</span>}
         </div>
 
-        <p className="mt-4 max-w-prose text-xs text-slate-500">
+        <p className="mt-4 max-w-prose text-xs text-[#6B6B6B]">
           Every point above was computed by deterministic code from cited evidence. The model extracts and reasons over
           the text; it never emits the score.
         </p>

@@ -113,7 +113,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
   return (
     <Card>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-900">Interview Rounds</h3>
+        <h3 className="text-base font-semibold text-[#1A1A1A]">Interview Rounds</h3>
         <Button size="sm" variant="secondary" onClick={() => setInviting((v) => !v)}>
           <UserPlus className="h-4 w-4" />
           Invite interviewer
@@ -121,7 +121,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
       </div>
 
       {inviting && (
-        <form onSubmit={invite} className="mb-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+        <form onSubmit={invite} className="mb-4 rounded-xl border border-[#E8E8E4] bg-[#FFE8DC]/60 p-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <FormGroup>
               <Label>Round</Label>
@@ -153,7 +153,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
               />
             </FormGroup>
           </div>
-          <p className="mt-1 flex items-start gap-1.5 text-xs text-slate-500">
+          <p className="mt-1 flex items-start gap-1.5 text-xs text-[#6B6B6B]">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             They get a link — no account needed. The form carries this role&apos;s approved criteria and the
             claims still worth probing, and it stays blind to the engine&apos;s score until they submit.
@@ -171,7 +171,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
       )}
 
       {scorecards.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-[#6B6B6B]">
           No interview rounds recorded yet. Invite an interviewer to capture one.
         </p>
       ) : (
@@ -185,8 +185,8 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                   className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50/60 px-3 py-2"
                 >
                   <div className="min-w-0 text-sm">
-                    <span className="font-semibold text-slate-800">{s.interviewer.name}</span>
-                    <span className="text-slate-500"> · {stageLabel(s.stage)}</span>
+                    <span className="font-semibold text-[#1A1A1A]">{s.interviewer.name}</span>
+                    <span className="text-[#6B6B6B]"> · {stageLabel(s.stage)}</span>
                     <span className="ml-2 inline-flex items-center gap-1 text-xs text-amber-700">
                       <Clock className="h-3 w-3" />
                       {s.openedAt ? "opened, not submitted" : "not opened yet"}
@@ -209,11 +209,11 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
 
           {/* Submitted rounds */}
           {submitted.map((s) => (
-            <div key={s.id} className="mb-3 rounded-xl border border-slate-200 p-3">
+            <div key={s.id} className="mb-3 rounded-xl border border-[#E8E8E4] p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="text-sm">
-                  <span className="font-semibold text-slate-800">{s.interviewer.name}</span>
-                  <span className="text-slate-500"> · {stageLabel(s.stage)}</span>
+                  <span className="font-semibold text-[#1A1A1A]">{s.interviewer.name}</span>
+                  <span className="text-[#6B6B6B]"> · {stageLabel(s.stage)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {s.rollup?.score === null || s.rollup?.score === undefined ? (
@@ -226,10 +226,10 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
               </div>
 
               {s.rollup?.withheldReason && (
-                <p className="mt-1.5 text-xs text-slate-500">{s.rollup.withheldReason}</p>
+                <p className="mt-1.5 text-xs text-[#6B6B6B]">{s.rollup.withheldReason}</p>
               )}
               {s.decisionReason && (
-                <p className="mt-1.5 text-xs text-slate-600">
+                <p className="mt-1.5 text-xs text-[#6B6B6B]">
                   <strong>Reason:</strong> {s.decisionReason}
                 </p>
               )}
@@ -240,7 +240,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                   className={`mt-2 flex items-start gap-1.5 rounded-lg px-2.5 py-1.5 text-xs ${
                     Math.abs(s.disagreement.delta) >= 25
                       ? "bg-amber-50 text-amber-800"
-                      : "bg-slate-50 text-slate-600"
+                      : "bg-[#FFE8DC] text-[#6B6B6B]"
                   }`}
                 >
                   {Math.abs(s.disagreement.delta) >= 25 && <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
@@ -253,7 +253,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
               )}
 
               {s.rollup?.reproducibilityHash && (
-                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500">
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[#6B6B6B]">
                   <ShieldCheck className="h-3 w-3" />
                   Computed by code from rubric v{s.rubricVersion} · record {s.rollup.reproducibilityHash.slice(0, 12)}
                 </p>
@@ -264,7 +264,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
           {/* The Evidence Ledger */}
           {ledger?.available && ledger.rounds.length > 0 && (
             <div className="mt-4">
-              <h4 className="mb-2 text-sm font-semibold text-slate-800">Evidence ledger</h4>
+              <h4 className="mb-2 text-sm font-semibold text-[#1A1A1A]">Evidence ledger</h4>
               {/* One card per criterion, each holding a cell per round.
                   The cross-tab it replaced compared rounds along a row, which is
                   the comparison that matters — so the cells stay side by side
@@ -273,18 +273,18 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                   a readable width instead of the 220px a table column allowed. */}
               <div className="space-y-2.5">
                 {ledger.criteria.map((c) => (
-                  <div key={c.criterionId} className="rounded-xl border border-slate-200 p-3">
+                  <div key={c.criterionId} className="rounded-xl border border-[#E8E8E4] p-3">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                      <span className="text-sm font-semibold text-slate-800">{c.label}</span>
-                      <span className="text-xs text-slate-500">{Math.round(c.weight * 100)}% of the rubric</span>
+                      <span className="text-sm font-semibold text-[#1A1A1A]">{c.label}</span>
+                      <span className="text-xs text-[#6B6B6B]">{Math.round(c.weight * 100)}% of the rubric</span>
                     </div>
 
                     <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {c.cells.map((cell, i) => {
                         const round = ledger.rounds[i];
                         return (
-                          <div key={cell.roundId} className="rounded-lg bg-slate-50 px-3 py-2">
-                            <p className="text-[11px] font-semibold text-slate-500">
+                          <div key={cell.roundId} className="rounded-lg bg-[#FFE8DC] px-3 py-2">
+                            <p className="text-[11px] font-semibold text-[#6B6B6B]">
                               {round ? stageLabel(round.stage) : "Round"}
                               {round?.interviewer && (
                                 <span className="font-normal"> · {round.interviewer}</span>
@@ -293,11 +293,11 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                             {!cell.assessed ? (
                               // Rule 5: an unassessed criterion is labelled, never
                               // left blank in a way that reads as a zero.
-                              <p className="mt-1 text-xs italic text-slate-500">not assessed</p>
+                              <p className="mt-1 text-xs italic text-[#6B6B6B]">not assessed</p>
                             ) : (
                               <>
-                                <p className="mt-1 text-sm font-semibold text-slate-900">{cell.rating}/5</p>
-                                {cell.note && <p className="mt-0.5 text-xs text-slate-500">{cell.note}</p>}
+                                <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{cell.rating}/5</p>
+                                {cell.note && <p className="mt-0.5 text-xs text-[#6B6B6B]">{cell.note}</p>}
                                 {cell.claimVerdicts?.map((v) => (
                                   <span
                                     key={v.claimId}
@@ -306,7 +306,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                                         ? "bg-emerald-50 text-emerald-700"
                                         : v.verdict === "contradicted"
                                           ? "bg-red-50 text-red-700"
-                                          : "bg-slate-100 text-slate-500"
+                                          : "bg-[#F5F5F0] text-[#6B6B6B]"
                                     }`}
                                   >
                                     {v.verdict === "verified" && <CheckCircle2 className="h-3 w-3" />}
@@ -322,7 +322,7 @@ export default function ScorecardPanel({ candidateId, enabled = true }) {
                   </div>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-[#6B6B6B]">
                 Every cell names the person who observed it and what they saw. Ratings are per-criterion; the
                 round score is computed from them in code, never entered by hand.
               </p>

@@ -48,12 +48,12 @@ function ScoreBar({ label, value }) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-500">{label}</span>
-        <span className="font-semibold tabular-nums text-slate-800">{value != null ? `${value}/100` : "—"}</span>
+        <span className="font-medium text-[#6B6B6B]">{label}</span>
+        <span className="font-semibold tabular-nums text-[#1A1A1A]">{value != null ? `${value}/100` : "—"}</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#F5F5F0]">
         <div
-          className={`h-full rounded-full ${value == null ? "bg-slate-200" : BRAND_MARK}`}
+          className={`h-full rounded-full ${value == null ? "bg-[#F5F5F0]-deep" : BRAND_MARK}`}
           style={{ width: `${Math.max(0, Math.min(100, value || 0))}%` }}
         />
       </div>
@@ -122,12 +122,12 @@ function Figure({ label, value, basis, flag }) {
     // strip. Carrying `px-4 first:pl-0` down to the stacked layout indented every
     // cell except the first against the card's own left edge.
     <div className="min-w-0 lg:px-5 lg:first:pl-0">
-      <dt className="text-[11px] font-semibold text-slate-500">{label}</dt>
+      <dt className="text-[11px] font-semibold text-[#6B6B6B]">{label}</dt>
       <dd className="mt-1">
-        <span className="font-display block text-2xl font-bold tabular-nums tracking-tight text-slate-900">{value}</span>
-        {basis && <span className="mt-1 block text-[11px] leading-snug text-slate-500">{basis}</span>}
+        <span className="font-display block text-2xl font-bold tabular-nums tracking-tight text-[#1A1A1A]">{value}</span>
+        {basis && <span className="mt-1 block text-[11px] leading-snug text-[#6B6B6B]">{basis}</span>}
         {flag && (
-          <span className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-verdict-pending-tint px-1.5 py-0.5 text-[10px] font-bold text-verdict-pending">
+          <span className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#FFE8DC] px-1.5 py-0.5 text-[10px] font-bold text-[#FF6B2C]">
             <AlertTriangle className="h-3 w-3" aria-hidden="true" /> {flag}
           </span>
         )}
@@ -301,7 +301,7 @@ function InstrumentScores({ report, interview, ev, coverage, quality, id, only =
           footer={
             <>
               {notMeasurable && (
-                <p className="mb-3 flex items-start gap-2 rounded-xl border border-verdict-pending/30 bg-verdict-pending-tint px-3 py-2 text-xs font-semibold text-verdict-pending">
+                <p className="mb-3 flex items-start gap-2 rounded-xl border border-verdict-pending/30 bg-[#FFE8DC] px-3 py-2 text-xs font-semibold text-[#FF6B2C]">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   {placeholder
                     ? "Scoring didn't run. There's no result here yet."
@@ -523,9 +523,9 @@ function Headline({ report, interview, coverage, quality, onResend, resending, s
 
   return (
     <Card>
-      <p className="font-display text-xl font-bold tracking-tight text-slate-900 text-balance">{sentence}</p>
+      <p className="font-display text-xl font-bold tracking-tight text-[#1A1A1A] text-balance">{sentence}</p>
       {interview?.status === "ended_early" && (
-        <p className="mt-1.5 text-sm text-slate-600">
+        <p className="mt-1.5 text-sm text-[#6B6B6B]">
           {firstName} ended the interview early, so most of it never ran — a person needs to make this call.
         </p>
       )}
@@ -594,7 +594,7 @@ function ClaimVerificationCard({ cv }) {
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
           <ShieldCheck className="h-4 w-4 text-brand-600" /> Claim verification
         </h3>
         {d && (
@@ -603,7 +603,7 @@ function ClaimVerificationCard({ cv }) {
           </Badge>
         )}
       </div>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1 text-xs text-[#6B6B6B]">
         These questions tested résumé claims the screening couldn&apos;t verify. Verdicts changed the evidence score through the
         verification multiplier{d ? "" : " (rescore pending)"}.
       </p>
@@ -611,31 +611,31 @@ function ClaimVerificationCard({ cv }) {
         {cv.probes.map((p) => {
           const meta = p.verdict ? PROBE_VERDICT_META[p.verdict] : null;
           return (
-            <div key={p.claimId} className={`rounded-xl border p-3 ${meta ? meta.border : "border-slate-200 bg-slate-50/60"}`}>
+            <div key={p.claimId} className={`rounded-xl border p-3 ${meta ? meta.border : "border-[#E8E8E4] bg-[#FFE8DC]/60"}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge tone={meta ? meta.tone : "slate"}>
                   {meta ? meta.label : p.status === "asked" ? "Asked — verdict pending" : "Not covered in this interview"}
                 </Badge>
               </div>
               {p.resumeQuote && (
-                <p className="mt-2 text-xs text-slate-500">
-                  <span className="font-semibold text-slate-600">Résumé:</span> &ldquo;{p.resumeQuote}&rdquo;
+                <p className="mt-2 text-xs text-[#6B6B6B]">
+                  <span className="font-semibold text-[#6B6B6B]">Résumé:</span> &ldquo;{p.resumeQuote}&rdquo;
                 </p>
               )}
-              <p className="mt-1 text-sm text-slate-700">
-                <span className="text-xs font-semibold text-slate-600">Asked:</span> {p.question}
+              <p className="mt-1 text-sm text-[#1A1A1A]">
+                <span className="text-xs font-semibold text-[#6B6B6B]">Asked:</span> {p.question}
               </p>
               {p.answerQuote && (
-                <p className="mt-1 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-600">Answer:</span> &ldquo;{p.answerQuote}&rdquo;
+                <p className="mt-1 text-xs text-[#6B6B6B]">
+                  <span className="font-semibold text-[#6B6B6B]">Answer:</span> &ldquo;{p.answerQuote}&rdquo;
                 </p>
               )}
-              {p.verdictReasoning && <p className="mt-1.5 text-xs italic text-slate-500">{p.verdictReasoning}</p>}
+              {p.verdictReasoning && <p className="mt-1.5 text-xs italic text-[#6B6B6B]">{p.verdictReasoning}</p>}
             </div>
           );
         })}
       </div>
-      <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <p className="mt-4 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">
         A contradicted claim is evidence for your judgement — both quotes are shown so you can read the exchange yourself. It never
         auto-rejects.
       </p>
@@ -665,30 +665,30 @@ function AssessmentCard({ assessment, criterionLabels }) {
   const labelFor = (id) => criterionLabels?.[id] || id;
   return (
     <Card>
-      <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+      <h3 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
         <ShieldCheck className="h-4 w-4 text-brand-600" /> Skills assessment
       </h3>
       {decision?.action === "skipped" ? (
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-[#6B6B6B]">
           Skipped by <strong>{decision.byName || "a recruiter"}</strong> on {formatWhen(decision.at)} — sent directly to the AI
           interview. A recorded human decision, not missing data.
         </p>
       ) : !session ? (
-        <p className="mt-2 text-sm text-slate-500">An assessment decision was recorded but no session exists yet.</p>
+        <p className="mt-2 text-sm text-[#6B6B6B]">An assessment decision was recorded but no session exists yet.</p>
       ) : (
         <>
           {session.difficultyTier && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-[#6B6B6B]">
               Difficulty <strong className="uppercase">{session.difficultyTier.value}</strong> —{" "}
               {ASSESSMENT_TIER_SOURCE[session.difficultyTier.source] || session.difficultyTier.source}
               {session.difficultyTier.basis ? ` (${session.difficultyTier.basis})` : ""}
             </p>
           )}
           {!result ? (
-            <p className="mt-2 text-sm text-slate-500">Status: {session.status}. No scored result yet.</p>
+            <p className="mt-2 text-sm text-[#6B6B6B]">Status: {session.status}. No scored result yet.</p>
           ) : (
             <>
-              <p className="mt-2 text-lg font-bold text-slate-900">
+              <p className="mt-2 text-lg font-bold text-[#1A1A1A]">
                 {result.totalCorrect}/{result.totalItems} items correct{" "}
                 {result.completedBy === "expiry" && <Badge tone="amber">partial — closed by expiry</Badge>}
                 {result.completedBy === "integrity_violation" && <Badge tone="amber">auto-submitted — integrity flags</Badge>}
@@ -696,28 +696,28 @@ function AssessmentCard({ assessment, criterionLabels }) {
               <div className="mt-3 space-y-1.5">
                 {(result.perCriterion || []).map((c) => (
                   <div key={c.criterionId} className="flex items-baseline justify-between gap-3 text-xs">
-                    <span className="text-slate-600">{labelFor(c.criterionId)}</span>
-                    <span className="shrink-0 font-semibold tabular-nums text-slate-800">
+                    <span className="text-[#6B6B6B]">{labelFor(c.criterionId)}</span>
+                    <span className="shrink-0 font-semibold tabular-nums text-[#1A1A1A]">
                       {c.correctCount}/{c.itemCount}
                     </span>
                   </div>
                 ))}
               </div>
               {(result.claimVerdicts || []).length > 0 && (
-                <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+                <div className="mt-3 space-y-1.5 border-t border-[#E8E8E4] pt-3">
                   {result.claimVerdicts.map((v) => {
                     const meta = ASSESSMENT_VERDICT_META[v.verdict] || ASSESSMENT_VERDICT_META.inconclusive;
                     return (
-                      <p key={v.claimId} className="text-xs text-slate-500">
+                      <p key={v.claimId} className="text-xs text-[#6B6B6B]">
                         <Badge tone={meta.tone}>{meta.label}</Badge>{" "}
-                        <span className="text-slate-600">{labelFor(v.criterionId)}</span> — {v.correctCount}/{v.itemCount} targeted
+                        <span className="text-[#6B6B6B]">{labelFor(v.criterionId)}</span> — {v.correctCount}/{v.itemCount} targeted
                         items
                       </p>
                     );
                   })}
                 </div>
               )}
-              <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+              <p className="mt-4 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">
                 Scored {formatWhen(result.scoredAt)} · scorer {result.scorerVersion || "—"} · reproducibility{" "}
                 {(result.reproducibilityHash || "").slice(0, 16)}… — computed deterministically by code from the frozen key; no AI in
                 the scoring path.
@@ -737,10 +737,10 @@ function RecommendedActionCard({ action }) {
   // one — the point is that the signal was too poor to make the call.
   if (action.suppressed) {
     return (
-      <Card className="border-2 border-dashed border-verdict-pending/50 bg-verdict-pending-tint">
-        <p className="text-xs font-medium text-verdict-pending">Recommendation withheld</p>
-        <p className="mt-1 text-lg font-bold text-verdict-pending">{action.action}</p>
-        <p className="mt-1 text-sm text-verdict-pending">{action.justification}</p>
+      <Card className="border-2 border-dashed border-verdict-pending/50 bg-[#FFE8DC]">
+        <p className="text-xs font-medium text-[#FF6B2C]">Recommendation withheld</p>
+        <p className="mt-1 text-lg font-bold text-[#FF6B2C]">{action.action}</p>
+        <p className="mt-1 text-sm text-[#FF6B2C]">{action.justification}</p>
       </Card>
     );
   }
@@ -761,13 +761,13 @@ function RecommendedActionCard({ action }) {
   // the callout cliché the floor bans; a top rule is a different device and reads
   // as an underscore on a record.
   return (
-    <Card className="relative overflow-hidden border-brand-200 bg-canvas-deep">
+    <Card className="relative overflow-hidden border-[#FFCAAF] bg-[#F5F5F0]-deep">
       <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-brand-600" />
       <p className="text-[11px] font-semibold tracking-[0.08em] text-brand-700 uppercase">Recommended action</p>
-      <p className="font-display mt-2 text-2xl font-extrabold tracking-[-0.02em] text-slate-900 text-balance sm:text-[1.75rem] sm:leading-[1.15]">
+      <p className="font-display mt-2 text-2xl font-extrabold tracking-[-0.02em] text-[#1A1A1A] text-balance sm:text-[1.75rem] sm:leading-[1.15]">
         {action.action}
       </p>
-      <p className="mt-3 max-w-prose text-sm leading-relaxed text-slate-600">{action.justification}</p>
+      <p className="mt-3 max-w-prose text-sm leading-relaxed text-[#6B6B6B]">{action.justification}</p>
     </Card>
   );
 }
@@ -777,13 +777,13 @@ function IdentityRow({ identityMatch }) {
   const map = {
     match: { icon: ShieldCheck, cls: "text-emerald-600", text: "Face matched the identity photo" },
     mismatch: { icon: ShieldAlert, cls: "text-red-600", text: "The face on camera didn't match their photo" },
-    unknown: { icon: ScanFace, cls: "text-slate-500", text: "Identity not checked during the interview" },
+    unknown: { icon: ScanFace, cls: "text-[#6B6B6B]", text: "Identity not checked during the interview" },
   };
   const { icon: Icon, cls, text } = map[s] || map.unknown;
   return (
-    <div className="flex items-center gap-2 text-sm text-slate-600">
+    <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
       <Icon className={`h-4 w-4 shrink-0 ${cls}`} /> {text}
-      {identityMatch?.distance != null && <span className="text-xs text-slate-500">(distance {identityMatch.distance})</span>}
+      {identityMatch?.distance != null && <span className="text-xs text-[#6B6B6B]">(distance {identityMatch.distance})</span>}
     </div>
   );
 }
@@ -814,9 +814,9 @@ function EvidenceClip({ clip }) {
   const label = `${new Date(clip.capturedAt).toLocaleTimeString()} · ${clip.source === "phone" ? "phone cam" : "laptop cam"}`;
   const t = clip.trigger;
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <div className="mb-2 flex items-center justify-between gap-2 text-xs text-slate-500">
-        <span className="font-medium text-slate-700">{clip.eventType.replace(/_/g, " ")}</span>
+    <div className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-3">
+      <div className="mb-2 flex items-center justify-between gap-2 text-xs text-[#6B6B6B]">
+        <span className="font-medium text-[#1A1A1A]">{clip.eventType.replace(/_/g, " ")}</span>
         <span>{label}</span>
       </div>
 
@@ -825,8 +825,8 @@ function EvidenceClip({ clip }) {
           claims and then watch whether the video actually shows it. A clip that contradicts its own
           label is the single most important thing this panel can surface. */}
       {t && (
-        <div className="mb-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px] leading-relaxed text-slate-500">
-          {t.rule && <p className="font-medium text-slate-600">Triggered by: {t.rule}</p>}
+        <div className="mb-2 rounded-lg border border-[#E8E8E4] bg-white px-2.5 py-2 text-[11px] leading-relaxed text-[#6B6B6B]">
+          {t.rule && <p className="font-medium text-[#6B6B6B]">Triggered by: {t.rule}</p>}
           <p className="mt-0.5 flex flex-wrap gap-x-3">
             {t.direction && <span>direction: looking {t.direction === "down" ? "down" : "to the side"}</span>}
             {t.faceCount != null && <span>faces detected: {t.faceCount}</span>}
@@ -838,19 +838,19 @@ function EvidenceClip({ clip }) {
         </div>
       )}
       {clip.scored === false && (
-        <p className="mb-2 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] text-slate-500">
-          This clip records <span className="font-medium text-slate-600">our camera view quality</span>, not the
+        <p className="mb-2 rounded-lg bg-[#F5F5F0] px-2.5 py-1.5 text-[11px] text-[#6B6B6B]">
+          This clip records <span className="font-medium text-[#6B6B6B]">our camera view quality</span>, not the
           candidate&apos;s conduct. It carries no risk score and is not a flag against them.
         </p>
       )}
 
       {src ? (
-        <video src={src} controls className="w-full rounded-lg bg-canvas" />
+        <video src={src} controls className="w-full rounded-lg bg-[#F5F5F0]" />
       ) : (
         <button
           onClick={loadClip}
           disabled={loading}
-          className="w-full rounded-lg border border-dashed border-slate-300 bg-white py-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-60"
+          className="w-full rounded-lg border border-dashed border-[#E8E8E4]-mid bg-white py-3 text-xs font-semibold text-[#6B6B6B] hover:bg-[#F5F5F0] disabled:opacity-60"
         >
           {loading ? "Loading clip…" : failed ? "Could not load — try again" : "▶ Load clip (view is audit-logged)"}
         </button>
@@ -864,7 +864,7 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
           <Eye className="h-4 w-4 text-brand-600" /> Integrity & Proctoring
         </h3>
         {/* B1: no band over a broken recording — a risk level computed while our own pipeline
@@ -873,7 +873,7 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
       </div>
 
       {proctoring.bandWithheldReason && (
-        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{proctoring.bandWithheldReason}</p>
+        <p className="mt-3 rounded-lg bg-[#FFE8DC] px-3 py-2 text-xs font-medium text-[#6B6B6B]">{proctoring.bandWithheldReason}</p>
       )}
 
       {proctoring.identityGateNote && (
@@ -881,20 +881,20 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
       )}
 
       <div className="mt-4 flex items-center gap-4">
-        <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary text-white">
+        <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#FF6B2C] text-white">
           <span className="text-2xl font-bold">{proctoring.displayRiskScore ?? 0}</span>
           <span className="text-[10px] text-white/80">Risk</span>
         </div>
         <div className="flex-1 space-y-2">
           <IdentityRow identityMatch={proctoring.identityMatch} />
-          <div className="flex items-center gap-2 text-sm text-slate-600">
+          <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
             {proctoring.visionEnabled ? (
               <><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Camera monitoring was active</>
             ) : (
               <><AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" /> Camera monitoring off — browser signals only</>
             )}
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-[#6B6B6B]">
             {proctoring.totalEvents} flag{proctoring.totalEvents === 1 ? "" : "s"} recorded
             {proctoring.consent?.given ? " · candidate consented" : proctoring.consent?.declined ? " · candidate declined proctoring" : ""}
           </div>
@@ -905,7 +905,7 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
         <div className="mt-4 space-y-2">
           {/* §10.4 — the collapse is labelled: a count that silently shrinks between two
               viewings of the same session reads as tampering in an audit. */}
-          {proctoring.collapsedNote && <p className="text-[11px] text-slate-500">{proctoring.collapsedNote}</p>}
+          {proctoring.collapsedNote && <p className="text-[11px] text-[#6B6B6B]">{proctoring.collapsedNote}</p>}
           {proctoring.breakdown.map((row) => (
             <div key={row.type} className="flex flex-wrap items-baseline gap-2">
               {/* Recording-condition rows are shown but visually demoted and explicitly marked
@@ -915,21 +915,21 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
                 {row.label} · {row.count}×
               </Badge>
               {row.scored === false && (
-                <span className="text-xs font-semibold text-slate-500">Not scored</span>
+                <span className="text-xs font-semibold text-[#6B6B6B]">Not scored</span>
               )}
               {row.attributedToFault && (
-                <span className="text-xs font-semibold text-slate-500">Attributed to the technical fault, not the candidate</span>
+                <span className="text-xs font-semibold text-[#6B6B6B]">Attributed to the technical fault, not the candidate</span>
               )}
-              {row.benignExplanation && <span className="text-xs text-slate-500">{row.benignExplanation}</span>}
+              {row.benignExplanation && <span className="text-xs text-[#6B6B6B]">{row.benignExplanation}</span>}
             </div>
           ))}
         </div>
       )}
 
       {evidenceClips?.length > 0 && (
-        <div className="mt-4 border-t border-slate-100 pt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-900">Evidence clips ({evidenceClips.length})</p>
-          <p className="mb-3 text-xs text-slate-500">
+        <div className="mt-4 border-t border-[#E8E8E4] pt-4">
+          <p className="mb-2 text-sm font-semibold text-[#1A1A1A]">Evidence clips ({evidenceClips.length})</p>
+          <p className="mb-3 text-xs text-[#6B6B6B]">
             Short clips captured only when a high-severity flag fired — consent-gated, never continuous recording. For
             human review only; they never enter any scoring path.
           </p>
@@ -946,7 +946,7 @@ function IntegrityCard({ proctoring, evidenceClips, candidateId }) {
           renders nothing at all in that case rather than an empty/broken player. */}
       <CandidateRecording candidateId={candidateId} />
 
-      <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <p className="mt-4 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">
         Worth a look, not proof — never on their own a reason to reject. The full advisory note is in the PDF.
       </p>
     </Card>
@@ -996,25 +996,25 @@ function CandidateRecording({ candidateId }) {
   }
 
   return (
-    <div className="mt-4 border-t border-slate-100 pt-4">
-      <p className="mb-2 text-sm font-semibold text-slate-900">Candidate recording</p>
+    <div className="mt-4 border-t border-[#E8E8E4] pt-4">
+      <p className="mb-2 text-sm font-semibold text-[#1A1A1A]">Candidate recording</p>
       {state.status === "completed" ? (
         state.url ? (
-        <video src={state.url} controls className="w-full max-w-md rounded-lg bg-canvas" />
+        <video src={state.url} controls className="w-full max-w-md rounded-lg bg-[#F5F5F0]" />
         ) : (
           <button
             type="button"
             onClick={loadVideo}
             disabled={loading}
-            className="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-brand-100 disabled:opacity-60"
+            className="rounded-lg bg-[#FFE8DC] px-3 py-1.5 text-xs font-semibold text-[#FF6B2C] hover:bg-[#FFE8DC] disabled:opacity-60"
           >
             {loading ? "Loading…" : "▶ Play interview recording (audit-logged)"}
           </button>
         )
       ) : state.status === "recording" ? (
-        <p className="text-xs text-slate-500">Recording in progress — check back once the interview has finished.</p>
+        <p className="text-xs text-[#6B6B6B]">Recording in progress — check back once the interview has finished.</p>
       ) : (
-        <p className="text-xs text-slate-500">The recording could not be captured for this session.</p>
+        <p className="text-xs text-[#6B6B6B]">The recording could not be captured for this session.</p>
       )}
     </div>
   );
@@ -1031,12 +1031,12 @@ function Bubble({ role, text, score, spoken, wordCount, durationSec, responsive,
       <div
         className={
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-full " +
-          (isAi ? "bg-brand-100 text-brand-700" : "bg-slate-200 text-slate-600")
+          (isAi ? "bg-[#FFE8DC] text-brand-700" : "bg-[#F5F5F0]-deep text-[#6B6B6B]")
         }
       >
         {isAi ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
       </div>
-      <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${isAi ? "bg-slate-50 text-slate-700" : "bg-brand-600 text-white"}`}>
+      <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${isAi ? "bg-[#FFE8DC] text-[#1A1A1A]" : "bg-brand-600 text-white"}`}>
         <p>{text}</p>
         {/* The readout below sits on the violet bubble at white/90, not brand-100:
             on this ramp brand-100 over brand-600 lands at 4.49:1, and this is an
@@ -1111,14 +1111,14 @@ function EvaluationCard({ interview, ev, rec }) {
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-slate-900">Evaluation</h3>
+        <h3 className="text-base font-semibold text-[#1A1A1A]">Evaluation</h3>
         {rec && <Badge tone={rec.tone}>Recommendation: {rec.label}</Badge>}
       </div>
 
       {ev ? (
         <>
           {interview.substance && (
-            <p className="mt-3 text-sm font-medium text-slate-500">
+            <p className="mt-3 text-sm font-medium text-[#6B6B6B]">
               Responsive answers: {interview.substance.responsiveCount} / {interview.substance.totalAnswers}
             </p>
           )}
@@ -1223,7 +1223,7 @@ function EvaluationCard({ interview, ev, rec }) {
             </details>
           )}
           {typeof ev.questionsDeclined === "number" && ev.questionsDeclined > 0 && (
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="mt-2 text-sm font-medium text-[#6B6B6B]">
               Declined: {ev.questionsDeclined} of {ev.questionsAsked} question
               {ev.questionsAsked === 1 ? "" : "s"} — the candidate was asked and said they could not answer.
               Scores below cover only the {ev.questionsAnswered} answered.
@@ -1231,7 +1231,7 @@ function EvaluationCard({ interview, ev, rec }) {
           )}
 
           <div className="mt-4 flex items-center gap-4">
-            <div className={`flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl text-white ${ev.generatedBy === "fallback" ? "bg-text-faint" : "bg-primary"}`}>
+            <div className={`flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl text-white ${ev.generatedBy === "fallback" ? "bg-text-faint" : "bg-[#FF6B2C]"}`}>
               <span className="text-2xl font-bold">{ev.overallScore ?? "—"}</span>
               <span className="text-[10px] text-white/80">{ev.generatedBy === "fallback" ? "Placeholder" : "Overall"}</span>
             </div>
@@ -1242,22 +1242,22 @@ function EvaluationCard({ interview, ev, rec }) {
                 <ScoreBar label="Problem Solving" value={interview.competencyTriplet.problemSolving} />
               </div>
             ) : (
-              <p className="flex-1 text-sm text-slate-500">
+              <p className="flex-1 text-sm text-[#6B6B6B]">
                 Communication / Technical / Problem solving:{" "}
                 {ev.generatedBy === "fallback" ? "PLACEHOLDER — not a real evaluation." : "not separately measured for this interview."}
               </p>
             )}
           </div>
 
-          {ev.summary && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{ev.summary}</p>}
+          {ev.summary && <p className="mt-4 rounded-xl bg-[#FFE8DC] p-3 text-sm text-[#6B6B6B]">{ev.summary}</p>}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {ev.strengths?.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-medium text-slate-600">Strengths</p>
+                <p className="mb-2 text-xs font-medium text-[#6B6B6B]">Strengths</p>
                 <ul className="space-y-1">
                   {ev.strengths.map((s, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-sm text-slate-600">
+                    <li key={i} className="flex items-start gap-1.5 text-sm text-[#6B6B6B]">
                       <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" /> {s}
                     </li>
                   ))}
@@ -1266,10 +1266,10 @@ function EvaluationCard({ interview, ev, rec }) {
             )}
             {ev.weaknesses?.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-medium text-slate-600">Weaknesses</p>
+                <p className="mb-2 text-xs font-medium text-[#6B6B6B]">Weaknesses</p>
                 <ul className="space-y-1">
                   {ev.weaknesses.map((s, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-sm text-slate-600">
+                    <li key={i} className="flex items-start gap-1.5 text-sm text-[#6B6B6B]">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" /> {s}
                     </li>
                   ))}
@@ -1280,7 +1280,7 @@ function EvaluationCard({ interview, ev, rec }) {
 
           {ev.missingSkills?.length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 text-xs font-medium text-slate-600">Skills to probe</p>
+              <p className="mb-2 text-xs font-medium text-[#6B6B6B]">Skills to probe</p>
               <div className="flex flex-wrap gap-1.5">
                 {ev.missingSkills.map((s) => (
                   <Badge key={s} tone="red">{s}</Badge>
@@ -1299,15 +1299,15 @@ function EvaluationCard({ interview, ev, rec }) {
               proxies. The names came back; the inputs did not. Both are now derived from the
               transcript alone (backend/utils/communication.js). */}
           {(ev.delivery != null || ev.confidence != null) && (
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <p className="mb-2 text-xs font-medium text-slate-600">
+            <div className="mt-4 border-t border-[#E8E8E4] pt-3">
+              <p className="mb-2 text-xs font-medium text-[#6B6B6B]">
                 Spoken communication — assessed for this role
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <ScoreBar label="Clarity" value={ev.delivery} />
                 <ScoreBar label="Calibration" value={ev.confidence} />
               </div>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-[#6B6B6B]">
                 Measured from the transcript only — never from pace, accent, hesitation or
                 filler words. <strong>Clarity</strong>: did the answer address the question,
                 concretely and followably. <strong>Calibration</strong>: did they distinguish
@@ -1318,25 +1318,25 @@ function EvaluationCard({ interview, ev, rec }) {
                 )}
               </p>
               {ev.spokenCommunication?.justification && (
-                <p className="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+                <p className="mt-2 rounded-lg bg-[#FFE8DC] p-2 text-xs text-[#6B6B6B]">
                   <span className="font-medium">Why this role assesses it: </span>
                   {ev.spokenCommunication.justification}
                 </p>
               )}
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-[#6B6B6B]">
                 Not part of the overall score. It cannot decline a candidate on its own.
               </p>
             </div>
           )}
 
-          <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+          <p className="mt-4 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">
             Generated by {ev.generatedBy === "fallback" ? "deterministic fallback (AI provider not configured)" : "AI"}
             {ev.generatedAt ? ` · ${formatWhen(ev.generatedAt)}` : ""}
             {interview.startedAt ? ` · interview ${formatWhen(interview.startedAt)}` : ""}
           </p>
         </>
       ) : (
-        <p className="mt-3 text-sm text-slate-500">Evaluation not available yet.</p>
+        <p className="mt-3 text-sm text-[#6B6B6B]">Evaluation not available yet.</p>
       )}
     </Card>
   );
@@ -1624,14 +1624,14 @@ export default function InterviewReport() {
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
+            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">
               <Cpu className="h-5 w-5 text-brand-600" /> AI Interview Report
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {candidate?.name} · <span className="font-medium text-slate-700">{job?.title || <span className="italic">No role on file</span>}</span>
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              {candidate?.name} · <span className="font-medium text-[#1A1A1A]">{job?.title || <span className="italic">No role on file</span>}</span>
             </p>
             {decisionTrail && (
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[#6B6B6B]">
                 Moved to &ldquo;{decisionTrail.stageLabel}&rdquo; by {decisionTrail.by || "system"} · {formatWhen(decisionTrail.at)}
                 {decisionTrail.note ? ` — ${decisionTrail.note}` : ""}
               </p>
@@ -1647,7 +1647,7 @@ export default function InterviewReport() {
                 on the report, before the score. */}
             {report.attempts?.length > 1 && (
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                <span className="inline-flex items-center rounded-md bg-[#F5F5F0] px-2 py-0.5 text-[11px] font-bold text-[#1A1A1A]">
                   Attempt {interview?.attempt ?? report.attempts[report.attempts.length - 1].attempt} of {report.attempts.length}
                 </span>
                 <label htmlFor="attempt-select" className="sr-only">
@@ -1657,7 +1657,7 @@ export default function InterviewReport() {
                   id="attempt-select"
                   value={interview?.attempt ?? report.attempts[report.attempts.length - 1].attempt}
                   onChange={(e) => setSelectedAttempt(Number(e.target.value))}
-                  className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700"
+                  className="rounded-lg border border-[#E8E8E4] px-2 py-1 text-xs font-medium text-[#1A1A1A]"
                 >
                   {report.attempts.map((a) => (
                     <option key={a.attempt} value={a.attempt}>
@@ -1666,7 +1666,7 @@ export default function InterviewReport() {
                     </option>
                   ))}
                 </select>
-                <span className="text-[11px] text-slate-500">Every attempt is kept and readable — none is overwritten.</span>
+                <span className="text-[11px] text-[#6B6B6B]">Every attempt is kept and readable — none is overwritten.</span>
               </div>
             )}
           </div>
@@ -1693,7 +1693,7 @@ export default function InterviewReport() {
 
         {/* §4: identity + duration flags surfaced immediately, not buried in Integrity */}
         {report.hasInterview && (
-          <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-[#E8E8E4] pt-3">
             <IdentityRow identityMatch={report.proctoring?.identityMatch} />
             {interview?.durationFlag?.abnormallyShort && (
               <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700">
@@ -1741,10 +1741,10 @@ export default function InterviewReport() {
                 "a finished interview found nothing" — which is a claim, and a false one. */}
             {interview?.status === "in_progress" && (
               <Card>
-                <p className="flex items-start gap-2 text-sm text-slate-600">
+                <p className="flex items-start gap-2 text-sm text-[#6B6B6B]">
                   <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-600" aria-hidden="true" />
                   <span>
-                    <span className="font-semibold text-slate-900">This interview is still open.</span> The candidate
+                    <span className="font-semibold text-[#1A1A1A]">This interview is still open.</span> The candidate
                     has answered {interview?.substance?.totalAnswers ?? 0} question
                     {(interview?.substance?.totalAnswers ?? 0) === 1 ? "" : "s"} so far. Scores, verdicts and the
                     requirement map fill in once it finishes — nothing below is a result yet.
@@ -1805,7 +1805,7 @@ export default function InterviewReport() {
               something recruiters skim and then decide from memory. */}
           {allowedNextStages.length > 0 && (
             <Card id="decision-card" className="scroll-mt-32">
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Decision</h3>
+              <h3 className="mb-3 text-base font-semibold text-[#1A1A1A]">Decision</h3>
               <FormGroup className="mb-3">
                 <Label>Note (optional)</Label>
                 <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reason / internal note recorded on the timeline" />
@@ -1930,13 +1930,13 @@ export default function InterviewReport() {
           {hasInterviewSections && (
             <Card id="sec-transcript" className="scroll-mt-32">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-slate-900">
+                <h3 className="text-base font-semibold text-[#1A1A1A]">
                   Transcript{" "}
-                  <span className="font-normal text-slate-500">
+                  <span className="font-normal text-[#6B6B6B]">
                     ({interview.conversationLog?.length || interview.transcript?.length || 0})
                   </span>
                 </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#6B6B6B]">
                   {interview.substance && (
                     <span>Responsive: {interview.substance.responsiveCount}/{interview.substance.totalAnswers}</span>
                   )}
@@ -1957,7 +1957,7 @@ export default function InterviewReport() {
                   render as before. */}
               {interview.conversationLog?.length > 0 ? (
                 <>
-                  <p className="mb-3 text-xs text-slate-500">
+                  <p className="mb-3 text-xs text-[#6B6B6B]">
                     Everything said in the room, in order, exactly as recorded — including the parts
                     that were not answers. <span className="font-semibold">Not scored, and never
                     used in scoring.</span> It is here so an interview that went wrong can be told
@@ -1966,7 +1966,7 @@ export default function InterviewReport() {
                       <> Interviewer instructions: <code>{interview.agentPromptVersion}</code>.</>
                     )}
                   </p>
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                  <div className="overflow-hidden rounded-xl border border-[#E8E8E4]">
                     {interview.conversationLog.map((u, i) => {
                       const prev = interview.conversationLog[i - 1];
                       const isCandidate = u.role === "candidate";
@@ -1976,14 +1976,14 @@ export default function InterviewReport() {
                         <div
                           key={i}
                           className={`flex gap-3 px-4 pb-2.5 ${
-                            sameSpeaker ? "pt-0" : "border-t border-slate-100 pt-2.5 first:border-t-0"
+                            sameSpeaker ? "pt-0" : "border-t border-[#E8E8E4] pt-2.5 first:border-t-0"
                           } ${isCandidate ? "bg-teal-50/50" : "bg-white"}`}
                         >
                           <div className="w-28 shrink-0">
                             {!sameSpeaker && (
                               <span
                                 className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                  isCandidate ? "text-teal-700" : "text-slate-500"
+                                  isCandidate ? "text-teal-700" : "text-[#6B6B6B]"
                                 }`}
                               >
                                 {isCandidate ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
@@ -1991,8 +1991,8 @@ export default function InterviewReport() {
                               </span>
                             )}
                           </div>
-                          <p className="min-w-0 flex-1 text-sm leading-relaxed text-slate-800">{u.text}</p>
-                          <span className="w-16 shrink-0 text-right text-[10px] tabular-nums text-slate-400">
+                          <p className="min-w-0 flex-1 text-sm leading-relaxed text-[#1A1A1A]">{u.text}</p>
+                          <span className="w-16 shrink-0 text-right text-[10px] tabular-nums text-[#9B9B9B]">
                             {!sameSpeaker && at && !Number.isNaN(at.getTime())
                               ? at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
                               : ""}
@@ -2003,12 +2003,12 @@ export default function InterviewReport() {
                   </div>
 
                   {(interview.transcript || []).length > 0 && (
-                    <details className="mt-6 border-t border-slate-200 pt-4">
-                      <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                    <details className="mt-6 border-t border-[#E8E8E4] pt-4">
+                      <summary className="cursor-pointer text-sm font-semibold text-[#1A1A1A]">
                         Scored answers — the engine's question-by-question segmentation (
                         {(interview.transcript || []).length} turns)
                       </summary>
-                      <p className="mt-1.5 text-xs text-slate-500">
+                      <p className="mt-1.5 text-xs text-[#6B6B6B]">
                         The same conversation as the scores read it: each answer paired to the
                         question it was recorded against, with its score and audio measurements.
                       </p>
@@ -2050,7 +2050,7 @@ export default function InterviewReport() {
                     />
                   ))}
                   {(!interview.transcript || interview.transcript.length === 0) && (
-                    <p className="text-sm text-slate-500 italic">No transcript recorded.</p>
+                    <p className="text-sm text-[#6B6B6B] italic">No transcript recorded.</p>
                   )}
                 </div>
               )}

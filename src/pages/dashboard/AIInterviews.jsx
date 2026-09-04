@@ -29,8 +29,8 @@ export default function AIInterviews() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">AI Interviews</h1>
-        <p className="mt-1 text-sm text-slate-500">Candidates who passed ATS screening and are queued for an AI interview.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">AI Interviews</h1>
+        <p className="mt-1 text-sm text-[#6B6B6B]">Candidates who passed ATS screening and are queued for an AI interview.</p>
       </div>
 
       {loading ? (

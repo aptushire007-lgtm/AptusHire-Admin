@@ -30,11 +30,11 @@
  */
 
 const CHIP_TONE = {
-  positive: "bg-verdict-positive-tint text-verdict-positive",
-  pending: "bg-verdict-pending-tint text-verdict-pending",
-  negative: "bg-verdict-negative-tint text-verdict-negative",
+  positive: "bg-[#FFE8DC] text-[#FF6B2C]",
+  pending: "bg-[#FFE8DC] text-[#FF6B2C]",
+  negative: "bg-[#FDECEA] text-[#C0392B]",
   // The Honest Reading Rule: a withheld verdict must not wear a verdict colour.
-  neutral: "bg-canvas text-text-muted border border-dashed border-border",
+  neutral: "bg-[#F5F5F0] text-[#6B6B6B] border border-dashed border-[#E8E8E4]",
 };
 
 const CX = 100;
@@ -106,7 +106,7 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
         </span>
       )}
 
-      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-text-muted">{caption}</figcaption>}
+      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-[#6B6B6B]">{caption}</figcaption>}
     </figure>
   );
 }

@@ -28,7 +28,7 @@ const EVENTS = [
 ];
 
 const TONE_TILE = {
-  brand: "bg-brand-50 text-brand-600",
+  brand: "bg-[#FFE8DC] text-brand-600",
   amber: "bg-amber-50 text-amber-600",
   green: "bg-emerald-50 text-emerald-600",
 };
@@ -45,7 +45,7 @@ function EventCard({ event, slot, animate }) {
   const Icon = event.icon;
   return (
     <figure
-      className="absolute rounded-2xl border border-slate-200 bg-white p-4 shadow-soft"
+      className="absolute rounded-2xl border border-[#E8E8E4] bg-white p-4 shadow-soft"
       style={{
         top: slot.top,
         right: slot.right,
@@ -65,8 +65,8 @@ function EventCard({ event, slot, animate }) {
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <figcaption className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-slate-900">{event.title}</p>
-          <p className="truncate text-xs text-slate-500">{event.detail}</p>
+          <p className="truncate font-semibold text-[#1A1A1A]">{event.title}</p>
+          <p className="truncate text-xs text-[#6B6B6B]">{event.detail}</p>
         </figcaption>
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
           <Check className="h-3 w-3" aria-hidden="true" />

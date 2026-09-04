@@ -57,9 +57,9 @@ function RouteFallback() {
   return (
     <div role="status" aria-label="Loading page" className="mx-auto w-full max-w-5xl px-4 py-10">
       <div aria-hidden="true">
-        <div className="h-7 w-56 animate-pulse rounded-lg bg-slate-200" />
-        <div className="mt-3 h-4 w-80 animate-pulse rounded bg-slate-200/70" />
-        <div className="mt-8 h-64 w-full animate-pulse rounded-2xl bg-slate-200/60" />
+        <div className="h-7 w-56 animate-pulse rounded-lg bg-[#F5F5F0]-deep" />
+        <div className="mt-3 h-4 w-80 animate-pulse rounded bg-[#F5F5F0]-deep/70" />
+        <div className="mt-8 h-64 w-full animate-pulse rounded-2xl bg-[#F5F5F0]-deep/60" />
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export default function VerifyCompanyOtp() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen bg-[#F5F5F0]">
       <MarketingNavbar />
       <div className="mx-auto max-w-md px-5 py-14 sm:px-8">
         <OnboardingSteps current={3} />
@@ -106,17 +106,17 @@ export default function VerifyCompanyOtp() {
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
-              <h3 className="text-lg font-semibold text-text-strong">Email verified</h3>
-              <p className="mt-1.5 text-sm text-text-muted">Taking you to plans…</p>
+              <h3 className="text-lg font-semibold text-[#1A1A1A]">Email verified</h3>
+              <p className="mt-1.5 text-sm text-[#6B6B6B]">Taking you to plans…</p>
             </motion.div>
           ) : (
             <>
               <div className="mb-6 text-center">
-                <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-600">
+                <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[#FFE8DC] text-brand-600">
                   <MailCheck className="h-5.5 w-5.5" />
                 </div>
-                <h1 className="text-xl font-bold text-text-strong">Verify Your Email</h1>
-                <p className="mt-1.5 text-sm text-text-muted">
+                <h1 className="text-xl font-bold text-[#1A1A1A]">Verify Your Email</h1>
+                <p className="mt-1.5 text-sm text-[#6B6B6B]">
                   Enter the 6-digit code we sent to your admin email address.
                 </p>
               </div>
@@ -146,7 +146,7 @@ export default function VerifyCompanyOtp() {
                         onKeyDown={(e) => handleKeyDown(i, e)}
                         inputMode="numeric"
                         maxLength={1}
-                        className="h-12 w-9 rounded-xl border border-border text-center text-lg font-bold text-text-strong shadow-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-brand-100 sm:w-12"
+                        className="h-12 w-9 rounded-xl border border-[#E8E8E4] text-center text-lg font-bold text-[#1A1A1A] shadow-sm focus:border-[#FF6B2C] focus:outline-none focus:ring-4 focus:ring-[#FF6B2C]-100 sm:w-12"
                       />
                     ))}
                   </div>
@@ -158,7 +158,7 @@ export default function VerifyCompanyOtp() {
 
               <div className="mt-5 text-center text-sm">
                 {cooldown > 0 ? (
-                  <span className="text-text-muted">Resend code in {cooldown}s</span>
+                  <span className="text-[#6B6B6B]">Resend code in {cooldown}s</span>
                 ) : (
                   <button
                     type="button"
@@ -171,7 +171,7 @@ export default function VerifyCompanyOtp() {
                   </button>
                 )}
               </div>
-              <p className="mt-4 text-center text-sm text-text-muted">
+              <p className="mt-4 text-center text-sm text-[#6B6B6B]">
                 <Link to="/login" className="hover:underline">
                   Back to login
                 </Link>

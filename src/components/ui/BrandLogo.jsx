@@ -55,12 +55,12 @@ export function BrandLogo({
   onClick,
 }) {
   // Both "Aptus" and "Hire" use the same primary green — matching the logo image.
-  let textColor = "text-primary";
-  let taglineColor = "text-text-muted";
+  let textColor = "text-[#FF6B2C]";
+  let taglineColor = "text-[#6B6B6B]";
 
   if (theme === "dark") {
     textColor = "text-white";
-    taglineColor = "text-text-muted";
+    taglineColor = "text-[#6B6B6B]";
   }
 
   const iconSizes = {

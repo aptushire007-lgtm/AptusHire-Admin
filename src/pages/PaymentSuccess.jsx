@@ -53,17 +53,17 @@ export default function PaymentSuccess() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen bg-[#F5F5F0]">
       <MarketingNavbar />
       <div className="mx-auto max-w-md px-5 py-20 sm:px-8">
         <Card className="text-center">
           {state === "checking" && (
             <>
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFE8DC] text-brand-600">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
-              <h1 className="text-xl font-bold text-text-strong">Payment Received</h1>
-              <p className="mt-2 text-sm text-text-muted">Activating your workspace — this usually takes a few seconds…</p>
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Payment Received</h1>
+              <p className="mt-2 text-sm text-[#6B6B6B]">Activating your workspace — this usually takes a few seconds…</p>
             </>
           )}
 
@@ -77,8 +77,8 @@ export default function PaymentSuccess() {
               >
                 <PartyPopper className="h-8 w-8" />
               </motion.div>
-              <h1 className="text-xl font-bold text-text-strong">Workspace Activated</h1>
-              <p className="mt-2 text-sm text-text-muted">
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Workspace Activated</h1>
+              <p className="mt-2 text-sm text-[#6B6B6B]">
                 Your subscription is confirmed and your workspace is live. You can start posting jobs right away.
               </p>
               <Button as={Link} to="/" size="lg" className="mt-6 w-full">
@@ -92,8 +92,8 @@ export default function PaymentSuccess() {
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Clock3 className="h-8 w-8" />
               </div>
-              <h1 className="text-xl font-bold text-text-strong">Payment Received — Activation Pending</h1>
-              <p className="mt-2 text-sm text-text-muted">
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Payment Received — Activation Pending</h1>
+              <p className="mt-2 text-sm text-[#6B6B6B]">
                 We've recorded your payment, but your workspace isn't active yet. This can take a minute while the
                 payment provider confirms. If it stays pending, contact support — your payment is safe.
               </p>
@@ -105,11 +105,11 @@ export default function PaymentSuccess() {
 
           {state === "unauthenticated" && (
             <>
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFE8DC] text-brand-600">
                 <PartyPopper className="h-8 w-8" />
               </div>
-              <h1 className="text-xl font-bold text-text-strong">Payment Received</h1>
-              <p className="mt-2 text-sm text-text-muted">Log in to check your workspace activation status.</p>
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Payment Received</h1>
+              <p className="mt-2 text-sm text-[#6B6B6B]">Log in to check your workspace activation status.</p>
               <Button as={Link} to="/login" size="lg" className="mt-6 w-full">
                 Go to Login
               </Button>

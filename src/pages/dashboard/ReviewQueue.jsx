@@ -81,9 +81,9 @@ export default function ReviewQueue() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">Review Queue</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Candidates the screening engine is <span className="font-medium text-slate-700">honestly unsure about</span> —
+        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Review Queue</h1>
+        <p className="mt-1 text-sm text-[#6B6B6B]">
+          Candidates the screening engine is <span className="font-medium text-[#1A1A1A]">honestly unsure about</span> —
           it routed them to you instead of forcing a confident answer. Your decision is recorded and used to calibrate
           future scores.
         </p>
@@ -100,8 +100,8 @@ export default function ReviewQueue() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
             <div className="space-y-2">
-              <h3 className="text-base font-semibold text-slate-900">Could not load the review queue</h3>
-              <p className="text-sm text-slate-600">{loadError} This is not the same as an empty queue — try again.</p>
+              <h3 className="text-base font-semibold text-[#1A1A1A]">Could not load the review queue</h3>
+              <p className="text-sm text-[#6B6B6B]">{loadError} This is not the same as an empty queue — try again.</p>
               <button
                 type="button"
                 onClick={() => load().catch((err) => setLoadError(err.response?.data?.error || "Could not load the review queue."))}
@@ -122,10 +122,10 @@ export default function ReviewQueue() {
             <Card key={item._id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <Link to={`/candidates/${item.candidate?._id}`} className="text-base font-semibold text-slate-900 hover:text-brand-700">
+                  <Link to={`/candidates/${item.candidate?._id}`} className="text-base font-semibold text-[#1A1A1A] hover:text-brand-700">
                     {item.candidate?.basicDetails?.name || "Candidate"}
                   </Link>
-                  <p className="mt-0.5 text-sm text-slate-500">{item.job?.title}</p>
+                  <p className="mt-0.5 text-sm text-[#6B6B6B]">{item.job?.title}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {item.assessment?.overallScore != null && (
@@ -133,7 +133,7 @@ export default function ReviewQueue() {
                   )}
                   <Link
                     to={`/candidates/${item.candidate?._id}/score`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E8E4] px-3 py-1.5 text-sm font-medium text-[#6B6B6B] hover:bg-[#FFE8DC]"
                   >
                     <Scale className="h-4 w-4" /> Why this score
                   </Link>
@@ -145,9 +145,9 @@ export default function ReviewQueue() {
                   <Badge key={r} tone="slate">{reasonLabel(r)}</Badge>
                 ))}
               </div>
-              {item.summary && <p className="mt-2 text-sm text-slate-600">{item.summary}</p>}
+              {item.summary && <p className="mt-2 text-sm text-[#6B6B6B]">{item.summary}</p>}
 
-              <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-4">
+              <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-[#E8E8E4] pt-4">
                 <div className="min-w-64 flex-1">
                   <Textarea
                     rows={1}

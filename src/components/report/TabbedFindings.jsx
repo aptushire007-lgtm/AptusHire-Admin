@@ -21,8 +21,8 @@ import { ArrowRight, CircleCheck, CircleAlert } from "lucide-react";
  */
 const TONE = {
   recommend: { icon: ArrowRight, glyph: "text-brand-600", chip: "bg-brand-600 text-white" },
-  positive: { icon: CircleCheck, glyph: "text-verdict-positive", chip: "bg-brand-600 text-white" },
-  negative: { icon: CircleAlert, glyph: "text-verdict-negative", chip: "bg-brand-600 text-white" },
+  positive: { icon: CircleCheck, glyph: "text-[#FF6B2C]", chip: "bg-brand-600 text-white" },
+  negative: { icon: CircleAlert, glyph: "text-[#C0392B]", chip: "bg-brand-600 text-white" },
 };
 
 export default function TabbedFindings({ tabs, emptyHint }) {
@@ -46,11 +46,11 @@ export default function TabbedFindings({ tabs, emptyHint }) {
               aria-selected={isActive}
               onClick={() => setActive(t.key)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
-                isActive ? "bg-primary text-white" : "bg-canvas text-text-muted hover:bg-brand-50 hover:text-primary"
+                isActive ? "bg-[#FF6B2C] text-white" : "bg-[#F5F5F0] text-[#6B6B6B] hover:bg-[#FFE8DC] hover:text-[#FF6B2C]"
               }`}
             >
               {t.label}
-              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-text-faint"}`}>{t.items?.length ?? 0}</span>
+              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-[#9B9B9B]"}`}>{t.items?.length ?? 0}</span>
             </button>
           );
         })}
@@ -62,12 +62,12 @@ export default function TabbedFindings({ tabs, emptyHint }) {
             {current.items.map((item, i) => (
               <li key={i} className="flex items-start gap-2">
                 <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone.glyph}`} aria-hidden="true" />
-                <span className="min-w-0 text-sm leading-relaxed text-text">{item}</span>
+                <span className="min-w-0 text-sm leading-relaxed text-[#1A1A1A]">{item}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-text-muted italic">{current.empty || emptyHint || "None recorded."}</p>
+          <p className="text-sm text-[#6B6B6B] italic">{current.empty || emptyHint || "None recorded."}</p>
         )}
       </div>
     </div>

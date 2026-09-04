@@ -50,11 +50,11 @@ export default function Demo() {
       <MarketingNavbar />
       <div className="mx-auto flex max-w-3xl flex-col items-center px-5 py-20 sm:px-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFE8DC] px-3 py-1 text-xs font-semibold text-brand-700">
             <CalendarCheck className="h-3.5 w-3.5" /> Book a walkthrough
           </span>
-          <h1 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">Request a Demo</h1>
-          <p className="mt-3 text-slate-600">
+          <h1 className="mt-4 text-3xl font-bold text-[#1A1A1A] sm:text-4xl">Request a Demo</h1>
+          <p className="mt-3 text-[#6B6B6B]">
             Tell us about your team and we'll walk you through how AptusHire fits your hiring workflow.
           </p>
         </motion.div>
@@ -65,8 +65,8 @@ export default function Demo() {
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Thanks — we'll be in touch</h3>
-              <p className="mt-1.5 max-w-sm text-sm text-slate-500">
+              <h3 className="text-lg font-semibold text-[#1A1A1A]">Thanks — we'll be in touch</h3>
+              <p className="mt-1.5 max-w-sm text-sm text-[#6B6B6B]">
                 Your request has been received and our sales team has been notified. Prefer email? You can also
                 reach us at <a className="font-medium text-brand-700" href={`mailto:${SALES_EMAIL}`}>{SALES_EMAIL}</a>.
               </p>

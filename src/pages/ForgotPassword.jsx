@@ -25,7 +25,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12 transition-colors">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#F5F5F0] px-5 py-12 transition-colors">
       <div className="absolute right-6 top-6">
         <ThemeToggle />
       </div>
@@ -35,14 +35,14 @@ export default function ForgotPassword() {
           <BrandLogo to="/welcome" size="lg" />
         </div>
 
-        <Card className="rounded-3xl border border-border bg-surface p-6 text-center shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-[#E8E8E4] bg-white p-6 text-center shadow-soft sm:p-8">
           {done ? (
             <>
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
-              <h1 className="text-xl font-bold text-text-strong">Check Your Email</h1>
-              <p className="mt-2 text-xs text-text-muted">If an admin account exists for that email, a password reset link has been sent.
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Check Your Email</h1>
+              <p className="mt-2 text-xs text-[#6B6B6B]">If an admin account exists for that email, a password reset link has been sent.
               </p>
               <Link to="/login" className="mt-5 inline-block text-xs font-semibold text-brand-700 hover:underline">
                 Back to login
@@ -50,11 +50,11 @@ export default function ForgotPassword() {
             </>
           ) : (
             <>
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-800/60">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE8DC] text-brand-800/60">
                 <MailQuestion className="h-6 w-6" />
               </div>
-              <h1 className="text-xl font-bold text-text-strong">Forgot Password</h1>
-              <p className="mt-1.5 text-xs text-text-muted">We'll email you a link to reset it.</p>
+              <h1 className="text-xl font-bold text-[#1A1A1A]">Forgot Password</h1>
+              <p className="mt-1.5 text-xs text-[#6B6B6B]">We'll email you a link to reset it.</p>
               <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-left">
                 <FormGroup>
                   <Label required>Email Address</Label>

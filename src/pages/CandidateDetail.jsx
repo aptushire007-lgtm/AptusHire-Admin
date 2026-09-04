@@ -15,7 +15,7 @@ import { useCompanyData } from "../context/CompanyDataContext.jsx";
 function Section({ title, children }) {
   return (
     <Card>
-      <h3 className="mb-3 text-base font-semibold text-text-strong">{title}</h3>
+      <h3 className="mb-3 text-base font-semibold text-[#1A1A1A]">{title}</h3>
       {children}
     </Card>
   );
@@ -39,7 +39,7 @@ const PROVENANCE_LABELS = {
     // blue and violet was a free hue; now that the brand ramp *is* violet, a
     // violet chip here would read as a brand accent rather than as a
     // provenance warning about where a field came from.
-    className: "border-border bg-canvas text-text-muted",
+    className: "border-[#E8E8E4] bg-[#F5F5F0] text-[#6B6B6B]",
   },
 };
 
@@ -63,7 +63,7 @@ function ProvenanceSource({ provenance }) {
   return (
     <div className="mt-2 space-y-1">
       {provenance.spans.map((s, i) => (
-        <blockquote key={i} className="border-l-2 border-border-mid pl-2 text-xs italic text-text-muted">
+        <blockquote key={i} className="border-l-2 border-[#E8E8E4]-mid pl-2 text-xs italic text-[#6B6B6B]">
           “{s.quote}”
         </blockquote>
       ))}
@@ -117,7 +117,7 @@ function StageProgress({ status }) {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="text-xs font-semibold tracking-[0.06em] text-text-muted uppercase">Hiring progress</p>
+        <p className="text-xs font-semibold tracking-[0.06em] text-[#6B6B6B] uppercase">Hiring progress</p>
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -135,9 +135,9 @@ function StageProgress({ status }) {
       ) : (
         <>
           <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-lg font-bold tracking-tight text-text-strong">{stageLabel(current)}</span>
+            <span className="text-lg font-bold tracking-tight text-[#1A1A1A]">{stageLabel(current)}</span>
             {currentIdx >= 0 && (
-              <span className="text-xs text-text-muted">                stage {currentIdx + 1} of {STAGES.length}
+              <span className="text-xs text-[#6B6B6B]">                stage {currentIdx + 1} of {STAGES.length}
                 {next ? ` · next: ${stageLabel(next)}` : " · final stage"}
               </span>
             )}
@@ -156,7 +156,7 @@ function StageProgress({ status }) {
                 key={st}
                 title={stageLabel(st)}
                 className={`h-1.5 flex-1 rounded-full ${
-                  i < currentIdx ? "bg-brand-300" : i === currentIdx ? "bg-brand-600" : "bg-slate-200"
+                  i < currentIdx ? "bg-brand-300" : i === currentIdx ? "bg-brand-600" : "bg-[#F5F5F0]-deep"
                 }`}
               />
             ))}
@@ -165,7 +165,7 @@ function StageProgress({ status }) {
       )}
 
       {expanded && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-[#E8E8E4] pt-3">
           {STAGES.map((st, i) => {
             const reached = !rejected && currentIdx >= i;
             const isCurrent = !rejected && currentIdx === i;
@@ -177,8 +177,8 @@ function StageProgress({ status }) {
                   (isCurrent
                     ? "bg-brand-600 text-white"
                     : reached
-                      ? "bg-brand-50 text-brand-700"
-                      : "bg-canvas text-text-faint")
+                      ? "bg-[#FFE8DC] text-brand-700"
+                      : "bg-[#F5F5F0] text-[#9B9B9B]")
                 }
               >
                 {reached && !isCurrent && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
@@ -453,7 +453,7 @@ export default function CandidateDetail() {
       <div className="space-y-4">
         <Link
           to="/candidates"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700"
         >
           <ArrowLeft className="h-4 w-4" /> Back to candidates
         </Link>
@@ -461,14 +461,14 @@ export default function CandidateDetail() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
             <div className="space-y-1">
-              <h3 className="text-base font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-[#1A1A1A]">
                 {loadError.status === 404 ? "Candidate not found" : "Could not load candidate"}
               </h3>
-              <p className="text-sm text-slate-600">{loadError.message}</p>
+              <p className="text-sm text-[#6B6B6B]">{loadError.message}</p>
               {/* The id and status are shown deliberately: this is the string a recruiter
                   has to quote to get the record traced, and hiding it turns a diagnosable
                   fault into "the page is broken". */}
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#9B9B9B]">
                 Reference {id}
                 {loadError.status ? ` · HTTP ${loadError.status}` : ""}
               </p>
@@ -524,7 +524,7 @@ export default function CandidateDetail() {
     <div className="space-y-6">
       <Link
         to={jobCandidatesHref}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700"
       >
         <ArrowLeft className="h-4 w-4" /> Back to candidates
       </Link>
@@ -545,9 +545,9 @@ export default function CandidateDetail() {
             attached to it. */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">{basicDetails.name}</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Applied for <span className="font-medium text-slate-700">{candidate.job?.title}</span>
+            <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">{basicDetails.name}</h1>
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              Applied for <span className="font-medium text-[#1A1A1A]">{candidate.job?.title}</span>
             </p>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
               {ats?.overallScore != null && (
@@ -584,7 +584,7 @@ export default function CandidateDetail() {
                 onClick={handleRescore}
                 disabled={rescoring}
                 title="Re-run scoring now — picks up the job's currently approved rubric (also works after fixing a rubric on an evidence-scored candidate)"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E8E4] px-3 py-1.5 text-sm font-medium text-[#6B6B6B] hover:bg-[#FFE8DC] disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${rescoring ? "animate-spin" : ""}`} aria-hidden="true" />
                 {rescoring ? "Rescoring…" : "Rescore"}
@@ -593,17 +593,17 @@ export default function CandidateDetail() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E8E4] px-3 py-1.5 text-sm font-medium text-[#6B6B6B] hover:bg-[#FFE8DC]"
             >
               <Download className="h-4 w-4" aria-hidden="true" /> Export
             </button>
-            <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-slate-200" />
+            <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-[#F5F5F0]-deep" />
             <button
               type="button"
               onClick={handleErase}
               disabled={erasing}
               title="Erase all data for this candidate (DPDP right to erasure)"
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-[#6B6B6B] hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" /> {erasing ? "Erasing…" : "Erase"}
             </button>
@@ -659,29 +659,29 @@ export default function CandidateDetail() {
           </div>
         )}
 
-        <div className="mt-5 border-t border-border pt-5">
+        <div className="mt-5 border-t border-[#E8E8E4] pt-5">
           <StageProgress status={candidate.status} />
         </div>
 
-        <div className="mt-5 grid gap-3 border-t border-border pt-5 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 border-t border-[#E8E8E4] pt-5 sm:grid-cols-2">
           {/* `min-w-0` on each cell, `shrink-0` on each icon, `overflow-wrap:
               anywhere` on each value: an address and an uploaded filename are
               unbreakable tokens, and as a grid item's min-content they sized the
               track to themselves and pushed the card off a phone screen. */}
-          <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-            <Mail className="h-4 w-4 shrink-0 text-slate-500" />{" "}
+          <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+            <Mail className="h-4 w-4 shrink-0 text-[#6B6B6B]" />{" "}
             <span className="[overflow-wrap:anywhere]">{basicDetails.email}</span>
           </div>
-          <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-            <Phone className="h-4 w-4 shrink-0 text-slate-500" />{" "}
+          <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+            <Phone className="h-4 w-4 shrink-0 text-[#6B6B6B]" />{" "}
             <span className="[overflow-wrap:anywhere]">{basicDetails.phone || "—"}</span>
           </div>
-          <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-            <MapPin className="h-4 w-4 shrink-0 text-slate-500" />{" "}
+          <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+            <MapPin className="h-4 w-4 shrink-0 text-[#6B6B6B]" />{" "}
             <span className="[overflow-wrap:anywhere]">{basicDetails.location || "—"}</span>
           </div>
-          <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-            <FileText className="h-4 w-4 shrink-0 text-slate-500" />
+          <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+            <FileText className="h-4 w-4 shrink-0 text-[#6B6B6B]" />
             <button
               type="button"
               onClick={handleResumeDownload}
@@ -691,16 +691,16 @@ export default function CandidateDetail() {
             </button>
           </div>
           {basicDetails.linkedinUrl && (
-            <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-              <Link2 className="h-4 w-4 shrink-0 text-slate-500" />
+            <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+              <Link2 className="h-4 w-4 shrink-0 text-[#6B6B6B]" />
               <a href={basicDetails.linkedinUrl} target="_blank" rel="noreferrer" className="font-medium text-brand-700 hover:underline">
                 LinkedIn
               </a>
             </div>
           )}
           {basicDetails.portfolioUrl && (
-            <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-              <Globe className="h-4 w-4 shrink-0 text-slate-500" />
+            <div className="flex min-w-0 items-center gap-2 text-sm text-[#6B6B6B]">
+              <Globe className="h-4 w-4 shrink-0 text-[#6B6B6B]" />
               <a href={basicDetails.portfolioUrl} target="_blank" rel="noreferrer" className="font-medium text-brand-700 hover:underline">
                 Portfolio
               </a>
@@ -712,12 +712,12 @@ export default function CandidateDetail() {
       {/* Stage control */}
       <Section title="Move candidate">
         {terminal ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[#6B6B6B]">
             This candidate is at a final stage (<span className="font-medium">{stageLabel(candidate.status)}</span>). No further
             transitions are available.
           </p>
         ) : nextStages.length === 0 ? (
-          <p className="text-sm text-slate-500">No stage transitions available.</p>
+          <p className="text-sm text-[#6B6B6B]">No stage transitions available.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             <FormGroup>
@@ -794,7 +794,7 @@ export default function CandidateDetail() {
               <Button variant="secondary" onClick={handleSkipAssessment} disabled={assessmentBusy}>
                 Skip to AI interview
               </Button>
-              <p className="w-full text-xs text-slate-500">
+              <p className="w-full text-xs text-[#6B6B6B]">
                 Both choices are recorded as your decision. A skip goes through today's normal interview invitation — it never reads
                 as missing data and costs nothing.
               </p>
@@ -803,7 +803,7 @@ export default function CandidateDetail() {
 
           {/* Honest skip rendering — a decision, never a gap */}
           {assessment?.decision?.action === "skipped" && (
-            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
+            <div className="rounded-xl bg-[#FFE8DC] p-3 text-sm text-[#6B6B6B]">
               Assessment: <strong>skipped by recruiter decision</strong> — {assessment.decision.byName},{" "}
               {new Date(assessment.decision.at).toLocaleString()}. Not required for this candidate; this is not missing data and
               carries no penalty.
@@ -813,25 +813,25 @@ export default function CandidateDetail() {
           {assessment?.session && (
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Status</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{assessment.session.status}</p>
+                <div className="rounded-xl bg-[#FFE8DC] p-3">
+                  <p className="text-xs text-[#6B6B6B]">Status</p>
+                  <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{assessment.session.status}</p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Assigned by</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                <div className="rounded-xl bg-[#FFE8DC] p-3">
+                  <p className="text-xs text-[#6B6B6B]">Assigned by</p>
+                  <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">
                     {assessment.session.assignment?.assignedByName} ({assessment.session.assignment?.mode})
                   </p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Difficulty tier</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{assessment.session.difficultyTier?.value || "—"}</p>
-                  <p className="text-xs text-slate-500">{assessment.session.difficultyTier?.basis}</p>
+                <div className="rounded-xl bg-[#FFE8DC] p-3">
+                  <p className="text-xs text-[#6B6B6B]">Difficulty tier</p>
+                  <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{assessment.session.difficultyTier?.value || "—"}</p>
+                  <p className="text-xs text-[#6B6B6B]">{assessment.session.difficultyTier?.basis}</p>
                 </div>
               </div>
               {assessment.session.result?.scoredAt && (
-                <div className="rounded-xl border border-slate-200 p-3">
-                  <p className="text-sm font-semibold text-slate-800">
+                <div className="rounded-xl border border-[#E8E8E4] p-3">
+                  <p className="text-sm font-semibold text-[#1A1A1A]">
                     Result: {assessment.session.result.totalCorrect}/{assessment.session.result.totalItems} correct
                     {assessment.session.result.completedBy === "expiry" && (
                       <Badge tone="amber">partial — closed by expiry</Badge>
@@ -840,7 +840,7 @@ export default function CandidateDetail() {
                       <Badge tone="amber">auto-submitted — integrity flags</Badge>
                     )}
                   </p>
-                  <div className="mt-2 space-y-1 text-xs text-slate-500">
+                  <div className="mt-2 space-y-1 text-xs text-[#6B6B6B]">
                     {(assessment.session.result.perCriterion || []).map((c) => (
                       <p key={c.criterionId}>
                         {c.criterionId}: {c.correctCount}/{c.itemCount}
@@ -848,8 +848,8 @@ export default function CandidateDetail() {
                     ))}
                   </div>
                   {(assessment.session.result.claimVerdicts || []).length > 0 && (
-                    <div className="mt-2 border-t border-border pt-2 text-xs text-slate-500">
-                      <p className="font-semibold text-slate-600">Résumé-claim verdicts (targeted items):</p>
+                    <div className="mt-2 border-t border-[#E8E8E4] pt-2 text-xs text-[#6B6B6B]">
+                      <p className="font-semibold text-[#6B6B6B]">Résumé-claim verdicts (targeted items):</p>
                       {assessment.session.result.claimVerdicts.map((v) => (
                         <p key={v.claimId}>
                           {v.claimId}: <strong>{v.verdict}</strong> — {v.correctCount}/{v.itemCount} targeted items correct
@@ -857,7 +857,7 @@ export default function CandidateDetail() {
                       ))}
                     </div>
                   )}
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-[11px] text-[#6B6B6B]">
                     Scored deterministically (key-match, scorer {assessment.session.result.scorerVersion}); reproducibility{" "}
                     {String(assessment.session.result.reproducibilityHash || "").slice(0, 12)}
                   </p>
@@ -872,16 +872,16 @@ export default function CandidateDetail() {
       {session && (
         <Section title="AI Interview">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Scheduled for</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{formatWhen(session.interviewAt)}</p>
+            <div className="rounded-xl bg-[#FFE8DC] p-3">
+              <p className="text-xs text-[#6B6B6B]">Scheduled for</p>
+              <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{formatWhen(session.interviewAt)}</p>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Link valid until</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{formatWhen(session.expiresAt)}</p>
+            <div className="rounded-xl bg-[#FFE8DC] p-3">
+              <p className="text-xs text-[#6B6B6B]">Link valid until</p>
+              <p className="mt-1 text-sm font-semibold text-[#1A1A1A]">{formatWhen(session.expiresAt)}</p>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Status</p>
+            <div className="rounded-xl bg-[#FFE8DC] p-3">
+              <p className="text-xs text-[#6B6B6B]">Status</p>
               <p className="mt-1">
                 <Badge tone={SESSION_STATUS_TONE[session.status] || "slate"}>
                   {session.status?.replace("_", " ") || "—"}
@@ -891,7 +891,7 @@ export default function CandidateDetail() {
           </div>
 
           {interviewLocked ? (
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-[#6B6B6B]">
               The candidate has already completed this interview, so the link can no longer be resent or rescheduled.
             </p>
           ) : (
@@ -917,7 +917,7 @@ export default function CandidateDetail() {
                 </Button>
               </div>
 
-              <div className="mt-5 grid items-end gap-3 border-t border-border pt-5 sm:grid-cols-[1fr_auto]">
+              <div className="mt-5 grid items-end gap-3 border-t border-[#E8E8E4] pt-5 sm:grid-cols-[1fr_auto]">
                 <FormGroup className="mb-0">
                   <Label>Reschedule to</Label>
                   <Input
@@ -931,12 +931,12 @@ export default function CandidateDetail() {
                   <CalendarClock className="h-4 w-4" /> Reschedule & send
                 </Button>
               </div>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-[#6B6B6B]">
                 Rescheduling and resending both generate a brand-new interview link — any previously shared link will stop working.
               </p>
 
               {lastLink && (
-                <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-3">
+                <div className="mt-4 rounded-xl border border-[#FFE8DC] bg-[#FFE8DC] p-3">
                   <p className="mb-1.5 text-xs font-medium text-brand-700">
                     New interview link (also emailed to the candidate — copy it to open on another device):
                   </p>
@@ -945,7 +945,7 @@ export default function CandidateDetail() {
                       readOnly
                       value={lastLink}
                       onFocus={(e) => e.target.select()}
-                      className="min-w-0 flex-1 truncate rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700"
+                      className="min-w-0 flex-1 truncate rounded-lg border border-[#E8E8E4] bg-white px-2.5 py-1.5 text-xs text-[#1A1A1A]"
                     />
                     <Button variant="outline" size="sm" onClick={handleCopyLink}>
                       Copy
@@ -967,21 +967,21 @@ export default function CandidateDetail() {
       {/* Timeline */}
       <Section title="Application Timeline">
         {!timeline?.stageHistory || timeline.stageHistory.length === 0 ? (
-          <p className="text-sm text-slate-500">No timeline entries yet.</p>
+          <p className="text-sm text-[#6B6B6B]">No timeline entries yet.</p>
         ) : (
-          <ol className="relative space-y-4 border-l border-slate-200 pl-5">
+          <ol className="relative space-y-4 border-l border-[#E8E8E4] pl-5">
             {[...timeline.stageHistory].reverse().map((h, i) => (
               <li key={i} className="relative">
-                <span className="absolute -left-[27px] flex h-4 w-4 items-center justify-center rounded-full bg-brand-100">
+                <span className="absolute -left-[27px] flex h-4 w-4 items-center justify-center rounded-full bg-[#FFE8DC]">
                   <CheckCircle2 className="h-3 w-3 text-brand-600" />
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-800">{stageLabel(h.stage)}</span>
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                  <span className="text-sm font-semibold text-[#1A1A1A]">{stageLabel(h.stage)}</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-[#6B6B6B]">
                     <Clock className="h-3 w-3" /> {formatWhen(h.at)}
                   </span>
                 </div>
-                <p className="text-xs text-text-muted">                  by {h.by || "system"}
+                <p className="text-xs text-[#6B6B6B]">                  by {h.by || "system"}
                   {h.note ? ` · ${h.note}` : ""}
                 </p>
               </li>
@@ -989,10 +989,10 @@ export default function CandidateDetail() {
           </ol>
         )}
         {offer?.status && offer.status !== "none" && (
-          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">
-            <span className="font-medium text-slate-700">Offer:</span>{" "}
+          <div className="mt-4 rounded-xl bg-[#FFE8DC] p-3 text-sm">
+            <span className="font-medium text-[#1A1A1A]">Offer:</span>{" "}
             <Badge tone={offer.status === "accepted" ? "green" : offer.status === "declined" ? "red" : "amber"}>{offer.status}</Badge>
-            {offer.sentAt && <span className="ml-2 text-xs text-slate-500">sent {formatWhen(offer.sentAt)}</span>}
+            {offer.sentAt && <span className="ml-2 text-xs text-[#6B6B6B]">sent {formatWhen(offer.sentAt)}</span>}
           </div>
         )}
       </Section>
@@ -1008,15 +1008,15 @@ export default function CandidateDetail() {
               ["Certification Match", ats.certificationMatch],
               ["Keyword Match", ats.keywordMatch],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-xl bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">{label}</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">{value}%</p>
+              <div key={label} className="rounded-xl bg-[#FFE8DC] p-3">
+                <p className="text-xs text-[#6B6B6B]">{label}</p>
+                <p className="mt-1 text-lg font-bold text-[#1A1A1A]">{value}%</p>
               </div>
             ))}
           </div>
           {ats.missingSkills?.length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 text-xs font-medium text-slate-500">Missing Skills</p>
+              <p className="mb-2 text-xs font-medium text-[#6B6B6B]">Missing Skills</p>
               <div className="flex flex-wrap gap-1.5">
                 {ats.missingSkills.map((s) => (
                   <Badge key={s} tone="red">{s}</Badge>
@@ -1029,9 +1029,9 @@ export default function CandidateDetail() {
 
       {candidate.hostility?.signals?.length > 0 && (
         <Section title="Document Integrity Signals">
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-4 text-sm text-[#6B6B6B]">
             Automated checks found the following in this résumé. These are observations for your judgement —{" "}
-            <span className="font-medium text-slate-700">they never change a score and never auto-reject</span>.
+            <span className="font-medium text-[#1A1A1A]">they never change a score and never auto-reject</span>.
           </p>
           <div className="space-y-3">
             {candidate.hostility.signals.map((sig, i) => {
@@ -1040,24 +1040,24 @@ export default function CandidateDetail() {
                   ? "border-red-200 bg-red-50"
                   : sig.severity === "warning"
                   ? "border-amber-200 bg-amber-50"
-                  : "border-slate-200 bg-slate-50";
+                  : "border-[#E8E8E4] bg-[#FFE8DC]";
               const badgeTone = sig.severity === "critical" ? "red" : sig.severity === "warning" ? "amber" : "slate";
               return (
                 <div key={i} className={`rounded-xl border p-4 ${tone}`}>
                   <div className="flex items-center gap-2">
                     <Badge tone={badgeTone}>{sig.severity === "advisory" ? "context" : sig.severity}</Badge>
-                    <span className="text-xs font-mono text-slate-500">{sig.code}</span>
+                    <span className="text-xs font-mono text-[#6B6B6B]">{sig.code}</span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-700">{sig.message}</p>
+                  <p className="mt-2 text-sm text-[#1A1A1A]">{sig.message}</p>
                   {sig.spans?.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {sig.spans.map((span, j) => (
                         <blockquote
                           key={j}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-600"
+                          className="rounded-lg border border-[#E8E8E4] bg-white px-3 py-2 font-mono text-xs text-[#6B6B6B]"
                         >
                           “{span.quote}”
-                          {span.page != null && <span className="ml-2 text-slate-500">(page {span.page})</span>}
+                          {span.page != null && <span className="ml-2 text-[#6B6B6B]">(page {span.page})</span>}
                         </blockquote>
                       ))}
                     </div>
@@ -1065,7 +1065,7 @@ export default function CandidateDetail() {
                   {sig.meta?.samples?.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {sig.meta.samples.map((s, j) => (
-                        <blockquote key={j} className="rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-600">
+                        <blockquote key={j} className="rounded-lg border border-[#E8E8E4] bg-white px-3 py-2 font-mono text-xs text-[#6B6B6B]">
                           “{s}”
                         </blockquote>
                       ))}
@@ -1111,19 +1111,19 @@ export default function CandidateDetail() {
       )}
 
       <Section title="Experience">
-        {experience.length === 0 && <p className="text-sm text-slate-500">—</p>}
+        {experience.length === 0 && <p className="text-sm text-[#6B6B6B]">—</p>}
         <div className="space-y-3">
           {experience.map((exp, i) => (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4" key={i}>
+            <div className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-4" key={i}>
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-slate-800">
+                <p className="font-semibold text-[#1A1A1A]">
                   {exp.role} @ {exp.company}
                 </p>
                 <ProvenanceTag provenance={exp.provenance} />
               </div>
-              <p className="text-xs text-text-muted">                {exp.startDate} — {exp.currentlyWorking ? "Present" : exp.endDate}
+              <p className="text-xs text-[#6B6B6B]">                {exp.startDate} — {exp.currentlyWorking ? "Present" : exp.endDate}
               </p>
-              {exp.description && <p className="mt-2 text-sm text-slate-600">{exp.description}</p>}
+              {exp.description && <p className="mt-2 text-sm text-[#6B6B6B]">{exp.description}</p>}
               <ProvenanceSource provenance={exp.provenance} />
             </div>
           ))}
@@ -1131,18 +1131,18 @@ export default function CandidateDetail() {
       </Section>
 
       <Section title="Education">
-        {education.length === 0 && <p className="text-sm text-slate-500">—</p>}
+        {education.length === 0 && <p className="text-sm text-[#6B6B6B]">—</p>}
         <div className="space-y-3">
           {education.map((edu, i) => (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4" key={i}>
+            <div className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-4" key={i}>
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-slate-800">
+                <p className="font-semibold text-[#1A1A1A]">
                   {edu.degree}
                   {edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ""} — {edu.institution}
                 </p>
                 <ProvenanceTag provenance={edu.provenance} />
               </div>
-              <p className="text-xs text-text-muted">                {edu.startYear} — {edu.endYear} {edu.grade && `· Grade: ${edu.grade}`}
+              <p className="text-xs text-[#6B6B6B]">                {edu.startYear} — {edu.endYear} {edu.grade && `· Grade: ${edu.grade}`}
               </p>
               <ProvenanceSource provenance={edu.provenance} />
             </div>
@@ -1152,7 +1152,7 @@ export default function CandidateDetail() {
 
       <Section title="Skills">
         {skills.length === 0 ? (
-          <p className="text-sm text-slate-500">—</p>
+          <p className="text-sm text-[#6B6B6B]">—</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {skills.map((s, i) => {
@@ -1169,16 +1169,16 @@ export default function CandidateDetail() {
       </Section>
 
       <Section title="Projects">
-        {projects.length === 0 && <p className="text-sm text-slate-500">—</p>}
+        {projects.length === 0 && <p className="text-sm text-[#6B6B6B]">—</p>}
         <div className="space-y-3">
           {projects.map((proj, i) => (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4" key={i}>
+            <div className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-4" key={i}>
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-slate-800">{proj.title}</p>
+                <p className="font-semibold text-[#1A1A1A]">{proj.title}</p>
                 <ProvenanceTag provenance={proj.provenance} />
               </div>
-              {proj.techStack && <p className="text-xs text-slate-500">Tech: {proj.techStack}</p>}
-              {proj.description && <p className="mt-2 text-sm text-slate-600">{proj.description}</p>}
+              {proj.techStack && <p className="text-xs text-[#6B6B6B]">Tech: {proj.techStack}</p>}
+              {proj.description && <p className="mt-2 text-sm text-[#6B6B6B]">{proj.description}</p>}
               {proj.link && (
                 <a href={proj.link} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">
                   {proj.link}
@@ -1191,15 +1191,15 @@ export default function CandidateDetail() {
       </Section>
 
       <Section title="Certificates">
-        {certificates.length === 0 && <p className="text-sm text-slate-500">—</p>}
+        {certificates.length === 0 && <p className="text-sm text-[#6B6B6B]">—</p>}
         <div className="space-y-3">
           {certificates.map((cert, i) => (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4" key={i}>
+            <div className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-4" key={i}>
               <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-slate-800">{cert.name}</p>
+                <p className="font-semibold text-[#1A1A1A]">{cert.name}</p>
                 <ProvenanceTag provenance={cert.provenance} />
               </div>
-              <p className="text-xs text-text-muted">                {cert.issuer} {cert.issueDate && `· ${cert.issueDate}`}
+              <p className="text-xs text-[#6B6B6B]">                {cert.issuer} {cert.issueDate && `· ${cert.issueDate}`}
               </p>
               {cert.credentialUrl && (
                 <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">

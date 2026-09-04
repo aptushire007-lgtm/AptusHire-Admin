@@ -1,18 +1,17 @@
 /**
  * AptusHire shared surface primitives.
- * Premium light theme: white cards, green brand, gold accent, charcoal text.
- * No dark surfaces, no black boxes.
+ * Warm orange primary, bright green accent, warm cream canvas, white cards.
  */
 
-// ── Card tone system ────────────────────────────────────────────────────────
 const cardTones = {
-  default:       { border: "border-border",        surface: "bg-surface" },
-  brand:         { border: "border-brand-200",      surface: "bg-brand-50" },
-  ember:         { border: "border-accent-gold/30", surface: "bg-accent-gold-light" },
-  "filled-brand":{ border: "border-transparent",    surface: "bg-primary text-white" },
-  "filled-gold": { border: "border-transparent",    surface: "bg-accent-gold text-white" },
-  // backward-compat alias
-  "filled-ember":{ border: "border-transparent",    surface: "bg-accent-gold text-white" },
+  default:        { border: "border border-[#E8E8E4]",       surface: "bg-white" },
+  brand:          { border: "border border-[#FFCAAF]",        surface: "bg-[#FFF4EF]" },
+  ember:          { border: "border border-[#FFCAAF]",        surface: "bg-[#FFE8DC]" },
+  "filled-brand": { border: "border border-transparent",      surface: "bg-[#FF6B2C] text-white" },
+  "filled-gold":  { border: "border border-transparent",      surface: "bg-[#FF6B2C] text-white" },
+  "filled-ember": { border: "border border-transparent",      surface: "bg-[#FF6B2C] text-white" },
+  "filled-orange":{ border: "border border-transparent",      surface: "bg-[#FF6B2C] text-white" },
+  white:          { border: "border border-[#E8E8E4]",        surface: "bg-white" },
 };
 
 const OWN_SURFACE  = /(^|\s)(bg-|surface-|fill-)/;
@@ -27,40 +26,29 @@ function ownsBorderColor(cn) {
 }
 
 export function toneText(tone) {
-  if (tone === "filled-brand") return { strong: "text-white",         soft: "text-white/80",    tile: "on-fill" };
-  if (tone === "filled-gold")  return { strong: "text-white",         soft: "text-white/80",    tile: "on-fill" };
-  if (tone === "filled-ember") return { strong: "text-white",         soft: "text-white/80",    tile: "on-fill" };
-  if (tone === "ember")        return { strong: "text-text-strong",   soft: "text-text-muted",  tile: "ember" };
-  if (tone === "brand")        return { strong: "text-text-strong",   soft: "text-text-muted",  tile: "brand" };
-  return                              { strong: "text-text-strong",   soft: "text-text-muted",  tile: "brand" };
+  if (tone === "filled-brand")   return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
+  if (tone === "filled-gold")    return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
+  if (tone === "filled-ember")   return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
+  if (tone === "filled-orange")  return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
+  if (tone === "ember")          return { strong: "text-[#1A1A1A]", soft: "text-[#6B6B6B]", tile: "ember" };
+  if (tone === "brand")          return { strong: "text-[#1A1A1A]", soft: "text-[#6B6B6B]", tile: "brand" };
+  return                                { strong: "text-[#1A1A1A]", soft: "text-[#6B6B6B]", tile: "brand" };
 }
 
 const cardPadding = { default: "p-6", compact: "p-4", none: "p-0" };
 
-export function Card({
-  children,
-  className = "",
-  as: Component = "div",
-  interactive = false,
-  tone = "default",
-  padding = "default",
-  ...props
-}) {
+export function Card({ children, className = "", as: Component = "div", interactive = false, tone = "default", padding = "default", ...props }) {
   const t = cardTones[tone] ?? cardTones.default;
   return (
     <Component
       className={[
-        "min-w-0 rounded-card border shadow-card",
+        "min-w-0 rounded-card shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
         cardPadding[padding] ?? cardPadding.default,
         ownsBorderColor(className) ? "" : t.border,
-        OWN_SURFACE.test(className)  ? "" : t.surface,
-        interactive
-          ? "transition-[box-shadow,transform] duration-200 ease-out hover:-translate-y-px hover:shadow-lift motion-reduce:hover:translate-y-0"
-          : "",
+        OWN_SURFACE.test(className) ? "" : t.surface,
+        interactive ? "transition-[box-shadow,transform] duration-200 ease-out hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.10)] motion-reduce:hover:translate-y-0" : "",
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      ].filter(Boolean).join(" ")}
       {...props}
     >
       {children}
@@ -70,14 +58,15 @@ export function Card({
 
 // ── Icon Tile ───────────────────────────────────────────────────────────────
 const tileTones = {
-  brand:        "bg-brand-100 text-primary",
-  ember:        "bg-accent-gold-light text-accent-gold",
-  slate:        "bg-canvas text-text-muted",
-  positive:     "bg-brand-100 text-primary",
-  pending:      "bg-accent-gold-light text-accent-gold",
-  negative:     "bg-verdict-negative-tint text-verdict-negative",
-  "on-fill":    "bg-white/20 text-white",
-  "on-fill-ink":"bg-slate-950/10 text-slate-900",
+  brand:         "bg-[#FFE8DC] text-[#FF6B2C]",
+  ember:         "bg-[#FFE8DC] text-[#FF6B2C]",
+  orange:        "bg-[#FFE8DC] text-[#FF6B2C]",
+  slate:         "bg-[#F5F5F0] text-[#6B6B6B]",
+  positive:      "bg-[#DCFCE7] text-[#16A34A]",
+  pending:       "bg-[#FFE8DC] text-[#FF6B2C]",
+  negative:      "bg-[#FEE2E2] text-[#EF4444]",
+  "on-fill":     "bg-white/20 text-white",
+  "on-fill-ink": "bg-black/10 text-[#1A1A1A]",
 };
 
 const tileSizes = {
@@ -89,15 +78,7 @@ const tileSizes = {
 export function IconTile({ icon: Icon, tone = "brand", size = "md", className = "" }) {
   if (!Icon) return null;
   return (
-    <span
-      aria-hidden="true"
-      className={[
-        "inline-flex shrink-0 items-center justify-center",
-        tileSizes[size] ?? tileSizes.md,
-        tileTones[tone] ?? tileTones.brand,
-        className,
-      ].join(" ")}
-    >
+    <span aria-hidden="true" className={["inline-flex shrink-0 items-center justify-center", tileSizes[size] ?? tileSizes.md, tileTones[tone] ?? tileTones.brand, className].join(" ")}>
       <Icon />
     </span>
   );
@@ -105,29 +86,10 @@ export function IconTile({ icon: Icon, tone = "brand", size = "md", className = 
 
 // ── Avatar ──────────────────────────────────────────────────────────────────
 export function Avatar({ name, size = "md", className = "" }) {
-  const initials =
-    String(name || "")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase() || "?";
-  const sizes = {
-    sm: "h-8 w-8 text-[11px]",
-    md: "h-10 w-10 text-sm",
-    lg: "h-12 w-12 text-base",
-  };
+  const initials = String(name || "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+  const sizes = { sm: "h-8 w-8 text-[11px]", md: "h-10 w-10 text-sm", lg: "h-12 w-12 text-base" };
   return (
-    <span
-      aria-hidden="true"
-      className={[
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-primary",
-        sizes[size] ?? sizes.md,
-        className,
-      ].join(" ")}
-    >
+    <span aria-hidden="true" className={["inline-flex shrink-0 items-center justify-center rounded-full bg-[#FFE8DC] font-semibold text-[#FF6B2C]", sizes[size] ?? sizes.md, className].join(" ")}>
       {initials}
     </span>
   );
@@ -136,26 +98,20 @@ export function Avatar({ name, size = "md", className = "" }) {
 // ── Badge ───────────────────────────────────────────────────────────────────
 export function Badge({ children, tone = "slate", className = "" }) {
   const tones = {
-    slate:  "bg-canvas text-text-muted border border-border",
-    green:  "bg-verdict-positive-tint text-verdict-positive",
-    amber:  "bg-verdict-pending-tint text-verdict-pending",
-    red:    "bg-verdict-negative-tint text-verdict-negative",
-    brand:  "bg-brand-100 text-primary",
-    gold:   "bg-accent-gold-light text-accent-gold",
+    slate:  "bg-[#F5F5F0] text-[#6B6B6B] border border-[#E8E8E4]",
+    green:  "bg-[#DCFCE7] text-[#16A34A] font-semibold",
+    amber:  "bg-[#FFE8DC] text-[#FF6B2C] font-semibold",
+    red:    "bg-[#FEE2E2] text-[#EF4444]",
+    brand:  "bg-[#FFE8DC] text-[#FF6B2C] font-semibold",
+    orange: "bg-[#FFE8DC] text-[#FF6B2C] font-semibold",
+    gold:   "bg-[#FFE8DC] text-[#FF6B2C] font-semibold",
   };
   return (
-    <span
-      className={[
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
-        tones[tone] ?? tones.slate,
-        className,
-      ].join(" ")}
-    >
+    <span className={["inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap", tones[tone] ?? tones.slate, className].join(" ")}>
       {children}
     </span>
   );
 }
-
 export { Badge as StatusBadge };
 
 // ── StatCard ────────────────────────────────────────────────────────────────
@@ -167,13 +123,12 @@ export function StatCard({ label, value, icon: Icon, tone = "default", note, act
       <div className="min-w-0 flex-1">
         <p className={`text-xs font-semibold uppercase tracking-wide ${t.soft}`}>{label}</p>
         <p className={`font-display mt-1 text-2xl font-bold tracking-tight ${t.strong}`}>{value}</p>
-        {note   && <p className={`mt-1 text-xs ${t.soft}`}>{note}</p>}
+        {note && <p className={`mt-1 text-xs ${t.soft}`}>{note}</p>}
         {action && <div className="mt-3">{action}</div>}
       </div>
     </Card>
   );
 }
-
 export { StatCard as KpiCard };
 
 // ── SectionHeader ───────────────────────────────────────────────────────────
@@ -183,8 +138,8 @@ export function SectionHeader({ title, description, action, icon: Icon, classNam
       <div className="flex min-w-0 items-start gap-3">
         {Icon && <IconTile icon={Icon} size="sm" />}
         <div className="min-w-0">
-          <h2 className="text-base font-bold text-text-strong">{title}</h2>
-          {description && <p className="mt-1 max-w-prose text-sm text-text-muted">{description}</p>}
+          <h2 className="text-base font-bold text-[#1A1A1A]">{title}</h2>
+          {description && <p className="mt-1 max-w-prose text-sm text-[#6B6B6B]">{description}</p>}
         </div>
       </div>
       {action && <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div>}
@@ -194,22 +149,20 @@ export function SectionHeader({ title, description, action, icon: Icon, classNam
 
 // ── Skeleton ────────────────────────────────────────────────────────────────
 export function Skeleton({ className = "" }) {
-  return (
-    <div className={`animate-pulse motion-reduce:animate-none rounded-lg bg-slate-200/70 ${className}`} />
-  );
+  return <div className={`animate-pulse motion-reduce:animate-none rounded-lg bg-[#E8E8E4] ${className}`} />;
 }
 
 // ── EmptyState ───────────────────────────────────────────────────────────────
 export function EmptyState({ icon: Icon, title, description, action }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-border bg-surface px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-[#E8E8E4] bg-white px-6 py-14 text-center">
       {Icon && (
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-primary">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FFF4EF] text-[#FF6B2C]">
           <Icon className="h-6 w-6" aria-hidden="true" />
         </div>
       )}
-      <h3 className="text-base font-bold text-text-strong">{title}</h3>
-      {description && <p className="mt-1.5 max-w-sm text-sm text-text-muted">{description}</p>}
+      <h3 className="text-base font-bold text-[#1A1A1A]">{title}</h3>
+      {description && <p className="mt-1.5 max-w-sm text-sm text-[#6B6B6B]">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

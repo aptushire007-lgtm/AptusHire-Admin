@@ -2,51 +2,38 @@ import { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
- * AptusHire Button — premium light-mode design system
- *
- * Variants:
- *   primary   — filled green, main CTAs
- *   secondary — green-bordered, bg-white
- *   outline   — grey-bordered, transparent
- *   ghost     — no border, hover tint
- *   danger    — filled red for destructive actions
- *   gold      — filled warm gold for accent/highlight CTAs
- *   link      — inline text link style
- *
- * Every filled variant disables to the same neutral so a disabled button
- * cannot visually out-shout an enabled one beside it.
+ * AptusHire Button — warm orange primary, bright green success, warm grey neutral
  */
 
-const DISABLED_FILL =
-  "disabled:bg-canvas disabled:text-text-faint disabled:shadow-none disabled:cursor-not-allowed disabled:active:scale-100";
+const DISABLED = "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100";
 
 const variants = {
   primary:
-    `bg-primary text-white shadow-card hover:bg-primary-dark active:bg-primary-dark focus-visible:ring-4 focus-visible:ring-primary/25 ${DISABLED_FILL}`,
+    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] active:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
 
   secondary:
-    `border border-primary bg-surface text-primary hover:bg-brand-50 active:bg-brand-100 focus-visible:ring-4 focus-visible:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100`,
+    `border border-[#FF6B2C] bg-white text-[#FF6B2C] hover:bg-[#FFF4EF] active:bg-[#FFE8DC] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
 
   outline:
-    `border border-border bg-transparent text-text-muted hover:border-primary/40 hover:bg-brand-50 hover:text-primary focus-visible:ring-4 focus-visible:ring-primary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100`,
+    `border border-[#E8E8E4] bg-transparent text-[#6B6B6B] hover:border-[#FF6B2C]/50 hover:bg-[#FFF4EF] hover:text-[#FF6B2C] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
 
   ghost:
-    `bg-transparent text-text-muted hover:bg-brand-50 hover:text-primary focus-visible:ring-4 focus-visible:ring-primary/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100`,
+    `bg-transparent text-[#6B6B6B] hover:bg-[#FFF4EF] hover:text-[#FF6B2C] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
 
   danger:
-    `bg-verdict-negative text-white shadow-card hover:bg-red-700 active:bg-red-800 focus-visible:ring-4 focus-visible:ring-red-400/30 ${DISABLED_FILL}`,
+    `bg-[#EF4444] text-white shadow-[0_1px_3px_rgba(239,68,68,0.25)] hover:bg-[#DC2626] active:bg-[#DC2626] focus-visible:ring-4 focus-visible:ring-[#EF4444]/30 ${DISABLED}`,
+
+  orange:
+    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
 
   gold:
-    `bg-accent-gold text-white shadow-card hover:bg-accent-gold-dark active:bg-accent-gold-dark focus-visible:ring-4 focus-visible:ring-accent-gold/30 ${DISABLED_FILL}`,
+    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
 
-  /* backward-compat aliases */
   accent:
-    `bg-primary text-white shadow-card hover:bg-primary-dark focus-visible:ring-4 focus-visible:ring-primary/25 ${DISABLED_FILL}`,
-  orange:
-    `bg-accent-gold text-white shadow-card hover:bg-accent-gold-dark focus-visible:ring-4 focus-visible:ring-accent-gold/30 ${DISABLED_FILL}`,
+    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/25 ${DISABLED}`,
 
   link:
-    `bg-transparent text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-40 disabled:cursor-not-allowed`,
+    `bg-transparent text-[#FF6B2C] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
 };
 
 const sizes = {
@@ -57,16 +44,7 @@ const sizes = {
 };
 
 const Button = forwardRef(function Button(
-  {
-    as: Component = "button",
-    variant = "primary",
-    size = "md",
-    loading = false,
-    className = "",
-    children,
-    disabled,
-    ...props
-  },
+  { as: Component = "button", variant = "primary", size = "md", loading = false, className = "", children, disabled, ...props },
   ref
 ) {
   return (
@@ -80,14 +58,10 @@ const Button = forwardRef(function Button(
         variants[variant] ?? variants.primary,
         sizes[size] ?? sizes.md,
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      ].filter(Boolean).join(" ")}
       {...props}
     >
-      {loading && (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-      )}
+      {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
       {children}
     </Component>
   );

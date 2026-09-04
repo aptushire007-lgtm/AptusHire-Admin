@@ -169,14 +169,14 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
   return (
     <Card id={id} className="scroll-mt-32">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
           <Video className="h-4 w-4 text-brand-600" aria-hidden="true" /> AI Interview
         </h3>
         {state.url && (
           <a
             href={state.url}
             download
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-canvas"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E8E4] px-2.5 py-1.5 text-xs font-semibold text-[#1A1A1A] hover:bg-[#F5F5F0]"
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" /> Download video
           </a>
@@ -186,7 +186,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
       <div className="grid gap-5 lg:grid-cols-2">
         {/* ---- Left: the questions, in order ------------------------------ */}
         <div className="min-w-0">
-          <p className="mb-2 text-[11px] font-semibold tracking-[0.06em] text-slate-500 uppercase">
+          <p className="mb-2 text-[11px] font-semibold tracking-[0.06em] text-[#6B6B6B] uppercase">
             Questions asked ({questions.length})
           </p>
           <ol className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
@@ -200,11 +200,11 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                     disabled={!canSeek || q.offset == null}
                     className={`w-full rounded-lg border p-2.5 text-left transition-colors ${
                       activeIndex >= q.index
-                        ? "border-brand-300 bg-brand-50/60"
-                        : "border-slate-200 bg-canvas hover:bg-brand-50/30"
+                        ? "border-brand-300 bg-[#FFE8DC]/60"
+                        : "border-[#E8E8E4] bg-[#F5F5F0] hover:bg-[#FFE8DC]/30"
                     } ${canSeek && q.offset != null ? "cursor-pointer" : "cursor-default"}`}
                   >
-                    <span className="block text-xs leading-relaxed text-slate-700 [overflow-wrap:anywhere]">{q.text}</span>
+                    <span className="block text-xs leading-relaxed text-[#1A1A1A] [overflow-wrap:anywhere]">{q.text}</span>
                     {stamp && (
                       <span className="mt-1 block text-[11px] font-semibold tabular-nums text-brand-700">{stamp}</span>
                     )}
@@ -236,7 +236,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                   className="aspect-video w-full rounded-lg bg-slate-900"
                 />
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="mr-1 text-xs font-semibold text-slate-600">Speed</span>
+                  <span className="mr-1 text-xs font-semibold text-[#6B6B6B]">Speed</span>
                   {SPEEDS.map((s) => (
                     <button
                       key={s}
@@ -244,7 +244,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                       onClick={() => setSpeed(s)}
                       aria-pressed={speed === s}
                       className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                        speed === s ? "bg-brand-600 text-white" : "bg-canvas text-slate-600 hover:bg-slate-100"
+                        speed === s ? "bg-brand-600 text-white" : "bg-[#F5F5F0] text-[#6B6B6B] hover:bg-[#F5F5F0]"
                       }`}
                     >
                       {s === 1 ? "Normal" : `${s}x`}
@@ -253,7 +253,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                 </div>
               </>
             ) : (
-              <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-300 bg-canvas">
+              <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#E8E8E4]-mid bg-[#F5F5F0]">
                 <button
                   type="button"
                   onClick={loadVideo}
@@ -266,20 +266,20 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                 {/* Said before the click, not after. Watching someone's interview
                     is recorded against your name, and that is the kind of thing a
                     person should know in advance rather than discover in a log. */}
-                <p className="px-4 text-center text-[11px] text-slate-500">
+                <p className="px-4 text-center text-[11px] text-[#6B6B6B]">
                   Opening the recording is audit-logged against your account.
                 </p>
               </div>
             )
           ) : (
-            <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-canvas px-6 text-center">
+            <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-[#E8E8E4]-mid bg-[#F5F5F0] px-6 text-center">
               {/* Four different absences, four different sentences. "No video"
                   covers a session that was never recorded, one still in progress,
                   one whose footage arrived but could not be assembled, and one
                   that failed outright — and a reviewer needs to know which,
                   because only one of them means the candidate's interview is
                   missing something. */}
-              <p className="text-xs leading-relaxed text-slate-500">
+              <p className="text-xs leading-relaxed text-[#6B6B6B]">
                 {state.status === "recording"
                   ? "Recording in progress — check back once the interview has finished."
                   : state.status === "partial"
@@ -293,14 +293,14 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
 
           <div className="mt-4">
             <div className="mb-2 flex items-baseline justify-between gap-2">
-              <p className="text-[11px] font-semibold tracking-[0.06em] text-slate-500 uppercase">Transcript</p>
+              <p className="text-[11px] font-semibold tracking-[0.06em] text-[#6B6B6B] uppercase">Transcript</p>
               {state.url && !anchorTrusted && (
                 // The honest version of a feature that does not work here, rather
                 // than buttons that jump somewhere plausible and wrong.
-                <p className="text-[11px] text-slate-500">Times shown, but seeking is off — see below</p>
+                <p className="text-[11px] text-[#6B6B6B]">Times shown, but seeking is off — see below</p>
               )}
             </div>
-            <div className="max-h-[18rem] space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
+            <div className="max-h-[18rem] space-y-1 overflow-y-auto rounded-lg border border-[#E8E8E4] p-2">
               {lines.map((l) => {
                 const stamp = clock(l.offset);
                 const active = l.index === activeIndex;
@@ -309,7 +309,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                     key={l.index}
                     ref={active ? activeRef : null}
                     className={`flex gap-2 rounded px-1.5 py-1 text-[11px] leading-relaxed ${
-                      active ? "bg-brand-50" : ""
+                      active ? "bg-[#FFE8DC]" : ""
                     }`}
                   >
                     {stamp ? (
@@ -318,17 +318,17 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
                         onClick={() => seek(l.offset)}
                         disabled={!canSeek}
                         className={`shrink-0 font-semibold tabular-nums ${
-                          canSeek ? "cursor-pointer text-brand-700 hover:underline" : "cursor-default text-slate-400"
+                          canSeek ? "cursor-pointer text-brand-700 hover:underline" : "cursor-default text-[#9B9B9B]"
                         }`}
                       >
                         {stamp}
                       </button>
                     ) : (
-                      <span className="shrink-0 text-slate-300 tabular-nums">--:--</span>
+                      <span className="shrink-0 text-[#9B9B9B] tabular-nums">--:--</span>
                     )}
                     <span
                       className={`min-w-0 [overflow-wrap:anywhere] ${
-                        l.role === "ai" ? "text-slate-500" : "font-medium text-slate-800"
+                        l.role === "ai" ? "text-[#6B6B6B]" : "font-medium text-[#1A1A1A]"
                       }`}
                     >
                       {l.text}
@@ -338,7 +338,7 @@ export default function InterviewPlayback({ candidateId, transcript = [], starte
               })}
             </div>
             {state.url && !anchorTrusted && (
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+              <p className="mt-2 text-[11px] leading-relaxed text-[#6B6B6B]">
                 The timestamps are measured from when the session started, and for this interview they run past the end
                 of the video — so capture began late, and jumping to one would land in the wrong place. They&rsquo;re shown
                 as a running order rather than as links.

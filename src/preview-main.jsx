@@ -155,8 +155,8 @@ function CandidatesPreview() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-strong">Candidates</h1>
-        <p className="mt-1 text-sm text-text-muted">
+        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">Candidates</h1>
+        <p className="mt-1 text-sm text-[#6B6B6B]">
           List form with the stage control. Click <strong>Advance</strong> for the one-click move, or the chevron for the
           grouped menu — try <em>Aisha Khan</em> for the sideways-round group and <em>Reject</em> for the confirm step.
         </p>
@@ -208,7 +208,7 @@ function PalettePreview() {
         action={<Button variant="accent">Clay CTA</Button>}
       />
       <Card>
-        <p className="mb-3 text-xs font-semibold text-text-muted">Buttons</p>
+        <p className="mb-3 text-xs font-semibold text-[#6B6B6B]">Buttons</p>
         <div className="flex flex-wrap gap-2">
           <Button>Primary</Button>
           <Button variant="secondary">Secondary</Button>
@@ -218,7 +218,7 @@ function PalettePreview() {
           <Button variant="accent">Accent</Button>
           <Button disabled>Disabled</Button>
         </div>
-        <p className="mt-6 mb-3 text-xs font-semibold text-text-muted">
+        <p className="mt-6 mb-3 text-xs font-semibold text-[#6B6B6B]">
           Badges — brand stays neutral so the three verdict tones own the channel
         </p>
         <div className="flex flex-wrap gap-2">
@@ -228,7 +228,7 @@ function PalettePreview() {
           <Badge tone="amber">Awaiting a human</Badge>
           <Badge tone="red">Rejected</Badge>
         </div>
-        <p className="mt-6 mb-3 text-xs font-semibold text-text-muted">Chips</p>
+        <p className="mt-6 mb-3 text-xs font-semibold text-[#6B6B6B]">Chips</p>
         <ChipRow label="filters">
           <Chip active>All stages</Chip>
           <Chip>Shortlisted</Chip>
@@ -241,7 +241,7 @@ function PalettePreview() {
         <StatCard label="Offers out" value="19" tone="filled-brand" note="last 30 days" />
       </div>
       <Card>
-        <p className="mb-3 text-xs font-semibold text-text-muted">Fields — tab into them to see the focus treatment</p>
+        <p className="mb-3 text-xs font-semibold text-[#6B6B6B]">Fields — tab into them to see the focus treatment</p>
         <FormGroup>
           <Label required>Job title</Label>
           <Input placeholder="Senior Backend Engineer" />
@@ -253,7 +253,7 @@ function PalettePreview() {
             <option>Shortlisted</option>
           </Select>
         </FormGroup>
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-[#6B6B6B]">
           A sentence with <Link to="/palette">an inline link</Link> in it — petrol, and underlined, because colour alone
           is never the only cue.
         </p>
@@ -271,17 +271,17 @@ const TABS = [
 
 function Shell() {
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur">
+    <div className="min-h-screen bg-[#F5F5F0]">
+      <header className="sticky top-0 z-30 border-b border-[#E8E8E4] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-6 py-3">
-          <span className="mr-3 text-sm font-bold text-text-strong">Design preview</span>
+          <span className="mr-3 text-sm font-bold text-[#1A1A1A]">Design preview</span>
           {TABS.map((t) => (
             <NavLink
               key={t.to}
               to={t.to}
               className={({ isActive }) =>
                 `rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive ? "bg-brand-600 text-white" : "text-text-muted hover:bg-brand-50 hover:text-brand-700"
+                  isActive ? "bg-brand-600 text-white" : "text-[#6B6B6B] hover:bg-[#FFE8DC] hover:text-brand-700"
                 }`
               }
             >

@@ -103,15 +103,15 @@ function PublishBoardsModal({ job, onClose }) {
               const blocked =
                 !b.enabled || (b.needsCredential && !b.credentialConfigured) || b.validationErrors.length > 0;
               return (
-                <div key={b.board} className="rounded-xl border border-border p-3">
+                <div key={b.board} className="rounded-xl border border-[#E8E8E4] bg-[#FFF4EF] p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <label className="flex items-center gap-2.5 text-sm font-medium text-text">
+                    <label className="flex items-center gap-2.5 text-sm font-medium text-[#1A1A1A]">
                       <input
                         type="checkbox"
                         disabled={blocked}
                         checked={!!selected[b.board]}
                         onChange={(e) => setSelected((s) => ({ ...s, [b.board]: e.target.checked }))}
-                        className="h-4 w-4 rounded border-border-mid text-brand-600"
+                        className="h-4 w-4 rounded border-[#E8E8E4]-mid text-brand-600"
                       />
                       {b.name}
                       <Badge tone="slate">Tier {b.tier}</Badge>
@@ -120,7 +120,7 @@ function PublishBoardsModal({ job, onClose }) {
                   </div>
                   {!b.enabled && <p className="mt-1.5 pl-6 text-xs text-amber-600">{b.reason}</p>}
                   {b.enabled && b.needsCredential && !b.credentialConfigured && (
-                    <p className="mt-1.5 pl-6 text-xs text-text-muted">
+                    <p className="mt-1.5 pl-6 text-xs text-[#6B6B6B]">
                       Connect this board's credentials in Settings → Integrations first.
                     </p>
                   )}
@@ -134,7 +134,7 @@ function PublishBoardsModal({ job, onClose }) {
                     </a>
                   )}
                   {b.status === "published" && (
-                    <button onClick={() => withdraw(b.board)} disabled={busy} className="mt-1.5 pl-6 text-xs font-medium text-text-muted hover:text-red-600">
+                    <button onClick={() => withdraw(b.board)} disabled={busy} className="mt-1.5 pl-6 text-xs font-medium text-[#6B6B6B] hover:text-red-600">
                       Withdraw from this board
                     </button>
                   )}
@@ -262,7 +262,7 @@ export default function JobList() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B6B]" />
           <Input
             value={search}
             onChange={(e) => updateSearch(e.target.value)}
@@ -359,21 +359,21 @@ export default function JobList() {
                         />
                         {linkPickerFor === job._id && (
                           <span
-                            className="absolute right-0 top-9 z-20 w-44 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-surface py-1.5 shadow-soft"
+                            className="absolute right-0 top-9 z-20 w-44 max-w-[calc(100vw-2rem)] rounded-xl border border-[#E8E8E4] bg-[#FFF4EF] py-1.5 shadow-soft"
                             onMouseLeave={() => setLinkPickerFor(null)}
                           >
                             {LINK_SOURCES.map((s) => (
                               <button
                                 key={s.key}
                                 onClick={() => handleCopyApplyLink(job, s.key)}
-                                className="block w-full px-3.5 py-1.5 text-left text-xs font-medium text-text-muted hover:bg-canvas"
+                                className="block w-full px-3.5 py-1.5 text-left text-xs font-medium text-[#6B6B6B] hover:bg-[#F5F5F0]"
                               >
                                 {s.label} link
                               </button>
                             ))}
                             <button
                               onClick={() => handleCopyApplyLink(job)}
-                              className="block w-full border-t border-border px-3.5 py-1.5 text-left text-xs text-text-muted hover:bg-canvas"
+                              className="block w-full border-t border-[#E8E8E4] px-3.5 py-1.5 text-left text-xs text-[#6B6B6B] hover:bg-[#F5F5F0]"
                             >
                               Untagged link
                             </button>
@@ -405,7 +405,7 @@ export default function JobList() {
 
       {!loading && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-[#6B6B6B]">
             Page {page} of {totalPages} ({total} total)
           </p>
           <div className="flex gap-2">

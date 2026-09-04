@@ -24,7 +24,7 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="tap-target relative inline-flex items-center justify-center rounded-control p-2 text-text-muted transition-colors duration-150 hover:bg-lime-soft hover:text-primary"
+        className="tap-target relative inline-flex items-center justify-center rounded-control p-2 text-[#6B6B6B] transition-colors duration-150 hover:bg-[#FFE8DC] hover:text-[#FF6B2C]"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -44,10 +44,10 @@ export default function NotificationBell() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface shadow-soft"
+              className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-[#E8E8E4] bg-white shadow-soft"
             >
-              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-                <p className="text-sm font-semibold text-slate-800">Notifications</p>
+              <div className="flex items-center justify-between gap-3 border-b border-[#E8E8E4] px-4 py-3">
+                <p className="text-sm font-semibold text-[#1A1A1A]">Notifications</p>
                 <button
                   onClick={() => markAllRead?.()}
                   className="flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
@@ -58,7 +58,7 @@ export default function NotificationBell() {
 
               <div className="max-h-80 overflow-y-auto">
                 {(!recent || recent.length === 0) && (
-                  <p className="px-4 py-6 text-center text-sm text-slate-500">No notifications yet.</p>
+                  <p className="px-4 py-6 text-center text-sm text-[#6B6B6B]">No notifications yet.</p>
                 )}
                 {recent?.map((n) => {
                   // §1.3 — the data (candidateId/jobId in meta) was already there; nothing read it.
@@ -73,13 +73,13 @@ export default function NotificationBell() {
                           navigate(target.to);
                         }
                       }}
-                      className={`block w-full border-b border-slate-50 px-4 py-3 text-left transition hover:bg-slate-50 ${
-                        n.read ? "" : "bg-brand-50/50"
+                      className={`block w-full border-b border-slate-50 px-4 py-3 text-left transition hover:bg-[#FFE8DC] ${
+                        n.read ? "" : "bg-[#FFE8DC]/50"
                       } ${target ? "cursor-pointer" : "cursor-default"}`}
                     >
-                      <p className="text-sm font-semibold text-slate-800">{n.title}</p>
-                      <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{n.message}</p>
-                      <p className="mt-1 text-[11px] text-slate-500">{timeAgo(n.createdAt)}</p>
+                      <p className="text-sm font-semibold text-[#1A1A1A]">{n.title}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-[#6B6B6B]">{n.message}</p>
+                      <p className="mt-1 text-[11px] text-[#6B6B6B]">{timeAgo(n.createdAt)}</p>
                     </button>
                   );
                 })}
@@ -90,7 +90,7 @@ export default function NotificationBell() {
                   setOpen(false);
                   navigate("/notifications");
                 }}
-                className="block w-full rounded-b-xl bg-slate-50 px-4 py-2.5 text-center text-xs font-semibold text-brand-700 hover:bg-slate-100"
+                className="block w-full rounded-b-xl bg-[#FFE8DC] px-4 py-2.5 text-center text-xs font-semibold text-brand-700 hover:bg-[#F5F5F0]"
               >
                 View all notifications
               </button>

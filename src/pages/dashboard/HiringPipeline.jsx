@@ -1,49 +1,67 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { KanbanSquare, Eye, EyeOff } from "lucide-react";
+import { Clock, Eye, EyeOff, KanbanSquare } from "lucide-react";
 import api from "../../api/client.js";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
-import { Card, Badge, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
-import { RecordCard, Chip } from "../../components/ui/Panels.jsx";
+import { Skeleton, EmptyState } from "../../components/ui/Card.jsx";
+import { Chip } from "../../components/ui/Panels.jsx";
 import StageMenu from "../../components/ui/StageMenu.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
-import { ALL_STAGES, REJECTED, stageLabel, stageTone, stageStep, normalizeStage } from "../../lib/pipeline.js";
+import {
+  ALL_STAGES,
+  REJECTED,
+  stageLabel,
+  normalizeStage,
+} from "../../lib/pipeline.js";
 
-// One card per candidate, built from the app's own record card rather than a
-// bespoke board tile. The slots are the ones every other list screen uses —
-// name, role, score top-right, stage control at the foot — so a recruiter who
-// has learned the candidate list has already learned this board. It also brings
-// the stretched link with it: the whole card is the target, not the ~120px of
-// name text that used to be the only clickable thing in a 288px column.
-function CandidateCard({ candidate, onMove, busy }) {
+// ─── Initials avatar ─────────────────────────────────────────────────────────
+function Avatar({ name }) {
+  const letters =
+    String(name || "?")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || "?";
   return (
-    <RecordCard
-      title={candidate.basicDetails?.name || "Unnamed applicant"}
-      subtitle={candidate.job?.title || "No job on record"}
-      link={{ as: Link, to: `/candidates/${candidate._id}` }}
-      trailing={
-        candidate.ats?.overallScore != null ? (
-          <Badge
-            tone={
-              candidate.ats.decision === "pass" ? "green" : candidate.ats.decision === "fail" ? "red" : "slate"
-            }
-            className="tabular-nums"
-          >
-            {candidate.ats.overallScore}%
-          </Badge>
-        ) : (
-          // Not a zero. A candidate the engine never scored and a candidate it
-          // scored 0 are different claims, and only one of them is a
-          // measurement.
-          <Badge tone="slate">Not scored</Badge>
-        )
-      }
-      actions={
-        // Compact: the column is 288px, so the button label goes generic and
-        // the destination lives in the accessible name. The menu itself is
-        // portalled — an absolutely-positioned one would be clipped by this
-        // board's `overflow-x-auto` rail, and now also by the column's own
-        // `overflow-y-auto` body.
+    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFE8DC] text-[11px] font-bold text-[#FF6B2C]">
+      {letters}
+    </span>
+  );
+}
+
+// ─── Candidate card ───────────────────────────────────────────────────────────
+// White, very light green border, no shadow — matches reference exactly
+function CandidateCard({ candidate, onMove, busy }) {
+  const score = candidate.ats?.overallScore;
+
+  return (
+    <Link
+      to={`/candidates/${candidate._id}`}
+      className="flex items-center gap-2.5 rounded-lg border border-[#E8E8E4] bg-white p-3 transition-colors hover:border-[#FFCAAF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF6B2C]"
+    >
+      <Avatar name={candidate.basicDetails?.name} />
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold leading-snug text-[#111]">
+          {candidate.basicDetails?.name || "Unnamed applicant"}
+        </p>
+        <p className="mt-0.5 truncate text-[11px] text-[#6B6B6B]">
+          {candidate.job?.title || ""}
+        </p>
+        {score != null && (
+          <p className="mt-1 text-[11px] font-bold text-[#FF6B2C]">
+            {score}% match
+          </p>
+        )}
+      </div>
+
+      <div
+        onClick={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.stopPropagation()}
+        className="shrink-0"
+      >
         <StageMenu
           compact
           status={candidate.status}
@@ -51,82 +69,57 @@ function CandidateCard({ candidate, onMove, busy }) {
           busy={busy}
           onMove={(stage) => onMove(candidate, stage)}
         />
-      }
-    />
+      </div>
+    </Link>
   );
 }
 
-/**
- * One stage column.
- *
- * The column is a WELL, not a panel: slate ground behind a hairline, no shadow
- * of its own. Depth on this screen runs one way — the board recedes, the cards
- * a recruiter actually acts on sit on top of it at `shadow-card`. Giving the
- * column a shadow too would put both planes at the same height and flatten the
- * only distinction that matters here.
- *
- * The header sits OUTSIDE the scrolling body rather than being `sticky` inside
- * it. Same result — the stage name never leaves the screen — with none of the
- * stacking-context trouble sticky brings to a rail that also scrolls sideways.
- */
-function StageColumn({ stage, candidates, onMove, busyId }) {
-  const step = stageStep(stage);
+// ─── Stage column ─────────────────────────────────────────────────────────────
+// No bg fill on column — columns are transparent inside the outer light-green card
+function StageColumn({ stage, candidates, onMove, busyId, isLast }) {
   const terminal = stage === REJECTED;
 
   return (
-    <section
-      aria-label={`${stageLabel(stage)} — ${candidates.length} candidate${candidates.length === 1 ? "" : "s"}`}
-      // `snap-start` so a sideways flick lands on a column edge instead of
-      // halfway through one. On a 16-stage pipeline that is the difference
-      // between reading the board and hunting for it.
-      className={`flex w-72 shrink-0 snap-start flex-col rounded-2xl bg-slate-50 p-3 ${
-        // The off-ramp is drawn as an off-ramp. `rejected` is not step 16 of the
-        // pipeline — it is the exit, and a dashed edge says so without spending
-        // a colour to say it.
-        terminal ? "border border-dashed border-slate-300" : "border border-slate-200"
+    <div
+      className={`flex min-w-[190px] flex-1 flex-col ${
+        !isLast ? "border-r border-[#E8E8E4]" : ""
       }`}
     >
-      <div className="mb-3 flex items-center justify-between gap-2 px-1">
-        <div className="flex min-w-0 items-center gap-2">
-          {/* The ordinal is the orientation cue. Sixteen columns in a horizontal
-              rail otherwise give a recruiter no way to know how far along they
-              have scrolled; "07" does, and it is the same numbering the
-              candidate-facing StepTrack and the stage menu already use. */}
-          <span className="shrink-0 text-[11px] font-semibold tabular-nums text-slate-400">
-            {step ? String(step).padStart(2, "0") : "—"}
-          </span>
-          <h2 className="truncate text-sm font-semibold text-slate-700">{stageLabel(stage)}</h2>
-        </div>
-        <Badge tone={stageTone(stage)}>{candidates.length}</Badge>
+      {/* Header: label left, count right */}
+      <div className="flex items-center gap-2 px-4 pt-4 pb-3">
+        <h2 className={`text-sm font-bold ${terminal ? "text-[#C0392B]" : "text-[#111]"}`}>
+          {stageLabel(stage)}
+        </h2>
+        <span className="ml-auto text-sm font-semibold text-[#6B6B6B]">
+          {candidates.length}
+        </span>
       </div>
 
-      {/* The column scrolls, not the page. Before this, one busy stage made the
-          whole board as tall as its longest column and every other stage became
-          a screenful of empty ground you had to scroll past to reach the rail
-          again. Capped at 60vh so the board is always one screen. */}
-      <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto overscroll-contain">
+      {/* Cards list */}
+      <div className="flex max-h-[56vh] flex-col gap-2 overflow-y-auto overscroll-contain px-3 pb-4">
         {candidates.length === 0 ? (
-          <p className="px-1 py-6 text-center text-xs text-slate-400">No candidates at this stage</p>
+          <p className="py-6 text-center text-[11px] text-[#A8B8B0]">No candidates</p>
         ) : (
           candidates.map((c) => (
-            <CandidateCard key={c._id} candidate={c} onMove={onMove} busy={busyId === c._id} />
+            <CandidateCard
+              key={c._id}
+              candidate={c}
+              onMove={onMove}
+              busy={busyId === c._id}
+            />
           ))
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function HiringPipeline() {
-  const { allCandidates, loading, refresh } = useCompanyData();
-  const toast = useToast();
-  const [busyId, setBusyId] = useState(null);
-  // Default to the stages that actually hold someone. A 16-column rail where 12
-  // columns read "0" is not a picture of a pipeline, it is a scrolling task —
-  // and the four that matter are usually the four furthest from where the rail
-  // starts. Hiding is reversible in one click and always states its own count,
-  // so nothing is quietly withheld.
-  const [showEmpty, setShowEmpty] = useState(false);
+  const { allCandidates, jobs, loading, refresh } = useCompanyData();
+  const toast  = useToast();
+  const [busyId,     setBusyId]     = useState(null);
+  const [showEmpty,  setShowEmpty]  = useState(false);
 
   const columns = useMemo(() => {
     const grouped = Object.fromEntries(ALL_STAGES.map((s) => [s, []]));
@@ -137,11 +130,26 @@ export default function HiringPipeline() {
     return grouped;
   }, [allCandidates]);
 
-  const occupied = ALL_STAGES.filter((s) => columns[s].length > 0);
-  // If nothing is occupied there is nothing to hide — showing an empty board
-  // with "0 of 16 stages" would be a worse answer than showing the pipeline.
+  const kpiStats = useMemo(() => {
+    const interviewStages = new Set([
+      "interview_scheduled","interview_completed",
+      "ai_interview_sent","ai_interview_completed",
+    ]);
+    const shortlistStages = new Set([
+      "shortlisted","screening_passed","offer_extended","offer_accepted",
+    ]);
+    return [
+      { label: "Open roles",  value: jobs?.length ?? 0 },
+      { label: "Candidates",  value: allCandidates.length },
+      { label: "Interviews",  value: allCandidates.filter((c) => interviewStages.has(normalizeStage(c.status))).length },
+      { label: "Shortlisted", value: allCandidates.filter((c) => shortlistStages.has(normalizeStage(c.status))).length },
+      { label: "Hired",       value: allCandidates.filter((c) => normalizeStage(c.status) === "hired").length },
+    ];
+  }, [allCandidates, jobs]);
+
+  const occupied      = ALL_STAGES.filter((s) => columns[s].length > 0);
   const visibleStages = showEmpty || occupied.length === 0 ? ALL_STAGES : occupied;
-  const hiddenCount = ALL_STAGES.length - visibleStages.length;
+  const hiddenCount   = ALL_STAGES.length - visibleStages.length;
 
   async function handleMove(candidate, toStage) {
     setBusyId(candidate._id);
@@ -157,61 +165,101 @@ export default function HiringPipeline() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+
+      {/* ── Page header ──────────────────────────────────────────── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">Hiring Pipeline</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Every candidate across all jobs, grouped by hiring stage. Move them forward as they progress.
+          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
+            Hiring Pipeline
+          </h1>
+          <p className="mt-1 text-sm text-[#6B6B6B]">
+            One workspace for every open role, candidate, conversation, and decision.
           </p>
         </div>
-
         {!loading && allCandidates.length > 0 && (hiddenCount > 0 || showEmpty) && (
-          <div className="flex flex-wrap items-center gap-3">
-            {/* The count is stated whether or not anything is hidden, so the
-                board never looks complete while it is not. */}
-            <span className="text-xs text-slate-500">
-              Showing {visibleStages.length} of {ALL_STAGES.length} stages
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#6B6B6B]">
+              {visibleStages.length} of {ALL_STAGES.length} stages
             </span>
-            {/* Deliberately NOT `active`. The chip's label is the action it
-                takes; the sentence beside it is the state. A filled pill
-                reading "Show all stages" says both at once and means neither.
-                The label also names the exact number being withheld, so the
-                board can never be quietly shorter than the pipeline. */}
             <Chip icon={showEmpty ? EyeOff : Eye} onClick={() => setShowEmpty((v) => !v)}>
-              {showEmpty
-                ? "Hide empty stages"
-                : `Show ${hiddenCount} empty stage${hiddenCount === 1 ? "" : "s"}`}
+              {showEmpty ? "Hide empty" : `+${hiddenCount} empty`}
             </Chip>
           </div>
         )}
       </div>
 
+      {/* ── States ───────────────────────────────────────────────── */}
       {loading ? (
-        <div className="flex gap-4 overflow-x-auto">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 w-72 shrink-0" />
-          ))}
+        /* Loading skeleton — same outer shape */
+        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0]">
+          {/* KPI skeleton */}
+          <div className="grid grid-cols-5 divide-x divide-[#E8E8E4] border-b border-[#E8E8E4]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="px-5 py-4">
+                <Skeleton className="h-3 w-20 bg-[#E8E8E4]" />
+                <Skeleton className="mt-2 h-8 w-12 bg-[#E8E8E4]" />
+                <Skeleton className="mt-1 h-3 w-16 bg-[#E8E8E4]" />
+              </div>
+            ))}
+          </div>
+          {/* Columns skeleton */}
+          <div className="flex divide-x divide-[#E8E8E4]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex-1 px-3 py-4 space-y-2">
+                <Skeleton className="h-4 w-24 bg-[#E8E8E4]" />
+                <Skeleton className="h-16 w-full bg-[#E8E8E4] rounded-lg" />
+                <Skeleton className="h-16 w-full bg-[#E8E8E4] rounded-lg" />
+              </div>
+            ))}
+          </div>
         </div>
+
       ) : allCandidates.length === 0 ? (
-        <Card>
+        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0] p-10">
           <EmptyState
             icon={KanbanSquare}
             title="No candidates yet"
-            description="Applicants appear here and flow through the pipeline as you move them."
+            description="Applicants appear here once they apply and flow through the pipeline as you move them."
           />
-        </Card>
+        </div>
+
       ) : (
-        <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-4">
-          {visibleStages.map((stage) => (
-            <StageColumn
-              key={stage}
-              stage={stage}
-              candidates={columns[stage]}
-              onMove={handleMove}
-              busyId={busyId}
-            />
-          ))}
+        /* ── ONE big outer card — light green bg ─────────────── */
+        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0]">
+
+          {/* ── KPI row ────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 divide-x divide-y divide-[#E8E8E4] border-b border-[#E8E8E4] sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
+            {kpiStats.map((s) => (
+              <div key={s.label} className="px-5 py-4">
+                <p className="text-xs font-medium text-[#6B6B6B]">{s.label}</p>
+                <p className="mt-0.5 font-display text-[2.1rem] font-bold leading-none tracking-tight text-[#111]">
+                  {s.value}
+                </p>
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#6B6B6B]">
+                  <Clock className="h-3 w-3 shrink-0" aria-hidden />
+                  Updated now
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Kanban columns ─────────────────────────────────── */}
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max divide-x divide-[#E8E8E4]">
+              {visibleStages.map((stage, idx) => (
+                <StageColumn
+                  key={stage}
+                  stage={stage}
+                  candidates={columns[stage]}
+                  onMove={handleMove}
+                  busyId={busyId}
+                  isLast={idx === visibleStages.length - 1}
+                />
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
     </div>

@@ -29,21 +29,21 @@ export const BUCKET_MARK = {
     glyph: "✓",
     mark: "bg-chart-positive ring-1 ring-inset ring-verdict-positive/70",
     chip: "bg-verdict-positive",
-    text: "text-verdict-positive",
+    text: "text-[#FF6B2C]",
   },
   failed: {
     label: "Failed",
     glyph: "✗",
     mark: "bg-chart-negative ring-1 ring-inset ring-verdict-negative/70",
     chip: "bg-verdict-negative",
-    text: "text-verdict-negative",
+    text: "text-[#C0392B]",
   },
   insufficient: {
     label: "Not tested",
     glyph: "?",
     mark: "bg-chart-neutral ring-1 ring-inset ring-slate-400/70",
     chip: "bg-slate-400",
-    text: "text-slate-500",
+    text: "text-[#6B6B6B]",
   },
 };
 
@@ -60,8 +60,8 @@ export const LEG_MARK = {
   verified: { glyph: "✓", cls: "bg-verdict-positive text-white", says: "supports" },
   contradicted: { glyph: "✗", cls: "bg-verdict-negative text-white", says: "contradicts" },
   partial: { glyph: "~", cls: "bg-slate-400 text-white", says: "partial" },
-  absent: { glyph: "", cls: "border border-slate-300", says: "nothing on record" },
-  untested: { glyph: "", cls: "border border-slate-300", says: "not tested" },
+  absent: { glyph: "", cls: "border border-[#E8E8E4]-mid", says: "nothing on record" },
+  untested: { glyph: "", cls: "border border-[#E8E8E4]-mid", says: "not tested" },
 };
 
 export const LEG_ORDER = [
@@ -93,10 +93,10 @@ export const UNTESTED_CAUSE_COPY = {
  * unremarkable row into an achievement.
  */
 export const MOVEMENT_MARK = {
-  stronger: { arrow: "↑", label: "Stronger than the CV claimed", text: "text-verdict-positive" },
-  weaker: { arrow: "↓", label: "Weaker than the CV claimed", text: "text-verdict-negative" },
-  held: { arrow: "=", label: "Matched the CV", text: "text-slate-500" },
-  undemonstrated: { arrow: "·", label: "Not demonstrated in the interview", text: "text-slate-400" },
+  stronger: { arrow: "↑", label: "Stronger than the CV claimed", text: "text-[#FF6B2C]" },
+  weaker: { arrow: "↓", label: "Weaker than the CV claimed", text: "text-[#C0392B]" },
+  held: { arrow: "=", label: "Matched the CV", text: "text-[#6B6B6B]" },
+  undemonstrated: { arrow: "·", label: "Not demonstrated in the interview", text: "text-[#9B9B9B]" },
 };
 
 // Order the rubric reads in. Weight already encodes importance and the rows

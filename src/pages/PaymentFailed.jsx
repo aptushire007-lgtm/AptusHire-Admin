@@ -31,15 +31,15 @@ export default function PaymentFailed() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen bg-[#F5F5F0]">
       <MarketingNavbar />
       <div className="mx-auto max-w-md px-5 py-20 sm:px-8">
         <Card className="text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
             <XCircle className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-bold text-text-strong">{cancelled ? "Payment Cancelled" : "Payment Failed"}</h1>
-          <p className="mt-2 text-sm text-text-muted">
+          <h1 className="text-xl font-bold text-[#1A1A1A]">{cancelled ? "Payment Cancelled" : "Payment Failed"}</h1>
+          <p className="mt-2 text-sm text-[#6B6B6B]">
             {cancelled
               ? "You closed the checkout before completing payment."
               : "We couldn't process your payment. You can try again or choose a different plan."}

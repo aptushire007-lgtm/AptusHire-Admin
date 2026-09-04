@@ -18,17 +18,17 @@ export default function OnboardingSteps({ current }) {
                     ? "bg-brand-600 text-white"
                     : active
                     ? "bg-brand-600 text-white ring-4 ring-brand-100"
-                    : "bg-slate-200 text-slate-500"
+                    : "bg-[#F5F5F0]-deep text-[#6B6B6B]"
                 }`}
               >
                 {done ? <Check className="h-4 w-4" /> : step}
               </div>
-              <span className={`hidden text-[11px] font-medium sm:block ${active || done ? "text-brand-700" : "text-slate-500"}`}>
+              <span className={`hidden text-[11px] font-medium sm:block ${active || done ? "text-brand-700" : "text-[#6B6B6B]"}`}>
                 {label}
               </span>
             </div>
             {step < STEPS.length && (
-              <div className={`mx-2 h-0.5 flex-1 rounded ${done ? "bg-brand-600" : "bg-slate-200"}`} />
+              <div className={`mx-2 h-0.5 flex-1 rounded ${done ? "bg-brand-600" : "bg-[#F5F5F0]-deep"}`} />
             )}
           </div>
         );

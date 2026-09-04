@@ -69,7 +69,7 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
   // A candidate at a terminal stage has nowhere to go. Saying so is better than
   // an empty cell, which reads as a control that failed to render.
   if (!primary && lateral.length === 0 && !canReject) {
-    return <span className={`text-xs font-medium text-text-muted ${className}`}>Final stage</span>;
+    return <span className={`text-xs font-medium text-[#6B6B6B] ${className}`}>Final stage</span>;
   }
 
   function request(stage) {
@@ -145,7 +145,7 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
       )}
       {/* The legend earns its line: it is what makes the envelope a stated fact
           rather than a glyph the reader has to guess at. */}
-      <p className="flex items-start gap-1.5 px-2.5 pt-2 pb-1 text-[11px] leading-relaxed text-text-muted">
+      <p className="flex items-start gap-1.5 px-2.5 pt-2 pb-1 text-[11px] leading-relaxed text-[#6B6B6B]">
         <Mail className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
         Marks a move that emails the candidate.
       </p>
@@ -196,8 +196,8 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
         size="sm"
         title={confirming === REJECTED ? `Reject ${who}?` : `Mark ${who} as ${stageLabel(confirming || "")}?`}
       >
-        <p className="text-sm leading-relaxed text-text-muted">
-          <span className="font-medium text-text-strong">{stageLabel(confirming || "")}</span> is a final stage. Once set,{" "}
+        <p className="text-sm leading-relaxed text-[#6B6B6B]">
+          <span className="font-medium text-[#1A1A1A]">{stageLabel(confirming || "")}</span> is a final stage. Once set,{" "}
           {who} cannot be moved to any other stage from the pipeline.
           {confirming && notifiesCandidate(confirming) && " The candidate is emailed about this move."}
         </p>
@@ -223,7 +223,7 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
 function Step({ stage }) {
   const step = stageStep(stage);
   return (
-    <span aria-hidden="true" className="w-5 shrink-0 text-[11px] font-semibold tabular-nums text-text-faint">
+    <span aria-hidden="true" className="w-5 shrink-0 text-[11px] font-semibold tabular-nums text-[#9B9B9B]">
       {step == null ? "" : String(step).padStart(2, "0")}
     </span>
   );
@@ -244,11 +244,11 @@ function Consequence({ stage, next = false }) {
   return (
     <span className="flex shrink-0 items-center gap-1.5">
       {next && (
-        <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">Next</span>
+        <span className="rounded-full bg-[#FFE8DC] px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">Next</span>
       )}
       {mails && (
         <>
-          <Mail className="h-3.5 w-3.5 text-text-faint" aria-hidden="true" />
+          <Mail className="h-3.5 w-3.5 text-[#9B9B9B]" aria-hidden="true" />
           <span className="sr-only">Emails the candidate</span>
         </>
       )}

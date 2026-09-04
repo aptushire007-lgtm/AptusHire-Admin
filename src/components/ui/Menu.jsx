@@ -95,13 +95,13 @@ export default function Menu({
             onKeyDown={onPanelKeyDown}
             onClick={(e) => { if (e.target.closest?.(ITEM)) close(); }}
             style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, width }}
-            className={`fixed z-50 flex max-h-[min(26rem,70vh)] flex-col rounded-card border border-border bg-surface shadow-lift ${
+            className={`fixed z-50 flex max-h-[min(26rem,70vh)] flex-col rounded-card border border-[#E8E8E4] bg-white shadow-lift ${
               pos ? "" : "pointer-events-none opacity-0"
             } ${className}`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1.5">{children}</div>
             {footer && (
-              <div className="shrink-0 border-t border-border p-1.5">{footer}</div>
+              <div className="shrink-0 border-t border-[#E8E8E4] p-1.5">{footer}</div>
             )}
           </div>,
           document.body
@@ -114,7 +114,7 @@ export function MenuGroup({ label, children, className = "" }) {
   return (
     <div role="group" aria-label={label} className={className}>
       {label && (
-        <p className="px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-text-faint">
+        <p className="px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#9B9B9B]">
           {label}
         </p>
       )}
@@ -124,7 +124,7 @@ export function MenuGroup({ label, children, className = "" }) {
 }
 
 export function MenuSeparator({ className = "" }) {
-  return <div role="separator" className={`my-1.5 border-t border-border ${className}`} />;
+  return <div role="separator" className={`my-1.5 border-t border-[#E8E8E4] ${className}`} />;
 }
 
 export function MenuItem({
@@ -138,9 +138,9 @@ export function MenuItem({
   className = "",
 }) {
   const tones = {
-    default: "text-text hover:bg-brand-50 hover:text-primary",
-    danger:  "text-verdict-negative hover:bg-verdict-negative-tint",
-    gold:    "text-accent-gold hover:bg-accent-gold-light",
+    default: "text-[#1A1A1A] hover:bg-[#FFE8DC] hover:text-[#FF6B2C]",
+    danger:  "text-[#C0392B] hover:bg-[#FDECEA]",
+    gold:    "text-[#FF6B2C] hover:bg-[#FF6B2C]-light",
   };
   return (
     <button
@@ -162,7 +162,7 @@ export function MenuItem({
       <span className="min-w-0 flex-1">
         <span className="block truncate">{children}</span>
         {description && (
-          <span className="mt-0.5 block truncate text-xs font-normal text-text-muted">
+          <span className="mt-0.5 block truncate text-xs font-normal text-[#6B6B6B]">
             {description}
           </span>
         )}

@@ -24,7 +24,7 @@ import TabbedFindings from "./TabbedFindings.jsx";
 export default function InstrumentScoreCard({ id, title, gauge, narrative, tabs, provenance, footer }) {
   return (
     <Card id={id} className="flex flex-col">
-      <h3 className="font-display text-base font-bold tracking-tight text-slate-900">{title}</h3>
+      <h3 className="font-display text-base font-bold tracking-tight text-[#1A1A1A]">{title}</h3>
       {provenance}
 
       <div className="mt-4">
@@ -32,16 +32,16 @@ export default function InstrumentScoreCard({ id, title, gauge, narrative, tabs,
       </div>
 
       {narrative && (
-        <p className="mt-4 rounded-xl bg-canvas px-4 py-3 text-sm leading-relaxed text-slate-700">{narrative}</p>
+        <p className="mt-4 rounded-xl bg-[#F5F5F0] px-4 py-3 text-sm leading-relaxed text-[#1A1A1A]">{narrative}</p>
       )}
 
       {tabs?.length > 0 && (
-        <div className="mt-4 border-t border-slate-100 pt-4">
+        <div className="mt-4 border-t border-[#E8E8E4] pt-4">
           <TabbedFindings tabs={tabs} />
         </div>
       )}
 
-      {footer && <div className="mt-4 border-t border-slate-100 pt-3">{footer}</div>}
+      {footer && <div className="mt-4 border-t border-[#E8E8E4] pt-3">{footer}</div>}
     </Card>
   );
 }
