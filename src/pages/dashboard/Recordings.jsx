@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+﻿import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Video, AlertTriangle } from "lucide-react";
 import api from "../../api/client.js";
@@ -70,8 +70,8 @@ export default function Recordings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Recordings</h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">Every candidate with an interview recording — select one to watch it on their report.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Recordings</h1>
+        <p className="mt-1 text-sm text-[#64736A]">Every candidate with an interview recording — select one to watch it on their report.</p>
       </div>
 
       <ChipRow label="Quick filter">
@@ -93,7 +93,7 @@ export default function Recordings() {
       </ChipRow>
 
       {loading ? (
-        <Card padding="none" className="divide-y divide-[#E8E8E4] overflow-hidden">
+        <Card padding="none" className="divide-y divide-[#E5EBE7] overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="p-4">
               <Skeleton className="h-10 w-full" />
@@ -134,7 +134,7 @@ export default function Recordings() {
 
           {data.totalPages > 1 && (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-[#6B6B6B]">
+              <p className="text-xs text-[#64736A]">
                 Page {data.page} of {data.totalPages} ({data.total} total)
               </p>
               <div className="flex gap-2">

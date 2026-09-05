@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Send, SkipForward, RefreshCw, PauseCircle, PlayCircle, StopCircle, ClipboardList, Download } from "lucide-react";
 import api from "../../api/client.js";
@@ -156,8 +156,8 @@ export default function AssessmentTracker() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-[#1A1A1A]">Assessments</h1>
-            <p className="text-sm text-[#6B6B6B]">
+            <h1 className="text-xl font-bold text-[#17221C]">Assessments</h1>
+            <p className="text-sm text-[#64736A]">
               {data.job.title} · policy: <strong>{data.job.assessmentPolicy}</strong> · paper: {data.paperStatus}
             </p>
           </div>
@@ -179,9 +179,9 @@ export default function AssessmentTracker() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {["scheduled", "in_progress", "paused", "completed", "expired"].map((k) => (
           <Card key={k} className="!p-4 text-center">
-            <p className="text-2xl font-bold text-[#1A1A1A]">{data.counts[k] || 0}</p>
-            <p className="text-xs text-[#6B6B6B]">
-              {STATUS_META[k].label} {total > 0 && <span className="text-[#9B9B9B]">· {pct(data.counts[k] || 0)}%</span>}
+            <p className="text-2xl font-bold text-[#17221C]">{data.counts[k] || 0}</p>
+            <p className="text-xs text-[#64736A]">
+              {STATUS_META[k].label} {total > 0 && <span className="text-[#9BAAA1]">· {pct(data.counts[k] || 0)}%</span>}
             </p>
           </Card>
         ))}
@@ -191,8 +191,8 @@ export default function AssessmentTracker() {
           candidates park here when no paper is approved or auto-assign failed. */}
       {(data.job.assessmentPolicy === "manual" || data.awaitingDecision.length > 0) && (
         <Card>
-          <h2 className="text-base font-semibold text-[#1A1A1A]">Awaiting your decision</h2>
-          <p className="mt-1 text-sm text-[#6B6B6B]">
+          <h2 className="text-base font-semibold text-[#17221C]">Awaiting your decision</h2>
+          <p className="mt-1 text-sm text-[#64736A]">
             These candidates passed screening. Send the assessment — or skip a candidate (a senior hire, say) straight to the AI
             interview. Either way it's recorded as your decision; a skip never reads as missing data and costs nothing.
           </p>
@@ -206,14 +206,14 @@ export default function AssessmentTracker() {
             </p>
           )}
           <div className="mt-4 space-y-2">
-            {data.awaitingDecision.length === 0 && <p className="text-sm text-[#6B6B6B]">Nobody waiting — all decided.</p>}
+            {data.awaitingDecision.length === 0 && <p className="text-sm text-[#64736A]">Nobody waiting — all decided.</p>}
             {data.awaitingDecision.map((c) => (
-              <div key={c._id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#E8E8E4] bg-[#FFE8DC]/60 p-3">
+              <div key={c._id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#E5EBE7] bg-[#E8F2EC]/60 p-3">
                 <div className="min-w-[12rem] flex-1">
-                  <Link to={`/candidates/${c._id}`} className="text-sm font-semibold text-[#1A1A1A] hover:text-brand-700">
+                  <Link to={`/candidates/${c._id}`} className="text-sm font-semibold text-[#17221C] hover:text-brand-700">
                     {c.basicDetails?.name}
                   </Link>
-                  <p className="text-xs text-[#6B6B6B] [overflow-wrap:anywhere]">
+                  <p className="text-xs text-[#64736A] [overflow-wrap:anywhere]">
                     {c.basicDetails?.email} · ATS {c.ats?.overallScore ?? "—"}
                   </p>
                 </div>
@@ -244,7 +244,7 @@ export default function AssessmentTracker() {
 
       {/* Sessions */}
       <Card>
-        <h2 className="text-base font-semibold text-[#1A1A1A]">Sessions</h2>
+        <h2 className="text-base font-semibold text-[#17221C]">Sessions</h2>
         {data.sessions.length === 0 ? (
           <EmptyState
             icon={ClipboardList}
@@ -254,17 +254,17 @@ export default function AssessmentTracker() {
         ) : (
           <div className="mt-4 space-y-2">
             {data.sessions.map((s) => (
-              <div key={s.id} className="rounded-xl border border-[#E8E8E4] p-3">
+              <div key={s.id} className="rounded-xl border border-[#E5EBE7] p-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-[12rem] flex-1">
                     {s.candidate ? (
-                      <Link to={`/candidates/${s.candidate.id}`} className="text-sm font-semibold text-[#1A1A1A] hover:text-brand-700">
+                      <Link to={`/candidates/${s.candidate.id}`} className="text-sm font-semibold text-[#17221C] hover:text-brand-700">
                         {s.candidate.name}
                       </Link>
                     ) : (
-                      <span className="text-sm text-[#6B6B6B]">(candidate removed)</span>
+                      <span className="text-sm text-[#64736A]">(candidate removed)</span>
                     )}
-                    <p className="text-xs text-[#6B6B6B]">
+                    <p className="text-xs text-[#64736A]">
                       assigned by {s.assignment?.assignedByName} ({s.assignment?.mode}) ·{" "}
                       {new Date(s.assignment?.at).toLocaleString()}
                     </p>
@@ -313,7 +313,7 @@ export default function AssessmentTracker() {
                   </div>
                 </div>
                 {s.result?.claimVerdicts?.length > 0 && (
-                  <p className="mt-2 text-xs text-[#6B6B6B]">
+                  <p className="mt-2 text-xs text-[#64736A]">
                     Claim verdicts:{" "}
                     {s.result.claimVerdicts.map((v) => `${v.claimId}: ${v.verdict} (${v.correctCount}/${v.itemCount})`).join(" · ")}
                   </p>

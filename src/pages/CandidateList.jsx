@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Users, AlertTriangle } from "lucide-react";
 import api from "../api/client.js";
@@ -69,12 +69,12 @@ export default function CandidateList() {
 
   return (
     <div className="space-y-6">
-      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700">
+      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#64736A] hover:text-brand-700">
         <ArrowLeft className="h-4 w-4" /> Back to jobs
       </Link>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Candidates{job ? ` — ${job.title}` : ""}</h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">Filter down to who&rsquo;s ready for a shortlist on this role.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Candidates{job ? ` — ${job.title}` : ""}</h1>
+        <p className="mt-1 text-sm text-[#64736A]">Filter down to who&rsquo;s ready for a shortlist on this role.</p>
       </div>
 
       {job && job.rubricStatus && job.rubricStatus !== "approved" && (
@@ -114,7 +114,7 @@ export default function CandidateList() {
       )}
 
       {loading ? (
-        <Card padding="none" className="divide-y divide-[#E8E8E4] overflow-hidden">
+        <Card padding="none" className="divide-y divide-[#E5EBE7] overflow-hidden">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="px-4 py-3">
               <Skeleton className="h-9 w-full" />
@@ -126,8 +126,8 @@ export default function CandidateList() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
             <div className="space-y-2">
-              <h3 className="text-base font-semibold text-[#1A1A1A]">Could not load candidates</h3>
-              <p className="text-sm text-[#6B6B6B]">{loadError}</p>
+              <h3 className="text-base font-semibold text-[#17221C]">Could not load candidates</h3>
+              <p className="text-sm text-[#64736A]">{loadError}</p>
               <button
                 type="button"
                 onClick={load}
@@ -148,7 +148,7 @@ export default function CandidateList() {
         />
       ) : (
         <>
-          <p className="text-xs text-[#6B6B6B]">
+          <p className="text-xs text-[#64736A]">
             {filtered.length} of {candidates.length} candidate{candidates.length === 1 ? "" : "s"}
           </p>
           <RecordList label={`Candidates for ${job?.title || "this job"}`}>

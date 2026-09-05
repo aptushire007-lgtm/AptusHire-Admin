@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Clock, Eye, EyeOff, KanbanSquare } from "lucide-react";
 import api from "../../api/client.js";
@@ -25,7 +25,7 @@ function Avatar({ name }) {
       .map((w) => w[0].toUpperCase())
       .join("") || "?";
   return (
-    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFE8DC] text-[11px] font-bold text-[#FF6B2C]">
+    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E8F2EC] text-[11px] font-bold text-[#176B45]">
       {letters}
     </span>
   );
@@ -39,7 +39,7 @@ function CandidateCard({ candidate, onMove, busy }) {
   return (
     <Link
       to={`/candidates/${candidate._id}`}
-      className="flex items-center gap-2.5 rounded-lg border border-[#E8E8E4] bg-white p-3 transition-colors hover:border-[#FFCAAF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF6B2C]"
+      className="flex items-center gap-2.5 rounded-lg border border-[#E5EBE7] bg-white p-3 transition-colors hover:border-[#C7DDD1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45]"
     >
       <Avatar name={candidate.basicDetails?.name} />
 
@@ -47,11 +47,11 @@ function CandidateCard({ candidate, onMove, busy }) {
         <p className="truncate text-[13px] font-semibold leading-snug text-[#111]">
           {candidate.basicDetails?.name || "Unnamed applicant"}
         </p>
-        <p className="mt-0.5 truncate text-[11px] text-[#6B6B6B]">
+        <p className="mt-0.5 truncate text-[11px] text-[#64736A]">
           {candidate.job?.title || ""}
         </p>
         {score != null && (
-          <p className="mt-1 text-[11px] font-bold text-[#FF6B2C]">
+          <p className="mt-1 text-[11px] font-bold text-[#176B45]">
             {score}% match
           </p>
         )}
@@ -82,15 +82,15 @@ function StageColumn({ stage, candidates, onMove, busyId, isLast }) {
   return (
     <div
       className={`flex min-w-[190px] flex-1 flex-col ${
-        !isLast ? "border-r border-[#E8E8E4]" : ""
+        !isLast ? "border-r border-[#E5EBE7]" : ""
       }`}
     >
       {/* Header: label left, count right */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-3">
-        <h2 className={`text-sm font-bold ${terminal ? "text-[#C0392B]" : "text-[#111]"}`}>
+        <h2 className={`text-sm font-bold ${terminal ? "text-[#C95C5C]" : "text-[#111]"}`}>
           {stageLabel(stage)}
         </h2>
-        <span className="ml-auto text-sm font-semibold text-[#6B6B6B]">
+        <span className="ml-auto text-sm font-semibold text-[#64736A]">
           {candidates.length}
         </span>
       </div>
@@ -170,16 +170,16 @@ export default function HiringPipeline() {
       {/* ── Page header ──────────────────────────────────────────── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#17221C]">
             Hiring Pipeline
           </h1>
-          <p className="mt-1 text-sm text-[#6B6B6B]">
+          <p className="mt-1 text-sm text-[#64736A]">
             One workspace for every open role, candidate, conversation, and decision.
           </p>
         </div>
         {!loading && allCandidates.length > 0 && (hiddenCount > 0 || showEmpty) && (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-[#6B6B6B]">
+            <span className="text-xs text-[#64736A]">
               {visibleStages.length} of {ALL_STAGES.length} stages
             </span>
             <Chip icon={showEmpty ? EyeOff : Eye} onClick={() => setShowEmpty((v) => !v)}>
@@ -192,31 +192,31 @@ export default function HiringPipeline() {
       {/* ── States ───────────────────────────────────────────────── */}
       {loading ? (
         /* Loading skeleton — same outer shape */
-        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0]">
+        <div className="overflow-hidden rounded-2xl border border-[#E5EBE7] bg-[#F8FAF9]">
           {/* KPI skeleton */}
-          <div className="grid grid-cols-5 divide-x divide-[#E8E8E4] border-b border-[#E8E8E4]">
+          <div className="grid grid-cols-5 divide-x divide-[#E5EBE7] border-b border-[#E5EBE7]">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="px-5 py-4">
-                <Skeleton className="h-3 w-20 bg-[#E8E8E4]" />
-                <Skeleton className="mt-2 h-8 w-12 bg-[#E8E8E4]" />
-                <Skeleton className="mt-1 h-3 w-16 bg-[#E8E8E4]" />
+                <Skeleton className="h-3 w-20 bg-[#E5EBE7]" />
+                <Skeleton className="mt-2 h-8 w-12 bg-[#E5EBE7]" />
+                <Skeleton className="mt-1 h-3 w-16 bg-[#E5EBE7]" />
               </div>
             ))}
           </div>
           {/* Columns skeleton */}
-          <div className="flex divide-x divide-[#E8E8E4]">
+          <div className="flex divide-x divide-[#E5EBE7]">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex-1 px-3 py-4 space-y-2">
-                <Skeleton className="h-4 w-24 bg-[#E8E8E4]" />
-                <Skeleton className="h-16 w-full bg-[#E8E8E4] rounded-lg" />
-                <Skeleton className="h-16 w-full bg-[#E8E8E4] rounded-lg" />
+                <Skeleton className="h-4 w-24 bg-[#E5EBE7]" />
+                <Skeleton className="h-16 w-full bg-[#E5EBE7] rounded-lg" />
+                <Skeleton className="h-16 w-full bg-[#E5EBE7] rounded-lg" />
               </div>
             ))}
           </div>
         </div>
 
       ) : allCandidates.length === 0 ? (
-        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0] p-10">
+        <div className="overflow-hidden rounded-2xl border border-[#E5EBE7] bg-[#F8FAF9] p-10">
           <EmptyState
             icon={KanbanSquare}
             title="No candidates yet"
@@ -226,17 +226,17 @@ export default function HiringPipeline() {
 
       ) : (
         /* ── ONE big outer card — light green bg ─────────────── */
-        <div className="overflow-hidden rounded-2xl border border-[#E8E8E4] bg-[#F5F5F0]">
+        <div className="overflow-hidden rounded-2xl border border-[#E5EBE7] bg-[#F8FAF9]">
 
           {/* ── KPI row ────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 divide-x divide-y divide-[#E8E8E4] border-b border-[#E8E8E4] sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
+          <div className="grid grid-cols-2 divide-x divide-y divide-[#E5EBE7] border-b border-[#E5EBE7] sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
             {kpiStats.map((s) => (
               <div key={s.label} className="px-5 py-4">
-                <p className="text-xs font-medium text-[#6B6B6B]">{s.label}</p>
+                <p className="text-xs font-medium text-[#64736A]">{s.label}</p>
                 <p className="mt-0.5 font-display text-[2.1rem] font-bold leading-none tracking-tight text-[#111]">
                   {s.value}
                 </p>
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#6B6B6B]">
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#64736A]">
                   <Clock className="h-3 w-3 shrink-0" aria-hidden />
                   Updated now
                 </p>
@@ -246,7 +246,7 @@ export default function HiringPipeline() {
 
           {/* ── Kanban columns ─────────────────────────────────── */}
           <div className="overflow-x-auto">
-            <div className="flex min-w-max divide-x divide-[#E8E8E4]">
+            <div className="flex min-w-max divide-x divide-[#E5EBE7]">
               {visibleStages.map((stage, idx) => (
                 <StageColumn
                   key={stage}

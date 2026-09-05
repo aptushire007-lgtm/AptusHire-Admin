@@ -1,4 +1,4 @@
-// Reports (Phase 12) — server-side analytics over date ranges, replacing the
+﻿// Reports (Phase 12) — server-side analytics over date ranges, replacing the
 // old client-side bars over whatever happened to be in memory. Includes the
 // evidence-native reports only this engine can produce and the one-click
 // Bias Audit Pack export.
@@ -44,7 +44,7 @@ const TONE_FILL = {
   slate: "bg-chart-neutral ring-1 ring-inset ring-slate-400/70",
   brand: "bg-chart-brand ring-1 ring-inset ring-brand-600/60",
   green: "bg-chart-positive ring-1 ring-inset ring-verdict-positive/70",
-  amber: "bg-[#FFE8DC] ring-1 ring-inset ring-verdict-pending/70",
+  amber: "bg-[#E8F2EC] ring-1 ring-inset ring-verdict-pending/70",
   red: "bg-chart-negative ring-1 ring-inset ring-verdict-negative/70",
 };
 
@@ -64,15 +64,15 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
             criterion or stage label is arbitrary rubric text, not a fixed
             word, and the `value` on the right must never be the side that
             gives way. */}
-        <span className="flex min-w-0 items-center gap-1.5 font-medium text-[#6B6B6B]">
-          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-[#FF6B2C]" aria-hidden="true" />}
+        <span className="flex min-w-0 items-center gap-1.5 font-medium text-[#64736A]">
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-[#176B45]" aria-hidden="true" />}
           <span className="truncate">{label}</span>
         </span>
-        <span className="shrink-0 tabular-nums text-[#6B6B6B]">
-          <span className="font-semibold text-[#1A1A1A]">{value}</span> <span className="text-[#6B6B6B]">· {pct}%</span>
+        <span className="shrink-0 tabular-nums text-[#64736A]">
+          <span className="font-semibold text-[#17221C]">{value}</span> <span className="text-[#64736A]">· {pct}%</span>
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-[#F5F5F0]">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#F8FAF9]">
         <div className={`h-full rounded-full ${TONE_FILL[tone]}`} style={{ width: `${pct}%` }} />
       </div>
     </>
@@ -81,7 +81,7 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
   return (
     <Link
       to={to}
-      className="-m-1.5 block rounded-control p-1.5 transition-colors hover:bg-[#F5F5F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+      className="-m-1.5 block rounded-control p-1.5 transition-colors hover:bg-[#F8FAF9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
     >
       {content}
     </Link>
@@ -93,15 +93,15 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
 function RankedRow({ label, value, maxValue, tone = "brand" }) {
   const pct = maxValue ? Math.max(value ? 6 : 0, Math.round((value / maxValue) * 100)) : 0;
   return (
-    <div className="relative overflow-hidden rounded-control border border-[#E8E8E4] bg-[#F5F5F0]">
+    <div className="relative overflow-hidden rounded-control border border-[#E5EBE7] bg-[#F8FAF9]">
       <div className={`absolute inset-y-0 left-0 ${TONE_FILL[tone]} opacity-[0.14]`} style={{ width: `${pct}%` }} />
       <div className="relative flex items-center justify-between gap-3 px-3 py-2 text-sm">
         {/* The wrapper above is `overflow-hidden` for the proportional fill
             behind it, which used to double as an unintentional (and
             ellipsis-free) clip for a long criterion label. `truncate` here
             makes that clipping visible and legible instead of a silent cut. */}
-        <span className="min-w-0 truncate text-[#6B6B6B]">{label}</span>
-        <span className="shrink-0 tabular-nums font-semibold text-[#1A1A1A]">{value}</span>
+        <span className="min-w-0 truncate text-[#64736A]">{label}</span>
+        <span className="shrink-0 tabular-nums font-semibold text-[#17221C]">{value}</span>
       </div>
     </div>
   );
@@ -115,19 +115,19 @@ function RankedRow({ label, value, maxValue, tone = "brand" }) {
 // its marks does not get these fills"); pass it wherever the call site has no
 // other adjacent text spelling out the counts.
 function VerdictSplit({ verified, contradicted, inconclusive, total, legend = false, className = "" }) {
-  if (!total) return <div className={`h-1.5 w-full rounded-full bg-[#F5F5F0] ${className}`} />;
+  if (!total) return <div className={`h-1.5 w-full rounded-full bg-[#F8FAF9] ${className}`} />;
   const seg = (n) => `${Math.max(0, (n / total) * 100)}%`;
   return (
     <div className={className}>
       {legend && (
-        <p className="mb-1.5 text-xs text-[#6B6B6B]">
+        <p className="mb-1.5 text-xs text-[#64736A]">
           {verified} verified · {contradicted} contradicted · {inconclusive} unclear
         </p>
       )}
-      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#FFE8DC]">
+      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#E8F2EC]">
         <div className="bg-chart-positive ring-1 ring-inset ring-verdict-positive/70" style={{ width: seg(verified) }} />
         <div className="bg-chart-negative ring-1 ring-inset ring-verdict-negative/70" style={{ width: seg(contradicted) }} />
-        <div className="bg-[#FFE8DC] ring-1 ring-inset ring-verdict-pending/70" style={{ width: seg(inconclusive) }} />
+        <div className="bg-[#E8F2EC] ring-1 ring-inset ring-verdict-pending/70" style={{ width: seg(inconclusive) }} />
       </div>
     </div>
   );
@@ -136,12 +136,12 @@ function VerdictSplit({ verified, contradicted, inconclusive, total, legend = fa
 function KpiStat({ icon: Icon, label, value, hint }) {
   return (
     <div className="flex min-w-0 flex-col gap-2 px-5 py-4">
-      <div className="flex min-w-0 items-center gap-1.5 text-[#6B6B6B]">
-        {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-[#FF6B2C]" aria-hidden="true" />}
-        <span className="truncate text-xs font-semibold text-[#6B6B6B]">{label}</span>
+      <div className="flex min-w-0 items-center gap-1.5 text-[#64736A]">
+        {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-[#176B45]" aria-hidden="true" />}
+        <span className="truncate text-xs font-semibold text-[#64736A]">{label}</span>
       </div>
-      <p className="text-3xl font-bold tabular-nums text-[#1A1A1A]">{value ?? "—"}</p>
-      {hint && <p className="text-[11px] leading-snug text-[#6B6B6B]">{hint}</p>}
+      <p className="text-3xl font-bold tabular-nums text-[#17221C]">{value ?? "—"}</p>
+      {hint && <p className="text-[11px] leading-snug text-[#64736A]">{hint}</p>}
     </div>
   );
 }
@@ -153,12 +153,12 @@ function ScoreHistogram({ bins }) {
   const max = Math.max(1, ...bins.map((b) => b.count));
   return (
     <div>
-      <div className="flex h-32 items-end gap-1.5 border-b border-[#E8E8E4]">
+      <div className="flex h-32 items-end gap-1.5 border-b border-[#E5EBE7]">
         {bins.map((b) => {
           const summary = `${b.lo}–${b.hi}: ${b.count} candidate${b.count === 1 ? "" : "s"}`;
           return (
             <div key={b.lo} className="flex flex-1 flex-col items-center justify-end gap-1">
-              <span className="text-[10px] font-semibold tabular-nums text-[#6B6B6B]" aria-hidden="true">
+              <span className="text-[10px] font-semibold tabular-nums text-[#64736A]" aria-hidden="true">
                 {b.count || ""}
               </span>
               <div
@@ -176,7 +176,7 @@ function ScoreHistogram({ bins }) {
       </div>
       <div className="mt-1.5 flex gap-1.5">
         {bins.map((b) => (
-          <span key={b.lo} className="flex-1 text-center text-[10px] text-[#6B6B6B]">
+          <span key={b.lo} className="flex-1 text-center text-[10px] text-[#64736A]">
             {b.lo}
           </span>
         ))}
@@ -289,7 +289,7 @@ export default function Reports() {
       {loading ? (
         <div className="space-y-6">
           <Card className="p-0">
-            <div className="grid grid-cols-1 divide-y divide-[#E8E8E4] sm:grid-cols-5 sm:divide-x sm:divide-y-0">
+            <div className="grid grid-cols-1 divide-y divide-[#E5EBE7] sm:grid-cols-5 sm:divide-x sm:divide-y-0">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="p-5">
                   <Skeleton className="h-3 w-20" />
@@ -311,7 +311,7 @@ export default function Reports() {
         <>
           {/* KPI strip — one ledger row rather than five same-size cards */}
           <Card className="p-0">
-            <div className="grid grid-cols-1 divide-y divide-[#E8E8E4] sm:grid-cols-5 sm:divide-x sm:divide-y-0">
+            <div className="grid grid-cols-1 divide-y divide-[#E5EBE7] sm:grid-cols-5 sm:divide-x sm:divide-y-0">
               <KpiStat icon={Users} label="Candidates" value={totals.candidates} />
               <KpiStat icon={Bot} label="AI interviews completed" value={totals.interviewsCompleted} />
               <KpiStat icon={CheckCircle2} label="Offers accepted" value={totals.offersAccepted} />
@@ -329,7 +329,7 @@ export default function Reports() {
           <div className="grid gap-6 lg:grid-cols-3">
             <Card>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-[#1A1A1A]">Screening decisions</h3>
+                <h3 className="text-base font-semibold text-[#17221C]">Screening decisions</h3>
                 <Badge tone="slate">{screening.scoreSource === "evidence" ? "evidence engine" : "legacy ATS"}</Badge>
               </div>
               <div className="space-y-4">
@@ -337,21 +337,21 @@ export default function Reports() {
                 <ProportionRow icon={AlertTriangle} label="Human review" value={screening.decisions.review} total={totals.candidates} tone="amber" />
                 <ProportionRow icon={XCircle} label="Decline" value={screening.decisions.fail} total={totals.candidates} tone="red" />
               </div>
-              <p className="mt-4 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">
+              <p className="mt-4 border-t border-[#E5EBE7] pt-3 text-xs text-[#64736A]">
                 {screening.reviewRate != null ? `${Math.round(screening.reviewRate * 100)}%` : "—"} routed to human review. That band exists by
                 design — ambiguous evidence goes to a person instead of a falsely confident score.
               </p>
             </Card>
 
             <Card>
-              <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Score distribution</h3>
-              <p className="mb-3 text-xs text-[#6B6B6B]">Candidates by screening score, this period.</p>
+              <h3 className="mb-1 text-base font-semibold text-[#17221C]">Score distribution</h3>
+              <p className="mb-3 text-xs text-[#64736A]">Candidates by screening score, this period.</p>
               <ScoreHistogram bins={screening.scoreDistribution} />
             </Card>
 
             <Card>
-              <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Funnel</h3>
-              <p className="mb-3 text-xs text-[#6B6B6B]">Stage reached, of {overview.funnel.total} candidates.</p>
+              <h3 className="mb-1 text-base font-semibold text-[#17221C]">Funnel</h3>
+              <p className="mb-3 text-xs text-[#64736A]">Stage reached, of {overview.funnel.total} candidates.</p>
               <div className="space-y-3">
                 {funnelStages.map((s) => (
                   <ProportionRow
@@ -364,7 +364,7 @@ export default function Reports() {
                   />
                 ))}
               </div>
-              <p className="mt-3 border-t border-[#E8E8E4] pt-3 text-xs text-[#6B6B6B]">{overview.funnel.rejected} rejected in period.</p>
+              <p className="mt-3 border-t border-[#E5EBE7] pt-3 text-xs text-[#64736A]">{overview.funnel.rejected} rejected in period.</p>
             </Card>
           </div>
 
@@ -372,10 +372,10 @@ export default function Reports() {
           <SectionHeader title="Evidence intelligence" />
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
-              <h3 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+              <h3 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
                 <Scale className="h-4 w-4 text-brand-600" aria-hidden="true" /> What eliminates candidates
               </h3>
-              <p className="mb-3 text-xs text-[#6B6B6B]">Rubric criteria most often responsible for a decline, ranked by frequency.</p>
+              <p className="mb-3 text-xs text-[#64736A]">Rubric criteria most often responsible for a decline, ranked by frequency.</p>
               <div className="space-y-2">
                 {(evidence?.topEliminators || []).slice(0, 6).map((e) => (
                   <RankedRow key={e.criterionId} label={e.label} value={e.eliminations} maxValue={maxElimination} tone="red" />
@@ -384,26 +384,26 @@ export default function Reports() {
                   <p className="text-sm text-amber-700">Couldn't load this data — try refreshing.</p>
                 ) : (
                   (!evidence || evidence.topEliminators.length === 0) && (
-                    <p className="text-sm text-[#6B6B6B]">No evidence-engine declines in this period yet.</p>
+                    <p className="text-sm text-[#64736A]">No evidence-engine declines in this period yet.</p>
                   )
                 )}
               </div>
             </Card>
 
             <Card>
-              <h3 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+              <h3 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
                 <TrendingDown className="h-4 w-4 text-brand-600" aria-hidden="true" /> Claim verification by skill
               </h3>
-              <p className="mb-3 text-xs text-[#6B6B6B]">
+              <p className="mb-3 text-xs text-[#64736A]">
                 Skills claimed on a résumé but most often contradicted once tested in the interview — patterns of overstatement no keyword
                 scanner can catch.
               </p>
               <div className="space-y-2.5">
                 {(evidence?.claimVerificationBySkill || []).slice(0, 6).map((s) => (
-                  <div key={s.skill} className="rounded-lg bg-[#FFE8DC] px-3 py-2.5">
+                  <div key={s.skill} className="rounded-lg bg-[#E8F2EC] px-3 py-2.5">
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="min-w-0 truncate font-medium text-[#1A1A1A]">{s.skill}</span>
-                      <span className="shrink-0 tabular-nums text-xs text-[#6B6B6B]">
+                      <span className="min-w-0 truncate font-medium text-[#17221C]">{s.skill}</span>
+                      <span className="shrink-0 tabular-nums text-xs text-[#64736A]">
                         {s.verified} verified · {s.contradicted} contradicted · {s.inconclusive} unclear
                       </span>
                     </div>
@@ -414,7 +414,7 @@ export default function Reports() {
                   <p className="text-sm text-amber-700">Couldn't load this data — try refreshing.</p>
                 ) : (
                   (!evidence || evidence.claimVerificationBySkill.length === 0) && (
-                    <p className="text-sm text-[#6B6B6B]">No assessed claim-probes in this period yet.</p>
+                    <p className="text-sm text-[#64736A]">No assessed claim-probes in this period yet.</p>
                   )
                 )}
               </div>
@@ -423,14 +423,14 @@ export default function Reports() {
             {/* Phase 15.9 — source quality by downstream truth, not click volume */}
             {sourcesError && (
               <Card className="lg:col-span-2">
-                <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Source quality</h3>
+                <h3 className="mb-1 text-base font-semibold text-[#17221C]">Source quality</h3>
                 <p className="text-sm text-amber-700">Couldn't load this data — try refreshing.</p>
               </Card>
             )}
             {!sourcesError && sources?.length > 0 && (
               <Card className="lg:col-span-2">
-                <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Source quality</h3>
-                <p className="mb-3 text-xs text-[#6B6B6B]">
+                <h3 className="mb-1 text-base font-semibold text-[#17221C]">Source quality</h3>
+                <p className="mb-3 text-xs text-[#64736A]">
                   Pass rate, interview verification, and advance rate by source — measured by what happened after the click, not by volume.
                   Source never influences a score.
                 </p>
@@ -461,7 +461,7 @@ export default function Reports() {
                                 {s.verified}/{s.probed}
                               </span>
                             ) : (
-                              <span className="text-xs text-[#6B6B6B]">no probes yet</span>
+                              <span className="text-xs text-[#64736A]">no probes yet</span>
                             ),
                         },
                       ]}
@@ -488,8 +488,8 @@ export default function Reports() {
 
             {evidence?.lowValueCriteria?.length > 0 && (
               <Card className="lg:col-span-2">
-                <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Criteria with no predictive value</h3>
-                <p className="mb-3 text-xs text-[#6B6B6B]">
+                <h3 className="mb-1 text-base font-semibold text-[#17221C]">Criteria with no predictive value</h3>
+                <p className="mb-3 text-xs text-[#64736A]">
                   These criteria show no relationship to who actually advances — worth a look in the rubric editor. Nothing here is auto-tuned.
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -498,7 +498,7 @@ export default function Reports() {
                       "flex items-center justify-between gap-3 rounded-lg bg-amber-50 px-3 py-2 text-sm";
                     const row = (
                       <>
-                        <span className="min-w-0 truncate text-[#1A1A1A]">{c.label}</span>
+                        <span className="min-w-0 truncate text-[#17221C]">{c.label}</span>
                         <Badge tone={c.insight === "inverse" ? "red" : "amber"}>
                           {c.insight === "inverse" ? "anti-predictive" : "no signal"}
                         </Badge>

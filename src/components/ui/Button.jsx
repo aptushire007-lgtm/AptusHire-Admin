@@ -1,39 +1,41 @@
-import { forwardRef } from "react";
+﻿import { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
- * AptusHire Button — warm orange primary, bright green success, warm grey neutral
+ * AptusHire Button — HiringAnt Design System
+ * Primary: #176B45 deep green | Danger: #C95C5C | Warning: #A88A45
  */
 
-const DISABLED = "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100";
+const DISABLED = "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 disabled:shadow-none";
 
 const variants = {
   primary:
-    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] active:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
+    `bg-[#176B45] text-white shadow-[0_1px_3px_rgba(23,107,69,0.20)] hover:bg-[#125638] active:bg-[#125638] focus-visible:ring-4 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   secondary:
-    `border border-[#FF6B2C] bg-white text-[#FF6B2C] hover:bg-[#FFF4EF] active:bg-[#FFE8DC] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
+    `border border-[#176B45] bg-white text-[#176B45] hover:bg-[#DDECE3] active:bg-[#E8F2EC] focus-visible:ring-4 focus-visible:ring-[#176B45]/20 ${DISABLED}`,
 
   outline:
-    `border border-[#E8E8E4] bg-transparent text-[#6B6B6B] hover:border-[#FF6B2C]/50 hover:bg-[#FFF4EF] hover:text-[#FF6B2C] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
+    `border border-[#E5EBE7] bg-transparent text-[#64736A] hover:border-[#C7DDD1] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:ring-4 focus-visible:ring-[#176B45]/15 ${DISABLED}`,
 
   ghost:
-    `bg-transparent text-[#6B6B6B] hover:bg-[#FFF4EF] hover:text-[#FF6B2C] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/20 ${DISABLED}`,
+    `bg-transparent text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:ring-4 focus-visible:ring-[#176B45]/15 ${DISABLED}`,
 
   danger:
-    `bg-[#EF4444] text-white shadow-[0_1px_3px_rgba(239,68,68,0.25)] hover:bg-[#DC2626] active:bg-[#DC2626] focus-visible:ring-4 focus-visible:ring-[#EF4444]/30 ${DISABLED}`,
+    `bg-[#C95C5C] text-white shadow-[0_1px_3px_rgba(201,92,92,0.20)] hover:bg-[#B34545] active:bg-[#B34545] focus-visible:ring-4 focus-visible:ring-[#C95C5C]/25 ${DISABLED}`,
 
+  /* orange/gold/accent — map to primary green for design system consistency */
   orange:
-    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
+    `bg-[#176B45] text-white shadow-[0_1px_3px_rgba(23,107,69,0.20)] hover:bg-[#125638] focus-visible:ring-4 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   gold:
-    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
+    `bg-[#176B45] text-white shadow-[0_1px_3px_rgba(23,107,69,0.20)] hover:bg-[#125638] focus-visible:ring-4 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   accent:
-    `bg-[#FF6B2C] text-white shadow-[0_1px_3px_rgba(255,107,44,0.25)] hover:bg-[#E55A1F] focus-visible:ring-4 focus-visible:ring-[#FF6B2C]/25 ${DISABLED}`,
+    `bg-[#176B45] text-white shadow-[0_1px_3px_rgba(23,107,69,0.20)] hover:bg-[#125638] focus-visible:ring-4 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   link:
-    `bg-transparent text-[#FF6B2C] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[#FF6B2C]/30 ${DISABLED}`,
+    `bg-transparent text-[#176B45] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 };
 
 const sizes = {
@@ -44,7 +46,16 @@ const sizes = {
 };
 
 const Button = forwardRef(function Button(
-  { as: Component = "button", variant = "primary", size = "md", loading = false, className = "", children, disabled, ...props },
+  {
+    as: Component = "button",
+    variant = "primary",
+    size = "md",
+    loading = false,
+    className = "",
+    children,
+    disabled,
+    ...props
+  },
   ref
 ) {
   return (

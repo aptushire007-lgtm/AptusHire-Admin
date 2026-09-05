@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Info, Cpu, Code2 } from "lucide-react";
 
 /**
@@ -41,12 +41,12 @@ export default function ProvenanceLine({ basis, computedBy, details = [] }) {
 
   return (
     <div className="mt-0.5">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#6B6B6B]">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#64736A]">
         {basis && <span className="font-medium">Based on {basis}</span>}
         {meta && (
           <span
             title={meta.hint}
-            className="inline-flex items-center gap-1 rounded-md bg-[#F5F5F0] px-1.5 py-0.5 font-semibold text-[#6B6B6B]"
+            className="inline-flex items-center gap-1 rounded-md bg-[#F8FAF9] px-1.5 py-0.5 font-semibold text-[#64736A]"
           >
             <Icon className="h-3 w-3" aria-hidden="true" />
             {meta.label}
@@ -57,7 +57,7 @@ export default function ProvenanceLine({ basis, computedBy, details = [] }) {
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className="inline-flex items-center gap-1 rounded-md font-semibold text-[#6B6B6B] underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            className="inline-flex items-center gap-1 rounded-md font-semibold text-[#64736A] underline decoration-dotted underline-offset-2 transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
             <Info className="h-3 w-3" aria-hidden="true" />
             {open ? "Hide provenance" : "Provenance"}
@@ -66,11 +66,11 @@ export default function ProvenanceLine({ basis, computedBy, details = [] }) {
       </div>
 
       {open && rows.length > 0 && (
-        <dl className="mt-2 grid gap-x-4 gap-y-1 rounded-lg border border-[#E8E8E4] bg-[#FFE8DC] px-3 py-2 text-[11px] sm:grid-cols-2">
+        <dl className="mt-2 grid gap-x-4 gap-y-1 rounded-lg border border-[#E5EBE7] bg-[#E8F2EC] px-3 py-2 text-[11px] sm:grid-cols-2">
           {rows.map((d) => (
             <div key={d.label} className="flex min-w-0 items-baseline justify-between gap-2">
-              <dt className="shrink-0 text-[#6B6B6B]">{d.label}</dt>
-              <dd className="min-w-0 truncate text-right font-medium tabular-nums text-[#1A1A1A]" title={String(d.value)}>
+              <dt className="shrink-0 text-[#64736A]">{d.label}</dt>
+              <dd className="min-w-0 truncate text-right font-medium tabular-nums text-[#17221C]" title={String(d.value)}>
                 {d.value}
               </dd>
             </div>

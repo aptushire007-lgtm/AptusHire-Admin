@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -60,17 +60,17 @@ const FALLBACK_VOCAB = {
 // per-key (not built with template strings) so Tailwind's static scanner sees
 // every class name.
 const TIER_STYLES = {
-  critical: { chip: "bg-[#FFE8DC] text-brand-700", bar: "bg-brand-600" },
-  important: { chip: "bg-[#FFE8DC] text-brand-700", bar: "bg-brand-400" },
-  helpful: { chip: "bg-[#F5F5F0] text-[#6B6B6B]", bar: "bg-slate-400" },
-  bonus: { chip: "bg-[#FFE8DC] text-[#6B6B6B]", bar: "bg-slate-300" },
+  critical: { chip: "bg-[#E8F2EC] text-brand-700", bar: "bg-brand-600" },
+  important: { chip: "bg-[#E8F2EC] text-brand-700", bar: "bg-brand-400" },
+  helpful: { chip: "bg-[#F8FAF9] text-[#64736A]", bar: "bg-slate-400" },
+  bonus: { chip: "bg-[#E8F2EC] text-[#64736A]", bar: "bg-slate-300" },
 };
-const DEFAULT_TIER_STYLE = { chip: "bg-[#F5F5F0] text-[#6B6B6B]", bar: "bg-slate-300" };
+const DEFAULT_TIER_STYLE = { chip: "bg-[#F8FAF9] text-[#64736A]", bar: "bg-slate-300" };
 
 const SEVERITY_META = {
   critical: { icon: AlertTriangle, cls: "border-red-200 bg-red-50 text-red-800", badge: "red" },
   warning: { icon: AlertTriangle, cls: "border-amber-200 bg-amber-50 text-amber-800", badge: "amber" },
-  info: { icon: Info, cls: "border-[#E8E8E4] bg-[#FFE8DC] text-[#1A1A1A]", badge: "slate" },
+  info: { icon: Info, cls: "border-[#E5EBE7] bg-[#E8F2EC] text-[#17221C]", badge: "slate" },
 };
 
 // A criterion added by clicking rather than typing still needs a non-empty
@@ -571,7 +571,7 @@ export default function RubricEditor() {
     const isOpen = openRows.has(c._key);
     const needsReason = !String(c.rationale || "").trim() || reasonIsPlaceholder(c.rationale);
     return (
-      <div key={c._key} className="rounded-xl border border-[#E8E8E4]">
+      <div key={c._key} className="rounded-xl border border-[#E5EBE7]">
         {/* The name is the row. The importance control and the share it produces
             are a fixed-width group pinned to the right, and the name takes
             whatever is left — never the other way round. `min-w-0` on both
@@ -579,9 +579,9 @@ export default function RubricEditor() {
             wider than the card. */}
         <div className="flex items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
           <button type="button" onClick={() => toggleRow(c._key)} className="flex min-w-0 flex-1 items-center gap-2.5 py-1 text-left" aria-expanded={isOpen}>
-            {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-[#6B6B6B]" /> : <ChevronRight className="h-4 w-4 shrink-0 text-[#6B6B6B]" />}
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1A1A1A]">
-              {c.label || <span className="italic text-[#6B6B6B]">Untitled criterion</span>}
+            {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-[#64736A]" /> : <ChevronRight className="h-4 w-4 shrink-0 text-[#64736A]" />}
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#17221C]">
+              {c.label || <span className="italic text-[#64736A]">Untitled criterion</span>}
             </span>
             {isDraft && needsReason && (
               <span className="hidden shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 sm:inline">
@@ -610,7 +610,7 @@ export default function RubricEditor() {
             )}
 
             <span
-              className="w-10 text-right text-xs font-semibold tabular-nums text-[#6B6B6B]"
+              className="w-10 text-right text-xs font-semibold tabular-nums text-[#64736A]"
               title="Share of the total score — computed from the importance you picked"
             >
               {shareOf(c)}%
@@ -625,7 +625,7 @@ export default function RubricEditor() {
         </div>
 
         {isOpen && (
-          <div className="space-y-3 border-t border-[#E8E8E4] px-3 pb-4 pt-3 sm:px-4">
+          <div className="space-y-3 border-t border-[#E5EBE7] px-3 pb-4 pt-3 sm:px-4">
             {isDraft && (
               <div>
                 <Label>Criterion</Label>
@@ -633,7 +633,7 @@ export default function RubricEditor() {
               </div>
             )}
 
-            {tier && <p className="text-xs text-[#6B6B6B]">{tier.blurb}</p>}
+            {tier && <p className="text-xs text-[#64736A]">{tier.blurb}</p>}
 
             <div>
               {isDraft ? (
@@ -652,7 +652,7 @@ export default function RubricEditor() {
                   )}
                 </>
               ) : (
-                <p className="text-sm text-[#6B6B6B]">{c.rationale}</p>
+                <p className="text-sm text-[#64736A]">{c.rationale}</p>
               )}
             </div>
 
@@ -668,7 +668,7 @@ export default function RubricEditor() {
                     />
                   </>
                 ) : (
-                  <p className="text-xs text-[#6B6B6B]">
+                  <p className="text-xs text-[#64736A]">
                     <span className="font-semibold">Interview probe:</span> {c.probeHint}
                   </p>
                 )}
@@ -682,7 +682,7 @@ export default function RubricEditor() {
                   const on = (c.evidenceTypes || []).includes(t);
                   if (!isDraft) {
                     return (
-                      <span key={t} className="rounded-full bg-[#F5F5F0] px-2 py-0.5 text-[11px] font-medium text-[#6B6B6B]">
+                      <span key={t} className="rounded-full bg-[#F8FAF9] px-2 py-0.5 text-[11px] font-medium text-[#64736A]">
                         {t}
                       </span>
                     );
@@ -694,7 +694,7 @@ export default function RubricEditor() {
                       onClick={() => toggleEvidenceType(c._key, t)}
                       aria-pressed={on}
                       className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                        on ? "border-brand-300 bg-[#FFE8DC] text-brand-700" : "border-[#E8E8E4] bg-white text-[#6B6B6B] hover:bg-[#FFE8DC]"
+                        on ? "border-brand-300 bg-[#E8F2EC] text-brand-700" : "border-[#E5EBE7] bg-white text-[#64736A] hover:bg-[#DDECE3]"
                       }`}
                     >
                       {t}
@@ -721,14 +721,14 @@ export default function RubricEditor() {
 
   return (
     <div className="space-y-6">
-      <Link to={`/jobs/${jobId}/edit`} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700">
+      <Link to={`/jobs/${jobId}/edit`} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#64736A] hover:text-brand-700">
         <ArrowLeft className="h-4 w-4" /> Back to job
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Scoring Rubric</h1>
-          <p className="mt-1 text-sm text-[#6B6B6B]">{job?.title}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Scoring Rubric</h1>
+          <p className="mt-1 text-sm text-[#64736A]">{job?.title}</p>
         </div>
         {/* `flex-wrap`: up to four buttons ("Recompile from JD", "Save draft",
             "Approve & Freeze", "Delete draft") — the parent's wrap only drops
@@ -754,7 +754,7 @@ export default function RubricEditor() {
       </div>
 
       {/* Where this rubric is in its lifecycle, at a glance. */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#E8E8E4] bg-white p-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#E5EBE7] bg-white p-4 sm:flex-row sm:items-center">
         {STEPS.map((step, idx) => {
           const state = stepState[step.key];
           return (
@@ -764,14 +764,14 @@ export default function RubricEditor() {
                   state === "done"
                     ? "bg-emerald-100 text-emerald-600"
                     : state === "active"
-                      ? "bg-[#FFE8DC] text-brand-700"
-                      : "bg-[#F5F5F0] text-[#6B6B6B]"
+                      ? "bg-[#E8F2EC] text-brand-700"
+                      : "bg-[#F8FAF9] text-[#64736A]"
                 }`}
               >
                 {state === "done" ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
               </div>
-              <span className={`text-xs font-semibold ${state === "todo" ? "text-[#6B6B6B]" : "text-[#1A1A1A]"}`}>{step.label}</span>
-              {idx < STEPS.length - 1 && <div className="mx-1 hidden h-px flex-1 bg-[#F5F5F0]-deep sm:block" />}
+              <span className={`text-xs font-semibold ${state === "todo" ? "text-[#64736A]" : "text-[#17221C]"}`}>{step.label}</span>
+              {idx < STEPS.length - 1 && <div className="mx-1 hidden h-px flex-1 bg-[#F8FAF9]-deep sm:block" />}
             </div>
           );
         })}
@@ -797,7 +797,7 @@ export default function RubricEditor() {
                 key={v._id}
                 onClick={() => setSelectedId(v._id)}
                 className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
-                  v._id === selectedId ? "border-brand-500 bg-[#FFE8DC] text-brand-700" : "border-[#E8E8E4] bg-white text-[#6B6B6B] hover:bg-[#FFE8DC]"
+                  v._id === selectedId ? "border-brand-500 bg-[#E8F2EC] text-brand-700" : "border-[#E5EBE7] bg-white text-[#64736A] hover:bg-[#DDECE3]"
                 }`}
               >
                 v{v.version} <Badge tone={v.status === "approved" ? "green" : v.status === "draft" ? "amber" : "slate"}>{v.status}</Badge>
@@ -835,8 +835,8 @@ export default function RubricEditor() {
                   advancement here. Read-only; you edit, every edit is a new version. */}
               {flaggedInsights.length > 0 && (
                 <Card>
-                  <h3 className="mb-1 text-base font-semibold text-[#1A1A1A]">Outcome insights</h3>
-                  <p className="mb-3 text-xs text-[#6B6B6B]">
+                  <h3 className="mb-1 text-base font-semibold text-[#17221C]">Outcome insights</h3>
+                  <p className="mb-3 text-xs text-[#64736A]">
                     Based on {insights.sampleSize} candidates with decided outcomes against this rubric. Importance is never auto-tuned from
                     outcomes — that would automate past bias. You decide what to change.
                   </p>
@@ -845,8 +845,8 @@ export default function RubricEditor() {
                       <div key={c.criterionId} className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-sm">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge tone={c.insight === "inverse" ? "red" : "amber"}>{c.insight === "inverse" ? "Anti-predictive" : "No signal"}</Badge>
-                          <span className="font-medium text-[#1A1A1A]">{c.label}</span>
-                          <span className="text-xs text-[#6B6B6B]">
+                          <span className="font-medium text-[#17221C]">{c.label}</span>
+                          <span className="text-xs text-[#64736A]">
                             satisfied by {Math.round((c.satisfiedAdvancedRate ?? 0) * 100)}% of advanced vs{" "}
                             {Math.round((c.satisfiedRejectedRate ?? 0) * 100)}% of rejected (n={c.nAdvanced + c.nRejected})
                           </span>
@@ -861,7 +861,7 @@ export default function RubricEditor() {
               {/* JD quality flags */}
               {selected.qualityFlags?.length > 0 && (
                 <Card>
-                  <h2 className="mb-3 text-base font-bold text-[#1A1A1A]">JD quality check ({selected.qualityFlags.length})</h2>
+                  <h2 className="mb-3 text-base font-bold text-[#17221C]">JD quality check ({selected.qualityFlags.length})</h2>
                   <div className="space-y-2.5">
                     {selected.qualityFlags.map((f, i) => {
                       const meta = SEVERITY_META[f.severity] || SEVERITY_META.info;
@@ -887,8 +887,8 @@ export default function RubricEditor() {
               {/* Criteria */}
               <Card>
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-base font-bold text-[#1A1A1A]">Criteria ({scoreable.length})</h2>
-                  <p className="text-xs text-[#6B6B6B]">
+                  <h2 className="text-base font-bold text-[#17221C]">Criteria ({scoreable.length})</h2>
+                  <p className="text-xs text-[#64736A]">
                     {requiredCount} required · {preferredCount} preferred
                   </p>
                 </div>
@@ -897,7 +897,7 @@ export default function RubricEditor() {
                     a word per criterion and this is what it adds up to. */}
                 {multiplierTotal > 0 && (
                   <div className="mb-5">
-                    <div className="flex h-3 w-full overflow-hidden rounded-full bg-[#F5F5F0]">
+                    <div className="flex h-3 w-full overflow-hidden rounded-full bg-[#F8FAF9]">
                       {tierTotals.map(({ tier, share }) =>
                         share > 0 ? (
                           <div
@@ -909,7 +909,7 @@ export default function RubricEditor() {
                         ) : null
                       )}
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#6B6B6B]">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#64736A]">
                       {tierTotals
                         .filter(({ count }) => count > 0)
                         .map(({ tier, count, share }) => (
@@ -923,8 +923,8 @@ export default function RubricEditor() {
                 )}
 
                 {isDraft && (
-                  <div className="mb-4 flex items-start gap-2 rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-3 text-xs text-[#6B6B6B]">
-                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#6B6B6B]" />
+                  <div className="mb-4 flex items-start gap-2 rounded-xl border border-[#E5EBE7] bg-[#E8F2EC] p-3 text-xs text-[#64736A]">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#64736A]" />
                     <p>
                       You never type a percentage. Pick how much each criterion matters and the weighting is computed for you — a{" "}
                       <strong>Critical</strong> criterion counts twice an <strong>Important</strong> one, four times a <strong>Helpful</strong> one,
@@ -941,11 +941,11 @@ export default function RubricEditor() {
                     </Button>
 
                     {showAdd && (
-                      <div className="mt-3 space-y-4 rounded-2xl border border-[#E8E8E4] bg-[#FFE8DC]/70 p-4">
+                      <div className="mt-3 space-y-4 rounded-2xl border border-[#E5EBE7] bg-[#E8F2EC]/70 p-4">
                         {jobSuggestions.length > 0 && (
                           <div>
                             <div className="mb-2 flex flex-wrap items-center gap-2">
-                              <h4 className="text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">From this job posting</h4>
+                              <h4 className="text-xs font-bold uppercase tracking-wide text-[#64736A]">From this job posting</h4>
                               <button
                                 type="button"
                                 onClick={() => jobSuggestions.forEach((s) => addFromTemplate(s))}
@@ -960,7 +960,7 @@ export default function RubricEditor() {
                                   key={s.label}
                                   type="button"
                                   onClick={() => addFromTemplate(s)}
-                                  className="inline-flex items-center gap-1.5 rounded-full border border-[#FFCAAF] bg-white px-3 py-1.5 text-xs font-medium text-brand-700 transition hover:bg-[#FFE8DC]"
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-[#C7DDD1] bg-white px-3 py-1.5 text-xs font-medium text-brand-700 transition hover:bg-[#DDECE3]"
                                 >
                                   <Plus className="h-3 w-3" /> {s.label}
                                 </button>
@@ -971,7 +971,7 @@ export default function RubricEditor() {
 
                         {librarySuggestions.length > 0 && (
                           <div>
-                            <h4 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">
+                            <h4 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#64736A]">
                               <Sparkles className="h-3.5 w-3.5" /> Common criteria
                             </h4>
                             <div className="flex flex-wrap gap-2">
@@ -980,13 +980,13 @@ export default function RubricEditor() {
                                   key={s.label}
                                   type="button"
                                   onClick={() => addFromTemplate(s)}
-                                  className="inline-flex items-center gap-1.5 rounded-full border border-[#E8E8E4] bg-white px-3 py-1.5 text-xs font-medium text-[#6B6B6B] transition hover:bg-white hover:text-brand-700"
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-[#E5EBE7] bg-white px-3 py-1.5 text-xs font-medium text-[#64736A] transition hover:bg-white hover:text-brand-700"
                                 >
                                   <Plus className="h-3 w-3" /> {s.label}
                                 </button>
                               ))}
                             </div>
-                            <p className="mt-2 text-[11px] text-[#6B6B6B]">
+                            <p className="mt-2 text-[11px] text-[#64736A]">
                               Each of these arrives with a reason and an interview probe already filled in — edit the reason to say why it matters
                               <em> here</em>.
                             </p>
@@ -994,7 +994,7 @@ export default function RubricEditor() {
                         )}
 
                         <div>
-                          <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">Something else</h4>
+                          <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#64736A]">Something else</h4>
                           <div className="flex gap-2">
                             <Input
                               ref={customRef}
@@ -1014,7 +1014,7 @@ export default function RubricEditor() {
                           </div>
                         </div>
 
-                        <p className="text-[11px] text-[#6B6B6B]">
+                        <p className="text-[11px] text-[#64736A]">
                           {criteria.length} of {maxCriteria} criteria used.
                         </p>
                       </div>
@@ -1025,7 +1025,7 @@ export default function RubricEditor() {
                 {sortedRows.length ? (
                   <div className="space-y-2">{sortedRows.map((c) => renderCriterion(c))}</div>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-[#E8E8E4] p-4 text-sm text-[#6B6B6B]">
+                  <p className="rounded-xl border border-dashed border-[#E5EBE7] p-4 text-sm text-[#64736A]">
                     No criteria yet — use <strong>Add criteria</strong> above, or recompile from the job description.
                   </p>
                 )}
@@ -1035,18 +1035,18 @@ export default function RubricEditor() {
                     reweighting one into a scoreable criterion would change what
                     the rubric means without anyone deciding to. */}
                 {gates.length > 0 && (
-                  <div className="mt-5 rounded-2xl border border-[#E8E8E4] bg-[#FFE8DC] p-3">
-                    <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#6B6B6B]">
+                  <div className="mt-5 rounded-2xl border border-[#E5EBE7] bg-[#E8F2EC] p-3">
+                    <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#64736A]">
                       Legacy knock-out gates ({gates.length})
                     </h4>
-                    <p className="mb-2 text-xs text-[#6B6B6B]">
+                    <p className="mb-2 text-xs text-[#64736A]">
                       Compiled by an older version of the rubric engine. They carry no weight and fail a candidate outright. New rubrics don&apos;t
                       use them — ambiguity belongs in front of a human, not behind an automatic rejection.
                     </p>
                     <div className="space-y-2">
                       {gates.map((c) => (
-                        <div key={c._key} className="flex items-center gap-2 rounded-xl border border-[#E8E8E4] bg-white px-3 py-2">
-                          <span className="min-w-0 flex-1 truncate text-sm text-[#1A1A1A]">{c.label}</span>
+                        <div key={c._key} className="flex items-center gap-2 rounded-xl border border-[#E5EBE7] bg-white px-3 py-2">
+                          <span className="min-w-0 flex-1 truncate text-sm text-[#17221C]">{c.label}</span>
                           {isDraft && (
                             <Button variant="ghost" size="sm" onClick={() => removeCriterion(c._key)} aria-label="Remove gate">
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1061,8 +1061,8 @@ export default function RubricEditor() {
 
               {/* Thresholds */}
               <Card>
-                <h2 className="mb-1 text-base font-bold text-[#1A1A1A]">How selective is this role?</h2>
-                <p className="mb-4 text-sm text-[#6B6B6B]">
+                <h2 className="mb-1 text-base font-bold text-[#17221C]">How selective is this role?</h2>
+                <p className="mb-4 text-sm text-[#64736A]">
                   Two cut-offs, not one: a clear pass advances, a clear miss declines, and everything in between goes to a person. Ambiguity never
                   gets resolved by a coin-flip.
                 </p>
@@ -1082,7 +1082,7 @@ export default function RubricEditor() {
                     <option value="custom">Custom…</option>
                   </Select>
 
-                  {activePreset && <p className="text-xs text-[#6B6B6B]">{activePreset.blurb}</p>}
+                  {activePreset && <p className="text-xs text-[#64736A]">{activePreset.blurb}</p>}
 
                   {presetKey === "custom" && (
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -1112,7 +1112,7 @@ export default function RubricEditor() {
                   )}
 
                   {hasReviewBand ? (
-                    <p className="rounded-xl bg-[#FFE8DC] p-3 text-xs text-[#6B6B6B]">
+                    <p className="rounded-xl bg-[#E8F2EC] p-3 text-xs text-[#64736A]">
                       Scores <strong>{advanceNum} and above</strong> advance · <strong>{reviewNum}–{advanceNum - 1}</strong> goes to a human ·{" "}
                       <strong>below {reviewNum}</strong> declines.
                     </p>
@@ -1126,7 +1126,7 @@ export default function RubricEditor() {
               </Card>
 
               {selected.approvedBy?.at && (
-                <p className="text-xs text-[#6B6B6B]">Approved {new Date(selected.approvedBy.at).toLocaleString()} — recorded in the audit log.</p>
+                <p className="text-xs text-[#64736A]">Approved {new Date(selected.approvedBy.at).toLocaleString()} — recorded in the audit log.</p>
               )}
             </>
           )}

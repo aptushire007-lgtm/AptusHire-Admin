@@ -1,4 +1,4 @@
-/* Hallmark · component: marketing artifact panels · genre: modern-minimal
+﻿/* Hallmark · component: marketing artifact panels · genre: modern-minimal
  * theme: AptusHire (DESIGN.md, locked)
  *
  * The four visuals for the Claim → Probe → Verdict section. Each one shows the
@@ -19,21 +19,21 @@
  * no fake window bars (gate 47). A figure is allowed to look like a figure.
  */
 
-const PANEL = "rounded-2xl border border-[#E8E8E4] bg-white p-5 shadow-[0_1px_4px_rgba(27,67,50,0.07)] sm:p-6";
-const ROW = "grid items-baseline gap-x-4 border-b border-[#E8E8E4] py-2.5 last:border-b-0";
+const PANEL = "rounded-2xl border border-[#E5EBE7] bg-white p-5 shadow-[0_1px_4px_rgba(27,67,50,0.07)] sm:p-6";
+const ROW = "grid items-baseline gap-x-4 border-b border-[#E5EBE7] py-2.5 last:border-b-0";
 
 function Panel({ title, meta, children }) {
   return (
     <figure className={PANEL}>
-      <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#E8E8E4] pb-3">
-        <span className="text-sm font-semibold text-[#1A1A1A] [overflow-wrap:anywhere]">{title}</span>
+      <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#E5EBE7] pb-3">
+        <span className="text-sm font-semibold text-[#17221C] [overflow-wrap:anywhere]">{title}</span>
         {/* Slate, never a verdict tone: this pill labels the figure's honesty,
             not an outcome. */}
-        <span className="rounded-full bg-[#F5F5F0] px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-[#6B6B6B]">
+        <span className="rounded-full bg-[#F8FAF9] px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-[#64736A]">
           Illustration
         </span>
       </figcaption>
-      {meta && <p className="pt-3 text-xs text-[#6B6B6B] [overflow-wrap:anywhere]">{meta}</p>}
+      {meta && <p className="pt-3 text-xs text-[#64736A] [overflow-wrap:anywhere]">{meta}</p>}
       <div className="pt-3">{children}</div>
     </figure>
   );
@@ -56,14 +56,14 @@ export function RubricPanel() {
       <dl className="text-sm">
         {RUBRIC.map(([criterion, weight]) => (
           <div key={criterion} className={`${ROW} grid-cols-[minmax(0,1fr)_auto]`}>
-            <dt className="text-[#1A1A1A] [overflow-wrap:anywhere]">{criterion}</dt>
-            <dd className="font-semibold tabular-nums text-[#1A1A1A]">{weight}</dd>
+            <dt className="text-[#17221C] [overflow-wrap:anywhere]">{criterion}</dt>
+            <dd className="font-semibold tabular-nums text-[#17221C]">{weight}</dd>
           </div>
         ))}
       </dl>
       <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 border-t-2 border-slate-900 pt-2.5 text-sm">
-        <span className="font-semibold text-[#1A1A1A]">Total weight</span>
-        <span className="font-semibold tabular-nums text-[#1A1A1A]">100</span>
+        <span className="font-semibold text-[#17221C]">Total weight</span>
+        <span className="font-semibold tabular-nums text-[#17221C]">100</span>
       </div>
     </Panel>
   );
@@ -75,9 +75,9 @@ export function RubricPanel() {
 export function ClaimsPanel() {
   return (
     <Panel title="Extracted claims" meta="Each claim carries the verbatim span it came from. Code checks the span is a literal substring of the source.">
-      <p className="rounded-xl bg-[#FFE8DC] p-3.5 text-sm leading-relaxed text-[#6B6B6B] [overflow-wrap:anywhere]">
+      <p className="rounded-xl bg-[#E8F2EC] p-3.5 text-sm leading-relaxed text-[#64736A] [overflow-wrap:anywhere]">
         …owned the platform team’s migration and{" "}
-        <mark className="rounded bg-[#FFE8DC] px-1 font-medium text-brand-900">
+        <mark className="rounded bg-[#E8F2EC] px-1 font-medium text-brand-900">
           ran Kubernetes in production for four years
         </mark>
         , including the cutover of forty services…
@@ -85,16 +85,16 @@ export function ClaimsPanel() {
 
       <ul className="mt-4 text-sm">
         <li className={`${ROW} grid-cols-[minmax(0,1fr)_auto]`}>
-          <span className="text-[#1A1A1A] [overflow-wrap:anywhere]">Operated Kubernetes in production</span>
+          <span className="text-[#17221C] [overflow-wrap:anywhere]">Operated Kubernetes in production</span>
           <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-emerald-800">
             Cited
           </span>
         </li>
         <li className={`${ROW} grid-cols-[minmax(0,1fr)_auto]`}>
-          <span className="text-[#6B6B6B] [overflow-wrap:anywhere]">“Expert in distributed systems”</span>
+          <span className="text-[#64736A] [overflow-wrap:anywhere]">“Expert in distributed systems”</span>
           {/* Slate, not red. A dropped claim is not an adverse finding about a
               person — it is the engine declining to count something. */}
-          <span className="rounded-full bg-[#F5F5F0] px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-[#6B6B6B]">
+          <span className="rounded-full bg-[#F8FAF9] px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-[#64736A]">
             No span · dropped
           </span>
         </li>
@@ -119,7 +119,7 @@ export function LedgerPanel() {
 
   return (
     <Panel title="Score ledger" meta="No model is asked to produce a number. Each line item is computed from cited evidence, and the items sum to the total by construction.">
-      <div className="grid grid-cols-[minmax(0,1fr)_3rem_3rem] gap-x-3 border-b border-[#E8E8E4] pb-2 text-xs font-semibold text-[#6B6B6B] sm:gap-x-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_3rem_3rem] gap-x-3 border-b border-[#E5EBE7] pb-2 text-xs font-semibold text-[#64736A] sm:gap-x-4">
         <span>Criterion</span>
         <span className="text-right">Weight</span>
         <span className="text-right">Points</span>
@@ -128,20 +128,20 @@ export function LedgerPanel() {
       <dl className="text-sm">
         {LEDGER.map(([criterion, w, p]) => (
           <div key={criterion} className={`${ROW} grid-cols-[minmax(0,1fr)_3rem_3rem] gap-x-3 sm:gap-x-4`}>
-            <dt className="text-[#1A1A1A] [overflow-wrap:anywhere]">
+            <dt className="text-[#17221C] [overflow-wrap:anywhere]">
               {criterion}
-              {p === 0 && <span className="block text-xs text-[#6B6B6B]">No evidence cited — scores zero, never estimated</span>}
+              {p === 0 && <span className="block text-xs text-[#64736A]">No evidence cited — scores zero, never estimated</span>}
             </dt>
-            <dd className="text-right tabular-nums text-[#6B6B6B]">{w}</dd>
-            <dd className="text-right font-semibold tabular-nums text-[#1A1A1A]">{p}</dd>
+            <dd className="text-right tabular-nums text-[#64736A]">{w}</dd>
+            <dd className="text-right font-semibold tabular-nums text-[#17221C]">{p}</dd>
           </div>
         ))}
       </dl>
 
       <div className="mt-2 grid grid-cols-[minmax(0,1fr)_3rem_3rem] gap-x-3 border-t-2 border-slate-900 pt-2.5 text-sm sm:gap-x-4">
-        <span className="font-semibold text-[#1A1A1A]">Recorded score</span>
-        <span className="text-right font-semibold tabular-nums text-[#6B6B6B]">{weight}</span>
-        <span className="text-right font-semibold tabular-nums text-[#1A1A1A]">{points}</span>
+        <span className="font-semibold text-[#17221C]">Recorded score</span>
+        <span className="text-right font-semibold tabular-nums text-[#64736A]">{weight}</span>
+        <span className="text-right font-semibold tabular-nums text-[#17221C]">{points}</span>
       </div>
     </Panel>
   );
@@ -159,7 +159,7 @@ const PROBES = [
 
 const VERDICT_TONE = {
   emerald: "bg-emerald-100 text-emerald-800",
-  slate: "bg-[#F5F5F0] text-[#6B6B6B]",
+  slate: "bg-[#F8FAF9] text-[#64736A]",
   red: "bg-red-100 text-red-700",
 };
 
@@ -169,7 +169,7 @@ export function ProbePanel() {
       <ul className="text-sm">
         {PROBES.map(([probe, verdict, tone]) => (
           <li key={probe} className={`${ROW} grid-cols-[minmax(0,1fr)_auto]`}>
-            <span className="text-[#1A1A1A] [overflow-wrap:anywhere]">{probe}</span>
+            <span className="text-[#17221C] [overflow-wrap:anywhere]">{probe}</span>
             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${VERDICT_TONE[tone]}`}>
               {verdict}
             </span>

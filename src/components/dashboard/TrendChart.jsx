@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Applications-over-time area chart.
  * Hand-built SVG with the shared AptusHire chart palette.
  */
@@ -22,8 +22,8 @@ export default function TrendChart({ buckets, emptyLabel = "No applications yet"
 
   if (!buckets.length || total === 0) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-[#FFCAAF] bg-[#FFE8DC]">
-        <p className="text-xs font-medium text-[#9B9B9B]">{emptyLabel}</p>
+      <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-[#C7DDD1] bg-[#E8F2EC]">
+        <p className="text-xs font-medium text-[#9BAAA1]">{emptyLabel}</p>
       </div>
     );
   }
@@ -46,19 +46,19 @@ export default function TrendChart({ buckets, emptyLabel = "No applications yet"
         aria-label={`Applications per period. Peak of ${max} in ${buckets[peakIndex]?.label}. ${total} in total.`}
       >
         {/* Subtle grid lines */}
-        <g stroke="currentColor" className="text-border dark:text-[#1A1A1A]/80" strokeWidth="1" vectorEffect="non-scaling-stroke">
+        <g stroke="currentColor" className="text-border dark:text-[#17221C]/80" strokeWidth="1" vectorEffect="non-scaling-stroke">
           <line x1="0" y1={H - PAD_Y} x2={W} y2={H - PAD_Y} />
           <line x1="0" y1={(H - PAD_Y) / 2} x2={W} y2={(H - PAD_Y) / 2} strokeDasharray="4 4" />
         </g>
 
         {/* Gradient fill */}
-        <path d={area} fill="#E8F7D8" fillOpacity="0.45" />
+        <path d={area} fill="#E8F2EC" fillOpacity="0.45" />
 
         {/* Main spline line */}
         <path
           d={line.join(" ")}
           fill="none"
-          stroke="#064E3B"
+          stroke="#176B45"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -68,15 +68,15 @@ export default function TrendChart({ buckets, emptyLabel = "No applications yet"
         {/* Peak highlight indicator */}
         {max > 0 && (
           <g transform={`translate(${peakX}, ${peakY})`}>
-            <circle r="6" fill="#8BD83A" opacity="0.35" />
-            <circle r="4" fill="#16834F" stroke="#ffffff" strokeWidth="1.5" />
+            <circle r="6" fill="#5F9475" opacity="0.35" />
+            <circle r="4" fill="#238653" stroke="#ffffff" strokeWidth="1.5" />
           </g>
         )}
       </svg>
 
-      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs tabular-nums text-[#6B6B6B]">
+      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs tabular-nums text-[#64736A]">
         <span>{buckets[0]?.label}</span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFE8DC] px-2.5 py-0.5 font-bold text-[#FF6B2C]">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#E8F2EC] px-2.5 py-0.5 font-bold text-[#176B45]">
           Peak: {max} applicants · {buckets[peakIndex]?.label}
         </span>
         <span>{buckets[buckets.length - 1]?.label}</span>

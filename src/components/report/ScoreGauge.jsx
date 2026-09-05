@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The instrument's headline number, as a gauge, with the word that makes it
  * readable sitting under it.
  *
@@ -30,11 +30,11 @@
  */
 
 const CHIP_TONE = {
-  positive: "bg-[#FFE8DC] text-[#FF6B2C]",
-  pending: "bg-[#FFE8DC] text-[#FF6B2C]",
-  negative: "bg-[#FDECEA] text-[#C0392B]",
+  positive: "bg-[#E8F2EC] text-[#176B45]",
+  pending: "bg-[#E8F2EC] text-[#176B45]",
+  negative: "bg-[#F8EAEA] text-[#C95C5C]",
   // The Honest Reading Rule: a withheld verdict must not wear a verdict colour.
-  neutral: "bg-[#F5F5F0] text-[#6B6B6B] border border-dashed border-[#E8E8E4]",
+  neutral: "bg-[#F8FAF9] text-[#64736A] border border-dashed border-[#E5EBE7]",
 };
 
 const CX = 100;
@@ -106,7 +106,7 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
         </span>
       )}
 
-      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-[#6B6B6B]">{caption}</figcaption>}
+      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-[#64736A]">{caption}</figcaption>}
     </figure>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Users, Search, AlertTriangle } from "lucide-react";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
@@ -37,8 +37,8 @@ export default function CandidatesAll() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Candidates</h1>
-          <p className="mt-1 text-sm text-[#6B6B6B]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Candidates</h1>
+          <p className="mt-1 text-sm text-[#64736A]">
             Every applicant across every role — filter down to who&rsquo;s ready for a shortlist.
           </p>
         </div>
@@ -50,7 +50,7 @@ export default function CandidatesAll() {
               option, "AI Interview Completed" — stretched across the second
               one. Two fields of stated width sit on one line. */}
           <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B6B]" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64736A]" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email" className="pl-9" />
           </div>
           <Select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className="w-full sm:w-56">
@@ -86,7 +86,7 @@ export default function CandidatesAll() {
       </ChipRow>
 
       {loading ? (
-        <Card padding="none" className="divide-y divide-[#E8E8E4] overflow-hidden">
+        <Card padding="none" className="divide-y divide-[#E5EBE7] overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="px-4 py-3">
               <Skeleton className="h-9 w-full" />
@@ -99,7 +99,7 @@ export default function CandidatesAll() {
         <EmptyState icon={Users} title="No candidates found" description="Applicants will appear here once they apply to your jobs." />
       ) : (
         <>
-          <p className="text-xs text-[#6B6B6B]">
+          <p className="text-xs text-[#64736A]">
             {filtered.length} of {allCandidates.length} candidate{allCandidates.length === 1 ? "" : "s"}
           </p>
           <RecordList label="All candidates">

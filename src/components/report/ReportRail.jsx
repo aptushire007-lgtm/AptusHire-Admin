@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * The report's in-page rail.
@@ -86,7 +86,7 @@ export default function ReportRail({ sections }) {
           return (
             <li key={s.id}>
               {header && (
-                <p className="px-3 pt-4 pb-1.5 text-[10px] font-semibold tracking-[0.08em] text-[#9B9B9B] uppercase first:pt-0">
+                <p className="px-3 pt-4 pb-1.5 text-[10px] font-semibold tracking-[0.08em] text-[#9BAAA1] uppercase first:pt-0">
                   {header}
                 </p>
               )}
@@ -95,13 +95,13 @@ export default function ReportRail({ sections }) {
                 onClick={(e) => go(e, s.id)}
                 aria-current={isActive ? "true" : undefined}
                 className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-left transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
-                  isActive ? "bg-brand-600 text-white" : "text-[#6B6B6B] hover:bg-[#FFE8DC]"
+                  isActive ? "bg-brand-600 text-white" : "text-[#64736A] hover:bg-[#DDECE3]"
                 }`}
               >
                 <span className="min-w-0 truncate text-[13px] font-medium">{s.label}</span>
                 <span
                   className={`shrink-0 text-[11px] font-bold tabular-nums ${
-                    isActive ? "text-white/80" : s.tone === "flag" ? "text-[#C0392B]" : "text-[#6B6B6B]"
+                    isActive ? "text-white/80" : s.tone === "flag" ? "text-[#C95C5C]" : "text-[#64736A]"
                   }`}
                 >
                   {s.figure ?? "—"}

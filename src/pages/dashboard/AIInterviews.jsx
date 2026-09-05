@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Bot, ExternalLink, Cpu } from "lucide-react";
 import api from "../../api/client.js";
@@ -29,8 +29,8 @@ export default function AIInterviews() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">AI Interviews</h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">Candidates who passed ATS screening and are queued for an AI interview.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">AI Interviews</h1>
+        <p className="mt-1 text-sm text-[#64736A]">Candidates who passed ATS screening and are queued for an AI interview.</p>
       </div>
 
       {loading ? (

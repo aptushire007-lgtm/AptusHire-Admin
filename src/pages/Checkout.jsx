@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2, ShieldCheck, Clock3 } from "lucide-react";
 import api from "../api/client.js";
@@ -124,7 +124,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0]">
+    <div className="min-h-screen bg-[#F8FAF9]">
       <MarketingNavbar />
       <div className="mx-auto max-w-md px-5 py-14 sm:px-8">
         <OnboardingSteps current={5} />
@@ -134,8 +134,8 @@ export default function Checkout() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Clock3 className="h-6 w-6" />
               </div>
-              <h1 className="text-lg font-semibold text-[#1A1A1A]">Payments Coming Soon</h1>
-              <p className="mt-2 text-sm text-[#6B6B6B]">
+              <h1 className="text-lg font-semibold text-[#17221C]">Payments Coming Soon</h1>
+              <p className="mt-2 text-sm text-[#64736A]">
                 Payments aren't configured on this platform yet. Please contact support, or try again once payments
                 are enabled.
               </p>
@@ -148,7 +148,7 @@ export default function Checkout() {
           {status === "error" && (
             <>
               <h1 className="text-lg font-semibold text-red-700">Checkout Error</h1>
-              <p className="mt-2 text-sm text-[#6B6B6B]">{error}</p>
+              <p className="mt-2 text-sm text-[#64736A]">{error}</p>
               <Link to="/pricing" className="mt-5 inline-block text-sm font-semibold text-brand-700 hover:underline">
                 Back to pricing
               </Link>
@@ -157,12 +157,12 @@ export default function Checkout() {
 
           {(status === "creating-order" || status === "ready") && (
             <>
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE8DC] text-brand-600">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#E8F2EC] text-brand-600">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-              <h1 className="text-lg font-semibold text-[#1A1A1A]">Preparing Checkout…</h1>
-              <p className="mt-2 text-sm text-[#6B6B6B]">Please wait while we set up your secure payment.</p>
-              <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[#6B6B6B]">
+              <h1 className="text-lg font-semibold text-[#17221C]">Preparing Checkout…</h1>
+              <p className="mt-2 text-sm text-[#64736A]">Please wait while we set up your secure payment.</p>
+              <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[#64736A]">
                 <ShieldCheck className="h-3.5 w-3.5" /> Secured by Razorpay
               </div>
             </>

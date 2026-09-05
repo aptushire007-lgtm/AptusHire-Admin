@@ -1,4 +1,4 @@
-import { Card } from "../ui/Card.jsx";
+﻿import { Card } from "../ui/Card.jsx";
 import EvidenceRadar from "./EvidenceRadar.jsx";
 import RatedAxisList from "./RatedAxisList.jsx";
 
@@ -21,8 +21,8 @@ export default function InsightPanel({ id, title, axes, note, unavailable }) {
   if (unavailable) {
     return (
       <Card id={id} className="scroll-mt-32">
-        <h3 className="text-base font-semibold text-[#1A1A1A]">{title}</h3>
-        <p className="mt-1.5 text-sm text-[#6B6B6B]">{unavailable}</p>
+        <h3 className="text-base font-semibold text-[#17221C]">{title}</h3>
+        <p className="mt-1.5 text-sm text-[#64736A]">{unavailable}</p>
       </Card>
     );
   }
@@ -36,13 +36,13 @@ export default function InsightPanel({ id, title, axes, note, unavailable }) {
   return (
     <Card id={id} className="scroll-mt-32">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 id={titleId} className="text-base font-semibold text-[#1A1A1A]">
+        <h3 id={titleId} className="text-base font-semibold text-[#17221C]">
           {title}
         </h3>
         {/* What the shape is over. A radar drawn from 5 of 8 axes looks exactly
             like one drawn from 8, and the difference matters. */}
         {measured < list.length && (
-          <span className="text-xs text-[#6B6B6B]">
+          <span className="text-xs text-[#64736A]">
             {measured} of {list.length} measured
           </span>
         )}
@@ -55,7 +55,7 @@ export default function InsightPanel({ id, title, axes, note, unavailable }) {
         <RatedAxisList axes={list} />
       </div>
 
-      {note && <p className="mt-4 text-xs text-[#6B6B6B]">{note}</p>}
+      {note && <p className="mt-4 text-xs text-[#64736A]">{note}</p>}
     </Card>
   );
 }

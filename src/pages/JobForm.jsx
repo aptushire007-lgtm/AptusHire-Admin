@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Save, ClipboardCheck, AlertTriangle } from "lucide-react";
 import api from "../api/client.js";
@@ -43,8 +43,8 @@ const FIELD_GRID = "-mb-4 grid gap-x-4 sm:grid-cols-2";
 function SectionCard({ title, description, children }) {
   return (
     <Card>
-      <h2 className="text-base font-semibold text-[#1A1A1A] [overflow-wrap:anywhere]">{title}</h2>
-      {description && <p className="mt-1 mb-4 text-sm text-[#6B6B6B]">{description}</p>}
+      <h2 className="text-base font-semibold text-[#17221C] [overflow-wrap:anywhere]">{title}</h2>
+      {description && <p className="mt-1 mb-4 text-sm text-[#64736A]">{description}</p>}
       {children}
     </Card>
   );
@@ -174,12 +174,12 @@ export default function JobForm() {
   if (notFound) {
     return (
       <div className="space-y-6">
-        <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700">
+        <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#64736A] hover:text-brand-700">
           <ArrowLeft className="h-4 w-4" /> Back to jobs
         </Link>
         <Card className="max-w-2xl text-center">
-          <p className="text-sm font-medium text-[#1A1A1A]">This job no longer exists.</p>
-          <p className="mt-1 text-sm text-[#6B6B6B]">It may have been deleted by a teammate.</p>
+          <p className="text-sm font-medium text-[#17221C]">This job no longer exists.</p>
+          <p className="mt-1 text-sm text-[#64736A]">It may have been deleted by a teammate.</p>
         </Card>
       </div>
     );
@@ -187,11 +187,11 @@ export default function JobForm() {
 
   return (
     <div className="space-y-6">
-      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700">
+      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm font-medium text-[#64736A] hover:text-brand-700">
         <ArrowLeft className="h-4 w-4" /> Back to jobs
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">{id ? "Edit Job" : "New Job"}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">{id ? "Edit Job" : "New Job"}</h1>
         {id && (
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={(RUBRIC_STATUS_META[rubricStatus] || RUBRIC_STATUS_META.none).tone}>
@@ -301,7 +301,7 @@ export default function JobForm() {
                   <FormGroup className="sm:col-span-2">
                     <Label>Screening threshold (0–100)</Label>
                     <Input type="number" min="0" max="100" step="1" name="atsThreshold" value={form.atsThreshold} onChange={handleChange} className="max-w-[10rem]" />
-                    <p className="mt-1 text-xs text-[#6B6B6B]">Applicants scoring at or above this advance to the AI interview. Default 60.</p>
+                    <p className="mt-1 text-xs text-[#64736A]">Applicants scoring at or above this advance to the AI interview. Default 60.</p>
                   </FormGroup>
                 </div>
               </SectionCard>
@@ -318,7 +318,7 @@ export default function JobForm() {
                       <option value="manual">Manual — you decide per candidate: send assessment, or skip to interview</option>
                       <option value="auto">Auto — every ATS pass is assigned (for high-volume drives only)</option>
                     </Select>
-                    <p className="mt-1 text-xs text-[#6B6B6B]">
+                    <p className="mt-1 text-xs text-[#64736A]">
                       In manual mode, ATS-passed candidates wait in an “awaiting decision” queue — a senior hire can be
                       skipped straight to the interview with one click, and the skip is recorded as your decision (it never
                       reads as missing data, and it costs nothing).

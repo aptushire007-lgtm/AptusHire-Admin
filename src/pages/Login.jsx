@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { LogIn } from "lucide-react";
 import api from "../api/client.js";
@@ -64,7 +64,7 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#F5F5F0] px-5 py-12 transition-colors">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#F8FAF9] px-5 py-12 transition-colors">
       <div className="absolute right-6 top-6">
         <ThemeToggle />
       </div>
@@ -72,11 +72,11 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo to="/welcome" size="lg" className="mb-4" />
-          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Welcome back</h1>
-          <p className="mt-1 text-sm text-[#6B6B6B]">Log in to your admin workspace</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Welcome back</h1>
+          <p className="mt-1 text-sm text-[#64736A]">Log in to your admin workspace</p>
         </div>
 
-        <Card className="rounded-3xl border border-[#E8E8E4] bg-white p-6 shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-[#E5EBE7] bg-white p-6 shadow-soft sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <p className="rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</p>
@@ -104,15 +104,15 @@ export default function Login() {
               <LogIn className="h-4 w-4" /> Log In
             </Button>
           </form>
-          <p className="mt-5 text-center text-xs text-[#6B6B6B]">
-            <Link to="/forgot-password" className="font-semibold text-[#FF6B2C] hover:underline">Forgot your password?
+          <p className="mt-5 text-center text-xs text-[#64736A]">
+            <Link to="/forgot-password" className="font-semibold text-[#176B45] hover:underline">Forgot your password?
             </Link>
           </p>
         </Card>
 
-        <p className="mt-6 text-center text-sm text-[#6B6B6B]">
+        <p className="mt-6 text-center text-sm text-[#64736A]">
           Don't have a workspace?{" "}
-          <Link to="/register-company" className="font-semibold text-[#FF6B2C] hover:underline">Register your company
+          <Link to="/register-company" className="font-semibold text-[#176B45] hover:underline">Register your company
           </Link>
         </p>
       </div>

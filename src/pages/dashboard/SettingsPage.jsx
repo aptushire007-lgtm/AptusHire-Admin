@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Building2, User, Mail, Phone, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope } from "lucide-react";
 import api from "../../api/client.js";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
@@ -30,8 +30,8 @@ function ToggleRow({ label, description, checked, onChange, tone }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2.5">
       <div>
-        <p className={`text-sm font-medium ${tone === "warn" ? "text-amber-800" : "text-[#1A1A1A]"}`}>{label}</p>
-        {description && <p className="mt-0.5 text-xs text-[#6B6B6B]">{description}</p>}
+        <p className={`text-sm font-medium ${tone === "warn" ? "text-amber-800" : "text-[#17221C]"}`}>{label}</p>
+        {description && <p className="mt-0.5 text-xs text-[#64736A]">{description}</p>}
       </div>
       <Toggle checked={checked} onChange={onChange} />
     </div>
@@ -202,33 +202,33 @@ function IntegrationsSection() {
 
   return (
     <Card>
-      <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+      <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
         <Globe2 className="h-4.5 w-4.5 text-brand-600" /> Integrations & Distribution
       </h2>
-      <p className="mb-4 text-sm text-[#6B6B6B]">
+      <p className="mb-4 text-sm text-[#64736A]">
         Your public careers page and feeds need nobody's permission — Google for Jobs and the aggregator network index
         them for free. Board accounts you already pay for connect below.
       </p>
 
       {careers && (
-        <div className="mb-5 space-y-2 rounded-xl bg-[#FFE8DC] p-4 text-sm">
+        <div className="mb-5 space-y-2 rounded-xl bg-[#E8F2EC] p-4 text-sm">
           {[
             { label: "Careers page", value: careers.careersUrl },
             { label: "Jobs feed (XML)", value: careers.feedUrl },
             { label: "Jobs sitemap", value: careers.sitemapUrl },
           ].map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3">
-              <span className="shrink-0 text-[#6B6B6B]">{row.label}</span>
+              <span className="shrink-0 text-[#64736A]">{row.label}</span>
               {/* `min-w-0`: a flex item's default `min-width: auto` holds it at
                   its content size, so `truncate` never engaged — a real feed/
                   sitemap URL just pushed the row past the card edge. */}
-              <span className="min-w-0 truncate font-mono text-xs text-[#6B6B6B]">{row.value}</span>
-              <button onClick={() => copyText(row.value, row.label)} className="shrink-0 text-[#6B6B6B] hover:text-brand-700" title="Copy">
+              <span className="min-w-0 truncate font-mono text-xs text-[#64736A]">{row.value}</span>
+              <button onClick={() => copyText(row.value, row.label)} className="shrink-0 text-[#64736A] hover:text-brand-700" title="Copy">
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
-          <p className="pt-1 text-xs text-[#6B6B6B]">
+          <p className="pt-1 text-xs text-[#64736A]">
             Submit the feed once to Adzuna, Jooble, Talent.com and Careerjet — no contract needed; they crawl it from
             then on.
           </p>
@@ -237,9 +237,9 @@ function IntegrationsSection() {
 
       <div className="space-y-4">
         {boards.map((b) => (
-          <div key={b.board} className="rounded-xl border border-[#E8E8E4] p-4">
+          <div key={b.board} className="rounded-xl border border-[#E5EBE7] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-[#1A1A1A]">
+              <p className="text-sm font-semibold text-[#17221C]">
                 {b.name} <Badge tone="slate">Tier {b.tier}</Badge>
               </p>
               <div className="flex items-center gap-2">
@@ -343,42 +343,42 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Settings</h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">Your account, company details, and how the platform runs for your team.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Settings</h1>
+        <p className="mt-1 text-sm text-[#64736A]">Your account, company details, and how the platform runs for your team.</p>
       </div>
 
       {/* Read-only account + company */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#17221C]">
             <User className="h-4.5 w-4.5 text-brand-600" /> Account
           </h2>
           <dl className="space-y-3 text-sm">
             <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-[#6B6B6B]">Name</dt>
-              <dd className="min-w-0 text-right font-medium text-[#1A1A1A] [overflow-wrap:anywhere]">{user?.name || "—"}</dd>
+              <dt className="shrink-0 text-[#64736A]">Name</dt>
+              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.name || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-[#6B6B6B]">
+              <dt className="flex shrink-0 items-center gap-1.5 text-[#64736A]">
                 <Mail className="h-3.5 w-3.5" /> Email
               </dt>
-              <dd className="min-w-0 text-right font-medium text-[#1A1A1A] [overflow-wrap:anywhere]">{user?.email || "—"}</dd>
+              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.email || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-[#6B6B6B]">
+              <dt className="flex shrink-0 items-center gap-1.5 text-[#64736A]">
                 <Phone className="h-3.5 w-3.5" /> Phone
               </dt>
-              <dd className="min-w-0 text-right font-medium text-[#1A1A1A] [overflow-wrap:anywhere]">{user?.phone || "—"}</dd>
+              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.phone || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-[#6B6B6B]">Role</dt>
+              <dt className="shrink-0 text-[#64736A]">Role</dt>
               <dd><Badge tone="brand">{user?.role}</Badge></dd>
             </div>
           </dl>
         </Card>
 
         <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#17221C]">
             <Building2 className="h-4.5 w-4.5 text-brand-600" /> Company
           </h2>
           {companyLoading ? (
@@ -386,15 +386,15 @@ export default function SettingsPage() {
           ) : (
             <dl className="space-y-3 text-sm">
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#6B6B6B]">Company Name</dt>
-                <dd className="min-w-0 text-right font-medium text-[#1A1A1A] [overflow-wrap:anywhere]">{company?.name || "—"}</dd>
+                <dt className="shrink-0 text-[#64736A]">Company Name</dt>
+                <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{company?.name || "—"}</dd>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#6B6B6B]">Company Code</dt>
-                <dd className="min-w-0 text-right font-mono text-xs font-medium text-[#1A1A1A] [overflow-wrap:anywhere]">{company?.companyCode || "—"}</dd>
+                <dt className="shrink-0 text-[#64736A]">Company Code</dt>
+                <dd className="min-w-0 text-right font-mono text-xs font-medium text-[#17221C] [overflow-wrap:anywhere]">{company?.companyCode || "—"}</dd>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#6B6B6B]">Status</dt>
+                <dt className="shrink-0 text-[#64736A]">Status</dt>
                 <dd><Badge tone={company?.status === "active" ? "green" : "amber"}>{company?.status || "—"}</Badge></dd>
               </div>
             </dl>
@@ -410,10 +410,10 @@ export default function SettingsPage() {
               engine (rubric × claim-graph × deterministic scorer) actually
               scores candidates, or only the legacy keyword matcher runs. */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <Microscope className="h-4.5 w-4.5 text-brand-600" /> Screening Engine
             </h2>
-            <p className="mb-4 text-sm text-[#6B6B6B]">
+            <p className="mb-4 text-sm text-[#64736A]">
               How applicants are scored. The evidence engine scores each candidate against your approved rubric with
               cited proof for every point — jobs without an approved rubric always use the keyword engine.
             </p>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
                 <option value="shadow">Shadow — evidence engine runs silently for comparison</option>
                 <option value="live">Live — evidence engine scores candidates</option>
               </Select>
-              <p className="mt-2 text-xs text-[#6B6B6B]">
+              <p className="mt-2 text-xs text-[#64736A]">
                 {form.atsEngine === "shadow" &&
                   "Shadow mode: candidates are still scored and decided by the keyword engine, while the evidence engine runs in parallel and records what it would have scored. Use this to compare the two before going live — nothing changes for candidates."}
                 {form.atsEngine === "live" &&
@@ -440,10 +440,10 @@ export default function SettingsPage() {
 
           {/* AI interview */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <Bot className="h-4.5 w-4.5 text-brand-600" /> AI Interview
             </h2>
-            <p className="mb-4 text-sm text-[#6B6B6B]">How the AI conducts and pays for interviews. Leave the model blank to use the platform default.</p>
+            <p className="mb-4 text-sm text-[#64736A]">How the AI conducts and pays for interviews. Leave the model blank to use the platform default.</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormGroup className="mb-0">
                 <Label>Model override</Label>
@@ -456,7 +456,7 @@ export default function SettingsPage() {
               <FormGroup className="mb-0">
                 <Label>Monthly AI budget (USD)</Label>
                 <Input type="number" min="0" step="0.01" value={form.aiBudgetUsd} onChange={onInput("aiBudgetUsd")} />
-                <p className="mt-1 text-xs text-[#6B6B6B]">0 = uncapped. Interview LLM spend is metered against this each month.</p>
+                <p className="mt-1 text-xs text-[#64736A]">0 = uncapped. Interview LLM spend is metered against this each month.</p>
               </FormGroup>
               <div className="flex items-center">
                 <ToggleRow
@@ -471,11 +471,11 @@ export default function SettingsPage() {
 
           {/* Compliance & DPDP */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <ShieldCheck className="h-4.5 w-4.5 text-brand-600" /> Compliance & Data Protection
             </h2>
-            <p className="mb-3 text-sm text-[#6B6B6B]">Controls that govern candidate PII and fair-hiring safeguards (India DPDP).</p>
-            <div className="divide-y divide-[#E8E8E4]">
+            <p className="mb-3 text-sm text-[#64736A]">Controls that govern candidate PII and fair-hiring safeguards (India DPDP).</p>
+            <div className="divide-y divide-[#E5EBE7]">
               <ToggleRow
                 label="Require AI consent"
                 description="Ask candidates to consent before any resume/answer text is sent to the external AI. Without consent the interview runs fully offline."
@@ -499,16 +499,16 @@ export default function SettingsPage() {
             <FormGroup className="mb-0 mt-4 max-w-xs">
               <Label>Data retention (days)</Label>
               <Input type="number" min="1" max="3650" step="1" value={form.retentionDays} onChange={onInput("retentionDays")} />
-              <p className="mt-1 text-xs text-[#6B6B6B]">Interview & resume data untouched for longer than this is permanently deleted by the nightly job.</p>
+              <p className="mt-1 text-xs text-[#64736A]">Interview & resume data untouched for longer than this is permanently deleted by the nightly job.</p>
             </FormGroup>
           </Card>
 
           {/* DPO contact */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <ShieldCheck className="h-4.5 w-4.5 text-brand-600" /> Data Protection Officer
             </h2>
-            <p className="mb-4 text-sm text-[#6B6B6B]">Shown to candidates on the application form for data-rights requests (DPDP §5.2).</p>
+            <p className="mb-4 text-sm text-[#64736A]">Shown to candidates on the application form for data-rights requests (DPDP §5.2).</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <FormGroup className="mb-0">
                 <Label>Name</Label>
@@ -527,11 +527,11 @@ export default function SettingsPage() {
 
           {/* Notifications */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <BellRing className="h-4.5 w-4.5 text-brand-600" /> Email Notifications
             </h2>
-            <p className="mb-3 text-sm text-[#6B6B6B]">Which recruiter emails your team receives.</p>
-            <div className="divide-y divide-[#E8E8E4]">
+            <p className="mb-3 text-sm text-[#64736A]">Which recruiter emails your team receives.</p>
+            <div className="divide-y divide-[#E5EBE7]">
               <ToggleRow label="New application" description="Email when a candidate applies to one of your jobs." checked={form.notifNewApp} onChange={set("notifNewApp")} />
               <ToggleRow label="ATS result" description="Email when a candidate passes or fails ATS screening." checked={form.notifAts} onChange={set("notifAts")} />
               <ToggleRow label="Interview completed" description="Email when an AI interview finishes and a report is ready." checked={form.notifInterview} onChange={set("notifInterview")} />
@@ -540,10 +540,10 @@ export default function SettingsPage() {
 
           {/* Branding */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#1A1A1A]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
               <Palette className="h-4.5 w-4.5 text-brand-600" /> Branding
             </h2>
-            <p className="mb-3 text-sm text-[#6B6B6B]">Apply your brand colour to candidate-facing pages and emails.</p>
+            <p className="mb-3 text-sm text-[#64736A]">Apply your brand colour to candidate-facing pages and emails.</p>
             <ToggleRow label="Use custom branding" checked={form.brandingCustom} onChange={set("brandingCustom")} />
             <FormGroup className="mb-0 mt-3 max-w-xs">
               <Label>Primary colour</Label>
@@ -552,7 +552,7 @@ export default function SettingsPage() {
                   type="color"
                   value={form.brandingColor}
                   onChange={onInput("brandingColor")}
-                  className="h-10 w-14 cursor-pointer rounded-lg border border-[#E8E8E4]-mid bg-white p-1"
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-[#E5EBE7]-mid bg-white p-1"
                 />
                 <Input value={form.brandingColor} onChange={onInput("brandingColor")} className="font-mono" />
               </div>

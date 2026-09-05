@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -245,14 +245,14 @@ export default function QuestionSetEditor() {
 
   return (
     <div className="space-y-6">
-      <Link to={`/jobs/${jobId}/edit`} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6B6B] hover:text-brand-700">
+      <Link to={`/jobs/${jobId}/edit`} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#64736A] hover:text-brand-700">
         <ArrowLeft className="h-4 w-4" /> Back to job
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Interview Questions</h1>
-          <p className="mt-1 text-sm text-[#6B6B6B]">{job?.title}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Interview Questions</h1>
+          <p className="mt-1 text-sm text-[#64736A]">{job?.title}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={regenerate} loading={busy}>
@@ -312,7 +312,7 @@ export default function QuestionSetEditor() {
                 key={v._id}
                 onClick={() => setSelectedId(v._id)}
                 className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
-                  v._id === selectedId ? "border-brand-500 bg-[#FFE8DC] text-brand-700" : "border-[#E8E8E4] bg-white text-[#6B6B6B] hover:bg-[#FFE8DC]"
+                  v._id === selectedId ? "border-brand-500 bg-[#E8F2EC] text-brand-700" : "border-[#E5EBE7] bg-white text-[#64736A] hover:bg-[#DDECE3]"
                 }`}
               >
                 v{v.version} <Badge tone={v.status === "approved" ? "green" : v.status === "draft" ? "amber" : "slate"}>{v.status}</Badge>
@@ -339,17 +339,17 @@ export default function QuestionSetEditor() {
                   to watch the safety net working, not just be told it exists. */}
               {dropped.length > 0 && (
                 <Card>
-                  <h2 className="mb-1 flex items-center gap-2 text-base font-bold text-[#1A1A1A]">
+                  <h2 className="mb-1 flex items-center gap-2 text-base font-bold text-[#17221C]">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" /> Blocked before you saw them ({dropped.length})
                   </h2>
-                  <p className="mb-3 text-xs text-[#6B6B6B]">
+                  <p className="mb-3 text-xs text-[#64736A]">
                     The compiler proposed these and they were refused in code, so they never reached this set. Questions touching age, family,
                     religion, caste, health, immigration status, salary history or criminal record cannot be asked, whoever writes them.
                   </p>
                   <div className="space-y-2">
                     {dropped.map((d, i) => (
-                      <div key={d.text ? `${d.text}-${i}` : `dropped-${i}`} className="rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-3 text-sm">
-                        <p className="text-[#6B6B6B] line-through [overflow-wrap:anywhere]">{d.text}</p>
+                      <div key={d.text ? `${d.text}-${i}` : `dropped-${i}`} className="rounded-xl border border-[#E5EBE7] bg-[#E8F2EC] p-3 text-sm">
+                        <p className="text-[#64736A] line-through [overflow-wrap:anywhere]">{d.text}</p>
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {(d.codes || []).map((code) => (
                             <Badge key={code} tone="red">
@@ -375,14 +375,14 @@ export default function QuestionSetEditor() {
 
               <Card>
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-base font-bold text-[#1A1A1A]">Questions ({questions.length})</h2>
+                  <h2 className="text-base font-bold text-[#17221C]">Questions ({questions.length})</h2>
                   {isDraft && (
-                    <p className="text-xs text-[#6B6B6B]">Asked in this order, word for word, to every candidate.</p>
+                    <p className="text-xs text-[#64736A]">Asked in this order, word for word, to every candidate.</p>
                   )}
                 </div>
 
                 {isDraft && (
-                  <div className="mb-4 flex items-start gap-2 rounded-xl border border-[#E8E8E4] bg-[#FFE8DC] p-3 text-xs text-[#6B6B6B]">
+                  <div className="mb-4 flex items-start gap-2 rounded-xl border border-[#E5EBE7] bg-[#E8F2EC] p-3 text-xs text-[#64736A]">
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     <p>
                       These are the <strong>core</strong> of the interview, not all of it. Between them the interviewer follows up on whatever the
@@ -398,10 +398,10 @@ export default function QuestionSetEditor() {
                     return (
                       <div
                         key={q._key}
-                        className={`rounded-xl border p-3 sm:p-4 ${issues.length ? "border-red-300 bg-red-50/50" : "border-[#E8E8E4]"}`}
+                        className={`rounded-xl border p-3 sm:p-4 ${issues.length ? "border-red-300 bg-red-50/50" : "border-[#E5EBE7]"}`}
                       >
                         <div className="flex items-start gap-3">
-                          <span className="mt-2 w-5 shrink-0 text-right text-xs font-bold text-[#6B6B6B]">{index + 1}</span>
+                          <span className="mt-2 w-5 shrink-0 text-right text-xs font-bold text-[#64736A]">{index + 1}</span>
                           <div className="min-w-0 flex-1">
                             {isDraft ? (
                               <Textarea
@@ -411,9 +411,9 @@ export default function QuestionSetEditor() {
                                 aria-label={`Question ${index + 1}`}
                               />
                             ) : (
-                              <p className="text-sm text-[#1A1A1A] [overflow-wrap:anywhere]">{q.text}</p>
+                              <p className="text-sm text-[#17221C] [overflow-wrap:anywhere]">{q.text}</p>
                             )}
-                            {q.topic && !isDraft && <p className="mt-1 text-xs text-[#6B6B6B]">{q.topic}</p>}
+                            {q.topic && !isDraft && <p className="mt-1 text-xs text-[#64736A]">{q.topic}</p>}
                             {issues.map((issue, i) => (
                               <p key={i} className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-red-700">
                                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -430,7 +430,7 @@ export default function QuestionSetEditor() {
                                 onClick={() => move(index, -1)}
                                 disabled={index === 0}
                                 aria-label={`Move question ${index + 1} up`}
-                                className="rounded p-1 text-[#6B6B6B] hover:bg-[#F5F5F0] disabled:opacity-30"
+                                className="rounded p-1 text-[#64736A] hover:bg-[#F8FAF9] disabled:opacity-30"
                               >
                                 <ArrowUp className="h-3.5 w-3.5" />
                               </button>
@@ -439,7 +439,7 @@ export default function QuestionSetEditor() {
                                 onClick={() => move(index, 1)}
                                 disabled={index === questions.length - 1}
                                 aria-label={`Move question ${index + 1} down`}
-                                className="rounded p-1 text-[#6B6B6B] hover:bg-[#F5F5F0] disabled:opacity-30"
+                                className="rounded p-1 text-[#64736A] hover:bg-[#F8FAF9] disabled:opacity-30"
                               >
                                 <ArrowDown className="h-3.5 w-3.5" />
                               </button>
@@ -460,7 +460,7 @@ export default function QuestionSetEditor() {
                 </div>
 
                 {!questions.length && (
-                  <p className="rounded-xl border border-dashed border-[#E8E8E4] p-4 text-sm text-[#6B6B6B]">
+                  <p className="rounded-xl border border-dashed border-[#E5EBE7] p-4 text-sm text-[#64736A]">
                     No questions on this version — recompile from the job description, or add one below.
                   </p>
                 )}
@@ -499,7 +499,7 @@ export default function QuestionSetEditor() {
               </Card>
 
               {selected.approvedBy?.at && (
-                <p className="text-xs text-[#6B6B6B]">Approved {new Date(selected.approvedBy.at).toLocaleString()} — recorded in the audit log.</p>
+                <p className="text-xs text-[#64736A]">Approved {new Date(selected.approvedBy.at).toLocaleString()} — recorded in the audit log.</p>
               )}
             </>
           )}

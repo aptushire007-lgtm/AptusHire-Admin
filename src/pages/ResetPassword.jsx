@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { KeyRound, CheckCircle2 } from "lucide-react";
 import api from "../api/client.js";
@@ -32,7 +32,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#F5F5F0] px-5 py-12 transition-colors">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#F8FAF9] px-5 py-12 transition-colors">
       <div className="absolute right-6 top-6">
         <ThemeToggle />
       </div>
@@ -42,23 +42,23 @@ export default function ResetPassword() {
           <BrandLogo to="/welcome" size="lg" />
         </div>
 
-        <Card className="rounded-3xl border border-[#E8E8E4] bg-white p-6 text-center shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-[#E5EBE7] bg-white p-6 text-center shadow-soft sm:p-8">
           {done ? (
             <>
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
-              <h1 className="text-xl font-bold text-[#1A1A1A]">Password Reset</h1>
-              <p className="mt-2 text-xs text-[#6B6B6B]">
-                Your password has been reset. Redirecting you to <Link to="/login" className="font-semibold text-[#FF6B2C]">login</Link>…
+              <h1 className="text-xl font-bold text-[#17221C]">Password Reset</h1>
+              <p className="mt-2 text-xs text-[#64736A]">
+                Your password has been reset. Redirecting you to <Link to="/login" className="font-semibold text-[#176B45]">login</Link>…
               </p>
             </>
           ) : (
             <>
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE8DC] text-brand-800/60">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#E8F2EC] text-brand-800/60">
                 <KeyRound className="h-6 w-6" />
               </div>
-              <h1 className="text-xl font-bold text-[#1A1A1A]">Choose a New Password</h1>
+              <h1 className="text-xl font-bold text-[#17221C]">Choose a New Password</h1>
               <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-left">
                 {error && (
                   <p className="rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</p>

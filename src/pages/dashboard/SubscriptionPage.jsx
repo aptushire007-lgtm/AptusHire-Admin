@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { CreditCard, ArrowUpRight } from "lucide-react";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { Card, Badge, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
@@ -16,8 +16,8 @@ export default function SubscriptionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] [overflow-wrap:anywhere]">Subscription</h1>
-        <p className="mt-1 text-sm text-[#6B6B6B]">Your current plan and usage limits.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Subscription</h1>
+        <p className="mt-1 text-sm text-[#64736A]">Your current plan and usage limits.</p>
       </div>
 
       {loading ? (
@@ -41,15 +41,15 @@ export default function SubscriptionPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-[#1A1A1A]">{plan?.name}</h2>
+                  <h2 className="text-lg font-bold text-[#17221C]">{plan?.name}</h2>
                   <Badge tone={subscription.status === "active" ? "green" : "amber"}>{subscription.status}</Badge>
                 </div>
-                <p className="mt-1 text-sm text-[#6B6B6B]">
+                <p className="mt-1 text-sm text-[#64736A]">
                   Billed {subscription.billingCycle} · {formatPrice(plan?.pricing?.[subscription.billingCycle])}
                   {plan?.pricing?.[subscription.billingCycle] > 0 && (subscription.billingCycle === "monthly" ? " /mo" : " /yr")}
                 </p>
                 {subscription.currentPeriodEnd && (
-                  <p className="mt-1 text-xs text-[#6B6B6B]">
+                  <p className="mt-1 text-xs text-[#64736A]">
                     Renews {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                   </p>
                 )}
@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
 
           {plan?.limits && (
             <Card>
-              <h2 className="mb-4 text-base font-semibold text-[#1A1A1A]">Plan Limits</h2>
+              <h2 className="mb-4 text-base font-semibold text-[#17221C]">Plan Limits</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   ["Active Jobs", plan.limits.maxJobs],
@@ -71,9 +71,9 @@ export default function SubscriptionPage() {
                   ["Resume Parses / mo", plan.limits.maxResumeParsing],
                   ["Storage", `${(plan.limits.storageLimitMb / 1000).toFixed(1)} GB`],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl bg-[#FFE8DC] p-4">
-                    <p className="text-xs font-medium text-[#6B6B6B]">{label}</p>
-                    <p className="mt-1 text-lg font-bold text-[#1A1A1A]">{value?.toLocaleString?.() ?? value}</p>
+                  <div key={label} className="rounded-xl bg-[#E8F2EC] p-4">
+                    <p className="text-xs font-medium text-[#64736A]">{label}</p>
+                    <p className="mt-1 text-lg font-bold text-[#17221C]">{value?.toLocaleString?.() ?? value}</p>
                   </div>
                 ))}
               </div>
