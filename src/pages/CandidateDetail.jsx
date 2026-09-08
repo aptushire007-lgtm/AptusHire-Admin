@@ -88,6 +88,7 @@ const PIPELINE_EXIT_LABELS = {
   job_filled: "Closed — role filled",
   job_closed: "Closed — role closed",
   job_deleted: "Closed — role deleted",
+  application_removed: "Removed from this role",
 };
 
 // Other applications this same person has made to OTHER roles at this company
@@ -268,7 +269,7 @@ export default function CandidateDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const { me } = useCompanyData();
+  const { me, refresh } = useCompanyData();
   const [candidate, setCandidate] = useState(null);
   const [timeline, setTimeline] = useState(null);
   const [session, setSession] = useState(null);
@@ -283,6 +284,7 @@ export default function CandidateDetail() {
   const [offerMessage, setOfferMessage] = useState("");
   const [moving, setMoving] = useState(false);
   const [erasing, setErasing] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [resending, setResending] = useState(false);
   const [rescoring, setRescoring] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
@@ -505,6 +507,27 @@ export default function CandidateDetail() {
     }
   }
 
+  async function handleRemoveFromJob() {
+    const jobId = candidate?.job?._id || (typeof candidate?.job === "string" ? candidate.job : null);
+    if (!jobId) {
+      toast.error("This application is not linked to a job");
+      return;
+    }
+    if (!window.confirm("Remove this application from this job's Hiring Pipeline? The candidate and other applications will remain.")) {
+      return;
+    }
+    setRemoving(true);
+    try {
+      await api.delete(`/candidates/${id}/applications/${jobId}`);
+      await refresh();
+      toast.success("Application removed from this job");
+      navigate(`/jobs/${jobId}/candidates`, { replace: true });
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Could not remove this application");
+      setRemoving(false);
+    }
+  }
+
   // Bearer-authenticated downloads — a plain <a href> to these endpoints has no
   // Authorization header and always 401s in the new tab.
   async function handleResumeDownload() {
@@ -685,6 +708,15 @@ export default function CandidateDetail() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5EBE7] px-3 py-1.5 text-sm font-medium text-[#64736A] hover:bg-[#DDECE3]"
             >
               <Download className="h-4 w-4" aria-hidden="true" /> Export
+            </button>
+            <button
+              type="button"
+              onClick={handleRemoveFromJob}
+              disabled={removing || erasing}
+              title="Remove only this application from this job's Hiring Pipeline"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5EBE7] px-3 py-1.5 text-sm font-medium text-[#64736A] hover:bg-[#DDECE3] disabled:opacity-50"
+            >
+              <XCircle className="h-4 w-4" aria-hidden="true" /> {removing ? "Removing…" : "Remove from job"}
             </button>
             <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-[#F8FAF9]-deep" />
             <button
