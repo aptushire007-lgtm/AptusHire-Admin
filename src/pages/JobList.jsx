@@ -7,7 +7,7 @@ import { Card, Badge, Skeleton, EmptyState } from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import PageHeader from "../components/ui/PageHeader.jsx";
-import { RecordCard, RecordGrid } from "../components/ui/Panels.jsx";
+import { RecordGrid, RecordList, RecordRow } from "../components/ui/Panels.jsx";
 import { RowAction } from "../components/ui/DataTable.jsx";
 import { Input, Select } from "../components/ui/Field.jsx";
 
@@ -307,11 +307,11 @@ export default function JobList() {
           description="Try a different search term, or clear the status filter."
         />
       ) : (
-        <RecordGrid>
+        <RecordList label="Active jobs" className="overflow-visible">
           {jobs.map((job) => {
             const rubric = RUBRIC_STATUS_META[job.rubricStatus] || RUBRIC_STATUS_META.none;
             return (
-              <RecordCard
+              <RecordRow
                 key={job._id}
                 icon={Briefcase}
                 title={job.title}
@@ -320,27 +320,37 @@ export default function JobList() {
                 // job exists to collect candidates, and editing is a deliberate
                 // act that belongs on its own icon action.
                 link={{ as: Link, to: `/jobs/${job._id}/candidates` }}
-                trailing={<Badge tone={job.status === "published" ? "green" : "amber"}>{job.status}</Badge>}
-                footer={
-                  // The rubric badge stays its own link because it navigates
-                  // somewhere the card doesn't, and it keeps the amber
-                  // "needs approval" state in the fastest-read position — a
-                  // job on the legacy engine is the one thing a recruiter
-                  // must not scroll past.
-                  <Link
-                    to={`/jobs/${job._id}/rubric`}
-                    className="relative z-10 inline-flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                  >
-                    <Badge tone={rubric.tone}>{rubric.label}</Badge>
-                  </Link>
+                meta={[
+                  { label: "Posted", value: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "Not available" },
+                  { label: "Location", value: job.location || "Remote" },
+                ]}
+                trailing={
+                  <>
+                    <Badge tone={job.status === "published" ? "green" : "amber"}>{job.status}</Badge>
+                    <Link
+                      to={`/jobs/${job._id}/rubric`}
+                      className="relative z-10 inline-flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                    >
+                      <Badge tone={rubric.tone}>{rubric.label}</Badge>
+                    </Link>
+                  </>
                 }
-                footerTrailing={
-                  <span className="inline-flex items-center gap-1.5 font-medium text-brand-700">
-                    <Users className="h-3.5 w-3.5" aria-hidden="true" /> View applicants
+                note={
+                  <span className="inline-flex flex-wrap items-center justify-end gap-x-2 gap-y-1 font-medium text-brand-700">
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                      {job.filledOpenings || 0}/{job.numberOfOpenings || 1} filled
+                    </span>
+                    {(job.pendingOffers || 0) > 0 && (
+                      <span className="text-[#64736A]">· {job.pendingOffers} offer{job.pendingOffers === 1 ? "" : "s"} pending</span>
+                    )}
                   </span>
                 }
                 actions={
-                  <div className="flex items-center gap-0.5">
+                  // Fixed-width, right-aligned so the meta columns line up row to
+                  // row regardless of how many icons a given status shows
+                  // (published = 4, draft/closed = 3).
+                  <div className="flex items-center justify-end gap-0.5 xl:w-[134px]">
                     <RowAction as={Link} to={`/jobs/${job._id}/edit`} label="Edit job" icon={Pencil} />
                     {job.status === "published" && (
                       <RowAction
@@ -400,7 +410,7 @@ export default function JobList() {
               />
             );
           })}
-        </RecordGrid>
+        </RecordList>
       )}
 
       {!loading && totalPages > 1 && (

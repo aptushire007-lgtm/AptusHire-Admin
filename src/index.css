@@ -27,13 +27,18 @@
 @theme {
   /* ── Typography ─────────────────────────────────────────── */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Lexend", Inter, system-ui, sans-serif;
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --text-xs:              0.75rem;
+  /*
+   * Admin type is intentionally one step more generous than Tailwind's
+   * compact defaults.  At 100% browser zoom this keeps navigation, table
+   * metadata and card copy readable without making the UI feel oversized.
+   */
+  --text-xs:              0.8125rem;
   --text-xs--line-height: 1.4;
-  --text-sm:              0.875rem;
+  --text-sm:              0.9375rem;
   --text-sm--line-height: 1.55;
-  --text-base:            1rem;
+  --text-base:            1.0625rem;
   --text-base--line-height: 1.6;
 
   /* ═══════════════════════════════════════════════════════
@@ -75,28 +80,28 @@
   --color-brand-950: #020D07;
 
   /* SURFACES */
-  --color-canvas:       #F8FAF9;
-  --color-canvas-deep:  #EFF4F1;
-  --color-background:   #F8FAF9;
+  --color-canvas:       #FAFAFA;
+  --color-canvas-deep:  #F4F4F5;
+  --color-background:   #FAFAFA;
   --color-surface:      #FFFFFF;
-  --color-surface-alt:  #FAFCFB;
+  --color-surface-alt:  #FAFAFA;
   --color-cream:        #FDFEFE;
   --color-cream-mid:    #F4F8F5;
 
   /* TYPOGRAPHY */
-  --color-text:         #17221C;
-  --color-text-strong:  #17221C;
-  --color-text-muted:   #64736A;
-  --color-text-faint:   #9BAAA1;
+  --color-text:         #09090B;
+  --color-text-strong:  #09090B;
+  --color-text-muted:   #71717A;
+  --color-text-faint:   #A1A1AA;
   --color-text-on-fill: #FFFFFF;
 
   /* BORDERS */
-  --color-border:       #E5EBE7;
-  --color-border-mid:   #C7D4CC;
-  --color-border-brand: #C7DDD1;
+  --color-border:       #E4E4E7;
+  --color-border-mid:   #D4D4D8;
+  --color-border-brand: #BBF7D0;
 
   /* HOVER */
-  --color-hover: #DDECE3;
+  --color-hover: #F4F4F5;
 
   /* SEMANTIC */
   --color-success:       #238653;
@@ -137,11 +142,18 @@
   --color-chart-neutral:  #E5EBE7;
   --color-chart-negative: #F8EAEA;
 
+  /* The five approved colours for meaningful chart lines and bars. */
+  --color-data-purple: #8B5CF6;
+  --color-data-blue:   #3B82F6;
+  --color-data-green:  #34D399;
+  --color-data-amber:  #FBBF24;
+  --color-data-red:    #EF4444;
+
   /* SHADOWS */
-  --shadow-card: 0 1px 2px rgba(23,34,28,0.05), 0 1px 4px rgba(23,34,28,0.04);
-  --shadow-soft: 0 4px 16px rgba(23,34,28,0.07);
-  --shadow-lift: 0 8px 24px rgba(23,34,28,0.09);
-  --shadow-deep: 0 20px 48px -8px rgba(23,34,28,0.12);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-soft: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lift: 0 10px 30px rgba(0,0,0,0.10);
+  --shadow-deep: 0 20px 48px -12px rgba(0,0,0,0.18);
   --shadow-glow: 0 0 0 3px rgba(23,107,69,0.20);
 
   /* SPACING */
@@ -154,8 +166,8 @@
 
   /* RADIUS */
   --radius-control: 0.5rem;
-  --radius-card:    0.75rem;
-  --radius-panel:   1rem;
+  --radius-card:    0.625rem;
+  --radius-panel:   0.75rem;
   --radius-pill:    9999px;
 
   /* HEIGHTS */
@@ -172,14 +184,14 @@
 
 /* ── Legacy :root ────────────────────────────────────────── */
 :root {
-  --background:     #F8FAF9;
+  --background:     #FAFAFA;
   --surface:        #FFFFFF;
   --white:          #FFFFFF;
-  --text-primary:   #17221C;
-  --text-secondary: #64736A;
-  --text-muted:     #64736A;
-  --border:         #E5EBE7;
-  --border-light:   #F1F7F3;
+  --text-primary:   #09090B;
+  --text-secondary: #71717A;
+  --text-muted:     #71717A;
+  --border:         #E4E4E7;
+  --border-light:   #F4F4F5;
   --green-900:      #0E4028;
   --green-700:      #176B45;
   --green-500:      #5F9475;
@@ -191,6 +203,7 @@
 /* ── Base ────────────────────────────────────────────────── */
 @layer base {
   html {
+    font-size: 100%;
     font-family: var(--font-sans);
     overflow-x: clip;
     -webkit-font-smoothing: antialiased;
@@ -198,8 +211,11 @@
   }
 
   body {
-    background-color: #F8FAF9;
-    color: #17221C;
+    min-width: 320px;
+    font-size: 1rem;
+    zoom: 1.1;
+    background-color: #FAFAFA;
+    color: #09090B;
     line-height: 1.6;
     overflow-x: clip;
     color-scheme: light;
@@ -207,7 +223,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    color: #17221C;
+    color: #09090B;
     letter-spacing: -0.02em;
     line-height: 1.25;
   }
@@ -224,11 +240,11 @@
   textarea {
     min-height: var(--input-height);
     border-radius: var(--radius-control);
-    border: 1px solid #E5EBE7;
+    border: 1px solid #E4E4E7;
     background: #FFFFFF;
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
-    color: #17221C;
+    color: #09090B;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
@@ -255,4 +271,32 @@
     }
   }
   .ring-brand { box-shadow: var(--shadow-glow); }
+}
+
+/* Translate legacy page utilities into the shared shadcn-style neutrals. */
+.bg-\[\#F8FAF9\] { background-color: #FAFAFA; }
+.bg-\[\#F1F7F3\],
+.bg-\[\#DDECE3\] { background-color: #F4F4F5; }
+.border-\[\#E5EBE7\] { border-color: #E4E4E7; }
+.border-\[\#C7DDD1\],
+.border-\[\#C7D4CC\] { border-color: #D4D4D8; }
+.text-\[\#17221C\] { color: #09090B; }
+.text-\[\#64736A\] { color: #71717A; }
+.text-\[\#9BAAA1\] { color: #A1A1AA; }
+
+/* Restrained shadcn geometry; full pills and avatars remain unchanged. */
+.rounded-xl { border-radius: 0.5rem; }
+.rounded-2xl { border-radius: 0.625rem; }
+.rounded-3xl { border-radius: 0.75rem; }
+
+button,
+[role="button"],
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline-color: #176B45;
 }

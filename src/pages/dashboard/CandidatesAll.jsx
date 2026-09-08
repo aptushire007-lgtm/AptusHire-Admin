@@ -7,6 +7,14 @@ import { RecordRow, RecordList, Chip, ChipRow } from "../../components/ui/Panels
 import { Input, Select } from "../../components/ui/Field.jsx";
 import { ALL_STAGES, stageLabel, stageTone, normalizeStage } from "../../lib/pipeline.js";
 
+// Why an application left the active pipeline without a reject decision (Phase 17).
+const PIPELINE_EXIT_LABELS = {
+  hired_for_other_role: "Hired elsewhere",
+  job_filled: "Role filled",
+  job_closed: "Role closed",
+  job_deleted: "Role deleted",
+};
+
 export default function CandidatesAll() {
   const { allCandidates, loading, loadError } = useCompanyData();
   const [search, setSearch] = useState("");
@@ -32,6 +40,29 @@ export default function CandidatesAll() {
       return matchesSearch && matchesStage;
     })
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // Multi-role (Phase 17): each row above is one APPLICATION. Collapse a
+  // person's applications into ONE row so the same candidate who applied for
+  // three roles is not listed as three unrelated people. Identity key is the
+  // stable account id (`candidateUser`), falling back to the lowercased email
+  // for applications that predate that field, then the doc id. `filtered` is
+  // already newest-first, so the first application seen per person is their
+  // latest — that drives the row's headline role/status.
+  const groups = [];
+  const groupIndex = new Map();
+  for (const c of filtered) {
+    const key = String(c.candidateUser || c.basicDetails?.email?.toLowerCase() || c._id);
+    let g = groupIndex.get(key);
+    if (!g) {
+      g = { key, latest: c, applications: [] };
+      groupIndex.set(key, g);
+      groups.push(g);
+    }
+    g.applications.push(c);
+  }
+  const totalPeople = new Set(
+    allCandidates.map((c) => String(c.candidateUser || c.basicDetails?.email?.toLowerCase() || c._id))
+  ).size;
 
   return (
     <div className="space-y-6">
@@ -100,18 +131,23 @@ export default function CandidatesAll() {
       ) : (
         <>
           <p className="text-xs text-[#64736A]">
-            {filtered.length} of {allCandidates.length} candidate{allCandidates.length === 1 ? "" : "s"}
+            {groups.length} of {totalPeople} candidate{totalPeople === 1 ? "" : "s"}
+            {filtered.length !== groups.length ? ` · ${filtered.length} applications` : ""}
           </p>
           <RecordList label="All candidates">
-            {filtered.map((c) => (
+            {groups.map(({ key, latest: c, applications }) => (
               <RecordRow
-                key={c._id}
+                key={key}
                 avatar={<Avatar name={c.basicDetails?.name} size="sm" />}
                 title={c.basicDetails?.name || "Unnamed applicant"}
-                subtitle={c.job?.title || "No job on record"}
+                subtitle={
+                  applications.length > 1
+                    ? `${applications.length} applications · Latest: ${c.job?.title || "No job on record"}`
+                    : c.job?.title || "No job on record"
+                }
                 link={{ as: Link, to: `/candidates/${c._id}` }}
                 meta={[
-                  { label: "Applied", value: new Date(c.createdAt).toLocaleDateString() },
+                  { label: applications.length > 1 ? "Latest applied" : "Applied", value: new Date(c.createdAt).toLocaleDateString() },
                   // What produced the number, as its own column. `engine !==
                   // "evidence"` means this job has no approved rubric and the
                   // legacy keyword matcher carried the decision.
@@ -143,7 +179,13 @@ export default function CandidatesAll() {
                         <Badge tone="slate">Not scored</Badge>
                       )}
                     </span>
-                    <Badge tone={stageTone(c.status)}>{stageLabel(c.status)}</Badge>
+                    {c.pipelineExit?.at ? (
+                      <Badge tone="slate">
+                        {PIPELINE_EXIT_LABELS[c.pipelineExit.reason] || "Left pipeline"}
+                      </Badge>
+                    ) : (
+                      <Badge tone={stageTone(c.status)}>{stageLabel(c.status)}</Badge>
+                    )}
                   </>
                 }
                 note={

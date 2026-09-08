@@ -24,6 +24,7 @@ import Button from "../../components/ui/Button.jsx";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
 import { stageLabel, stageTone } from "../../lib/pipeline.js";
+import { VISUALIZATION_PALETTE } from "../../lib/visualizationColors.js";
 
 const RANGES = [
   { key: "30", label: "30 days" },
@@ -31,6 +32,9 @@ const RANGES = [
   { key: "365", label: "1 year" },
 ];
 
+// Keep the Reports funnel visually identical to the dashboard funnel. The
+// palette repeats when more than five stages are visible, just as it does on
+// DashboardHome.
 // Fill color per semantic tone — mirrors Badge's tone vocabulary so a bar and
 // its accompanying badge or stage color always agree. Reads from the same
 // `chart-*` + verdict-ring tokens InterviewReport.jsx uses for its role-map
@@ -41,11 +45,11 @@ const RANGES = [
 // positive/neutral/negative/brand), so it reuses the existing
 // verdict-pending tint at the same ring weight rather than inventing one.
 const TONE_FILL = {
-  slate: "bg-chart-neutral ring-1 ring-inset ring-slate-400/70",
-  brand: "bg-chart-brand ring-1 ring-inset ring-brand-600/60",
-  green: "bg-chart-positive ring-1 ring-inset ring-verdict-positive/70",
-  amber: "bg-[#E8F2EC] ring-1 ring-inset ring-verdict-pending/70",
-  red: "bg-chart-negative ring-1 ring-inset ring-verdict-negative/70",
+  slate: "bg-data-purple",
+  brand: "bg-data-blue",
+  green: "bg-data-green",
+  amber: "bg-data-amber",
+  red: "bg-data-red",
 };
 
 // A labelled proportion bar: value, share, and a fill on one row. Used for
@@ -54,7 +58,7 @@ const TONE_FILL = {
 // funnel passes it so a stage row drills into the candidate list filtered to
 // that stage; the screening-decision breakdown has no equivalent record list
 // to point at, so it stays a plain row there.
-function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) {
+function ProportionRow({ icon: Icon, label, value, total, tone = "brand", color, to }) {
   const pct = total ? Math.round((value / total) * 100) : 0;
   const content = (
     <>
@@ -73,7 +77,13 @@ function ProportionRow({ icon: Icon, label, value, total, tone = "brand", to }) 
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[#F8FAF9]">
-        <div className={`h-full rounded-full ${TONE_FILL[tone]}`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full rounded-full ${color ? "" : TONE_FILL[tone]}`}
+          style={{
+            width: `${Math.max(value ? 4 : 0, pct)}%`,
+            ...(color ? { backgroundColor: color } : {}),
+          }}
+        />
       </div>
     </>
   );
@@ -125,9 +135,9 @@ function VerdictSplit({ verified, contradicted, inconclusive, total, legend = fa
         </p>
       )}
       <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#E8F2EC]">
-        <div className="bg-chart-positive ring-1 ring-inset ring-verdict-positive/70" style={{ width: seg(verified) }} />
-        <div className="bg-chart-negative ring-1 ring-inset ring-verdict-negative/70" style={{ width: seg(contradicted) }} />
-        <div className="bg-[#E8F2EC] ring-1 ring-inset ring-verdict-pending/70" style={{ width: seg(inconclusive) }} />
+        <div className="bg-data-green" style={{ width: seg(verified) }} />
+        <div className="bg-data-red" style={{ width: seg(contradicted) }} />
+        <div className="bg-data-amber" style={{ width: seg(inconclusive) }} />
       </div>
     </div>
   );
@@ -162,7 +172,7 @@ function ScoreHistogram({ bins }) {
                 {b.count || ""}
               </span>
               <div
-                className="w-full rounded-t bg-chart-brand ring-1 ring-inset ring-brand-600/60"
+                className="w-full rounded-t bg-data-blue"
                 style={{ height: `${b.count ? Math.max(4, Math.round((b.count / max) * 100)) : 0}%` }}
                 title={summary}
               >
@@ -312,7 +322,16 @@ export default function Reports() {
           {/* KPI strip — one ledger row rather than five same-size cards */}
           <Card className="p-0">
             <div className="grid grid-cols-1 divide-y divide-[#E5EBE7] sm:grid-cols-5 sm:divide-x sm:divide-y-0">
-              <KpiStat icon={Users} label="Candidates" value={totals.candidates} />
+              <KpiStat
+                icon={Users}
+                label="Candidates"
+                value={totals.candidates}
+                hint={
+                  totals.applications != null && totals.applications !== totals.candidates
+                    ? `${totals.applications} applications`
+                    : undefined
+                }
+              />
               <KpiStat icon={Bot} label="AI interviews completed" value={totals.interviewsCompleted} />
               <KpiStat icon={CheckCircle2} label="Offers accepted" value={totals.offersAccepted} />
               <KpiStat icon={Award} label="Joined" value={totals.hires} />
@@ -333,9 +352,11 @@ export default function Reports() {
                 <Badge tone="slate">{screening.scoreSource === "evidence" ? "evidence engine" : "legacy ATS"}</Badge>
               </div>
               <div className="space-y-4">
-                <ProportionRow icon={CheckCircle2} label="Advance" value={screening.decisions.pass} total={totals.candidates} tone="green" />
-                <ProportionRow icon={AlertTriangle} label="Human review" value={screening.decisions.review} total={totals.candidates} tone="amber" />
-                <ProportionRow icon={XCircle} label="Decline" value={screening.decisions.fail} total={totals.candidates} tone="red" />
+                {/* Screening decisions are counted per application, so the
+                    denominator is the application total, not unique candidates. */}
+                <ProportionRow icon={CheckCircle2} label="Advance" value={screening.decisions.pass} total={totals.applications ?? totals.candidates} tone="green" />
+                <ProportionRow icon={AlertTriangle} label="Human review" value={screening.decisions.review} total={totals.applications ?? totals.candidates} tone="amber" />
+                <ProportionRow icon={XCircle} label="Decline" value={screening.decisions.fail} total={totals.applications ?? totals.candidates} tone="red" />
               </div>
               <p className="mt-4 border-t border-[#E5EBE7] pt-3 text-xs text-[#64736A]">
                 {screening.reviewRate != null ? `${Math.round(screening.reviewRate * 100)}%` : "—"} routed to human review. That band exists by
@@ -353,13 +374,14 @@ export default function Reports() {
               <h3 className="mb-1 text-base font-semibold text-[#17221C]">Funnel</h3>
               <p className="mb-3 text-xs text-[#64736A]">Stage reached, of {overview.funnel.total} candidates.</p>
               <div className="space-y-3">
-                {funnelStages.map((s) => (
+                {funnelStages.map((s, index) => (
                   <ProportionRow
                     key={s.stage}
                     label={stageLabel(s.stage)}
                     value={s.count}
                     total={overview.funnel.total}
                     tone={stageTone(s.stage)}
+                    color={VISUALIZATION_PALETTE[index % VISUALIZATION_PALETTE.length]}
                     to={`/candidates?stage=${s.stage}`}
                   />
                 ))}
@@ -378,7 +400,18 @@ export default function Reports() {
               <p className="mb-3 text-xs text-[#64736A]">Rubric criteria most often responsible for a decline, ranked by frequency.</p>
               <div className="space-y-2">
                 {(evidence?.topEliminators || []).slice(0, 6).map((e) => (
-                  <RankedRow key={e.criterionId} label={e.label} value={e.eliminations} maxValue={maxElimination} tone="red" />
+                  // criterionId is rubric-local (every rubric numbers its criteria
+                  // c1..cN), and this list aggregates eliminators ACROSS all jobs —
+                  // so two different criteria can both be "c5". The row's real
+                  // identity is (criterionId, label), which is exactly how
+                  // analyticsEngine.topEliminators groups them.
+                  <RankedRow
+                    key={`${e.criterionId}|${e.label}`}
+                    label={e.label}
+                    value={e.eliminations}
+                    maxValue={maxElimination}
+                    tone="red"
+                  />
                 ))}
                 {evidenceError ? (
                   <p className="text-sm text-amber-700">Couldn't load this data — try refreshing.</p>

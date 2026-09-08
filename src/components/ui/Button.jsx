@@ -10,19 +10,19 @@ const DISABLED = "disabled:opacity-50 disabled:cursor-not-allowed disabled:activ
 
 const variants = {
   primary:
-    `bg-[#176B45] text-white shadow-[0_1px_3px_rgba(23,107,69,0.20)] hover:bg-[#125638] active:bg-[#125638] focus-visible:ring-4 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
+    `bg-[#176B45] text-white shadow-sm hover:bg-[#125638] active:bg-[#125638] focus-visible:ring-2 focus-visible:ring-[#176B45]/30 ${DISABLED}`,
 
   secondary:
-    `border border-[#176B45] bg-white text-[#176B45] hover:bg-[#DDECE3] active:bg-[#E8F2EC] focus-visible:ring-4 focus-visible:ring-[#176B45]/20 ${DISABLED}`,
+    `border border-[#E4E4E7] bg-white text-[#18181B] shadow-sm hover:bg-[#F4F4F5] active:bg-[#E4E4E7] focus-visible:ring-2 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   outline:
-    `border border-[#E5EBE7] bg-transparent text-[#64736A] hover:border-[#C7DDD1] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:ring-4 focus-visible:ring-[#176B45]/15 ${DISABLED}`,
+    `border border-[#E4E4E7] bg-white text-[#18181B] shadow-sm hover:bg-[#F4F4F5] focus-visible:ring-2 focus-visible:ring-[#176B45]/25 ${DISABLED}`,
 
   ghost:
-    `bg-transparent text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:ring-4 focus-visible:ring-[#176B45]/15 ${DISABLED}`,
+    `bg-transparent text-[#3F3F46] hover:bg-[#F4F4F5] hover:text-[#09090B] focus-visible:ring-2 focus-visible:ring-[#176B45]/20 ${DISABLED}`,
 
   danger:
-    `bg-[#C95C5C] text-white shadow-[0_1px_3px_rgba(201,92,92,0.20)] hover:bg-[#B34545] active:bg-[#B34545] focus-visible:ring-4 focus-visible:ring-[#C95C5C]/25 ${DISABLED}`,
+    `bg-[#DC2626] text-white shadow-sm hover:bg-[#B91C1C] active:bg-[#B91C1C] focus-visible:ring-2 focus-visible:ring-[#DC2626]/30 ${DISABLED}`,
 
   /* orange/gold/accent — map to primary green for design system consistency */
   orange:
@@ -63,9 +63,9 @@ const Button = forwardRef(function Button(
       ref={ref}
       disabled={disabled || loading}
       className={[
-        "tap-target inline-flex items-center justify-center gap-2 rounded-control font-semibold",
+        "tap-target inline-flex items-center justify-center gap-2 rounded-md font-medium",
         "transition-[background-color,border-color,color,box-shadow,transform] duration-150",
-        "focus-visible:outline-none active:scale-[0.98]",
+        "focus-visible:outline-none focus-visible:ring-offset-2 active:scale-[0.98]",
         variants[variant] ?? variants.primary,
         sizes[size] ?? sizes.md,
         className,

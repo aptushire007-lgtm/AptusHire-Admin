@@ -84,22 +84,22 @@ const EVIDENCE_SEGMENTS = [
     key: "proven",
     label: "Proven",
     glyph: "✓",
-    fill: "bg-chart-positive ring-1 ring-inset ring-verdict-positive/70",
-    swatch: "bg-verdict-positive",
+    fill: "bg-data-green",
+    swatch: "bg-data-green",
   },
   {
     key: "insufficient",
     label: "Not tested",
     glyph: "?",
-    fill: "bg-chart-neutral ring-1 ring-inset ring-slate-400/70",
-    swatch: "bg-slate-400",
+    fill: "bg-data-amber",
+    swatch: "bg-data-amber",
   },
   {
     key: "failed",
     label: "Failed",
     glyph: "✗",
-    fill: "bg-chart-negative ring-1 ring-inset ring-verdict-negative/70",
-    swatch: "bg-verdict-negative",
+    fill: "bg-data-red",
+    swatch: "bg-data-red",
   },
 ];
 

@@ -3,6 +3,8 @@
  * Hand-built SVG with the shared AptusHire chart palette.
  */
 
+import { VISUALIZATION_COLORS } from "../../lib/visualizationColors.js";
+
 const W = 720;
 const H = 180;
 const PAD_Y = 16;
@@ -58,7 +60,7 @@ export default function TrendChart({ buckets, emptyLabel = "No applications yet"
         <path
           d={line.join(" ")}
           fill="none"
-          stroke="#176B45"
+          stroke={VISUALIZATION_COLORS.green}
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -68,8 +70,8 @@ export default function TrendChart({ buckets, emptyLabel = "No applications yet"
         {/* Peak highlight indicator */}
         {max > 0 && (
           <g transform={`translate(${peakX}, ${peakY})`}>
-            <circle r="6" fill="#5F9475" opacity="0.35" />
-            <circle r="4" fill="#238653" stroke="#ffffff" strokeWidth="1.5" />
+            <circle r="6" fill={VISUALIZATION_COLORS.green} opacity="0.35" />
+            <circle r="4" fill={VISUALIZATION_COLORS.green} stroke="#ffffff" strokeWidth="1.5" />
           </g>
         )}
       </svg>

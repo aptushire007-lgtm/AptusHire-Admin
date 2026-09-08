@@ -17,6 +17,7 @@ const SIZES = {
   lg:  "max-w-lg",
   xl:  "max-w-xl",
   "2xl": "max-w-2xl",
+  "4xl": "max-w-4xl",
 };
 
 export default function Modal({
@@ -79,7 +80,7 @@ export default function Modal({
     >
       {/* scrim */}
       <div
-        className="absolute inset-0 bg-[#17221C]/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/50"
         onMouseDown={onClose}
         aria-hidden="true"
       />
@@ -94,18 +95,18 @@ export default function Modal({
         tabIndex={-1}
         className={
           centred
-            ? `relative max-h-[88vh] w-full overflow-y-auto rounded-2xl border border-[#E5EBE7] bg-white p-6 shadow-lift focus:outline-none ${SIZES[size] ?? SIZES.lg} ${panelClassName}`
+            ? `relative max-h-[88vh] w-full overflow-y-auto rounded-lg border border-[#E4E4E7] bg-white p-6 shadow-lift focus:outline-none ${SIZES[size] ?? SIZES.lg} ${panelClassName}`
             : `absolute inset-y-0 left-0 flex flex-col bg-white shadow-deep focus:outline-none ${panelClassName}`
         }
       >
         {title && (
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <h2 id={headingId} className="text-base font-bold text-[#17221C]">
+              <h2 id={headingId} className="text-base font-semibold text-[#09090B]">
                 {title}
               </h2>
               {description && (
-                <p className="mt-1 text-sm text-[#64736A]">{description}</p>
+                <p className="mt-1 text-sm text-[#71717A]">{description}</p>
               )}
             </div>
             {showClose && (
@@ -113,7 +114,7 @@ export default function Modal({
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="-m-1.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#64736A] transition-colors hover:bg-[#F8FAF9] hover:text-[#17221C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="-m-1.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#09090B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

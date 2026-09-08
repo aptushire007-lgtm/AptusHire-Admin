@@ -95,7 +95,7 @@ export default function Menu({
             onKeyDown={onPanelKeyDown}
             onClick={(e) => { if (e.target.closest?.(ITEM)) close(); }}
             style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, width }}
-            className={`fixed z-50 flex max-h-[min(26rem,70vh)] flex-col rounded-card border border-[#E5EBE7] bg-white shadow-lift ${
+            className={`fixed z-50 flex max-h-[min(26rem,70vh)] flex-col rounded-md border border-[#E4E4E7] bg-white shadow-lift ${
               pos ? "" : "pointer-events-none opacity-0"
             } ${className}`}
           >
@@ -138,7 +138,7 @@ export function MenuItem({
   className = "",
 }) {
   const tones = {
-    default: "text-[#17221C] hover:bg-[#DDECE3] hover:text-[#176B45]",
+    default: "text-[#18181B] hover:bg-[#F4F4F5] hover:text-[#09090B]",
     danger:  "text-[#C95C5C] hover:bg-[#F8EAEA]",
     gold:    "text-[#176B45] hover:bg-[#176B45]-light",
   };
@@ -150,7 +150,7 @@ export function MenuItem({
       disabled={disabled}
       onClick={onSelect}
       className={[
-        "flex w-full items-center gap-2.5 rounded-control px-2.5 py-2 text-left text-sm font-medium",
+        "flex w-full items-center gap-2.5 rounded-sm px-2.5 py-2 text-left text-sm font-normal",
         "transition-colors duration-100",
         "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary",
         "disabled:cursor-not-allowed disabled:opacity-40",

@@ -1,107 +1,209 @@
-﻿/**
- * The instrument's headline number, as a gauge, with the word that makes it
- * readable sitting under it.
- *
- * WHY THE ARC IS ONE HUE AND NOT A RAINBOW.
- *
- * The reference deck draws this as a continuous red→amber→green sweep with the
- * needle landing somewhere on it. That encoding asserts a global cutoff for
- * "good": it says an 80 is amber and an 85 is green for every role, every rubric
- * and every candidate. This product does not score against an abstract standard,
- * only against the role's own approved rubric, so the arc cannot carry the
- * verdict — and `ScoreBar` in the report already settled the identical argument
- * for the competency bars ("colouring a 74 amber and a 76 green asserts a global
- * cutoff"). The gauge is a MAGNITUDE mark, so it takes the single-series
- * magnitude ink: `chart-brand` pastel over a `brand-600` edge, exactly as every
- * other single-series mark on this page does.
- *
- * The verdict is a WORD, in the chip, from `verdictFor()` on the server — the
- * same function the PDF prints from. That keeps the reserved verdict channel
- * (emerald/amber/red) spent on the actual call rather than on a raw sub-score,
- * and it means the screen and the PDF cannot disagree about what "80%" was worth.
- *
- * THE PASTEL-NEEDS-AN-EDGE RULE applies literally here: the filled sector is a
- * pastel and cannot clear the 3:1 non-text floor on its own, so it is drawn with
- * a 1px stroke in its own hue AND it prints its number in the middle. A gauge
- * that could not label itself would not be allowed this fill.
- *
- * `value == null` renders the track alone with an em dash — an unfilled gauge
- * reads as "no reading", which is what it means. It never renders as a zero.
- */
+import { useEffect, useMemo, useState } from "react";
+import { VISUALIZATION_COLORS } from "../../lib/visualizationColors.js";
 
 const CHIP_TONE = {
   positive: "bg-[#E8F2EC] text-[#176B45]",
   pending: "bg-[#E8F2EC] text-[#176B45]",
   negative: "bg-[#F8EAEA] text-[#C95C5C]",
-  // The Honest Reading Rule: a withheld verdict must not wear a verdict colour.
-  neutral: "bg-[#F8FAF9] text-[#64736A] border border-dashed border-[#E5EBE7]",
+  neutral: "border border-dashed border-[#E5EBE7] bg-[#F8FAF9] text-[#64736A]",
 };
 
-const CX = 100;
-const CY = 96;
-const R_OUT = 88;
-const R_IN = 64;
+const CX = 120;
+const CY = 113;
+const ARC_RADIUS = 96;
+const START_ANGLE = 180;
+const END_ANGLE = 360;
+const ANIMATION_MS = 1800;
 
-function polar(r, deg) {
-  const rad = (deg * Math.PI) / 180;
-  return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
+const ZONES = [
+  { from: 0, to: 20, color: VISUALIZATION_COLORS.red, label: "Low" },
+  { from: 20, to: 40, color: VISUALIZATION_COLORS.amber, label: "Review" },
+  { from: 40, to: 60, color: VISUALIZATION_COLORS.blue, label: "Moderate" },
+  { from: 60, to: 100, color: VISUALIZATION_COLORS.green, label: "Strong" },
+];
+
+const clamp = (number, min, max) => Math.min(max, Math.max(min, number));
+const scoreAngle = (score) => START_ANGLE + (clamp(score, 0, 100) / 100) * (END_ANGLE - START_ANGLE);
+
+function point(radius, angle) {
+  const radians = (angle * Math.PI) / 180;
+  return {
+    x: CX + radius * Math.cos(radians),
+    y: CY + radius * Math.sin(radians),
+  };
 }
 
-// An annulus sector, so the mark can carry both a fill and its 1px edge. A
-// stroked arc could only ever be one or the other.
-function sector(a0, a1) {
-  const [x0o, y0o] = polar(R_OUT, a0);
-  const [x1o, y1o] = polar(R_OUT, a1);
-  const [x1i, y1i] = polar(R_IN, a1);
-  const [x0i, y0i] = polar(R_IN, a0);
-  const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
-  return `M ${x0o} ${y0o} A ${R_OUT} ${R_OUT} 0 ${large} 1 ${x1o} ${y1o} L ${x1i} ${y1i} A ${R_IN} ${R_IN} 0 ${large} 0 ${x0i} ${y0i} Z`;
+function arcPath(radius, start, end) {
+  const first = point(radius, start);
+  const last = point(radius, end);
+  const largeArc = end - start > 180 ? 1 : 0;
+  return `M ${first.x} ${first.y} A ${radius} ${radius} 0 ${largeArc} 1 ${last.x} ${last.y}`;
 }
 
-export default function ScoreGauge({ value, max = 100, display, verdict, caption, label }) {
-  const has = value != null && Number.isFinite(Number(value));
-  const frac = has ? Math.max(0, Math.min(1, Number(value) / max)) : 0;
-  // In SVG coordinates y grows downward, so a top semicircle runs 180° → 360°.
-  const end = 180 + 180 * frac;
-  const shown = display ?? (has ? value : "—");
+function zoneFor(score) {
+  if (score <= 20) return ZONES[0];
+  if (score <= 40) return ZONES[1];
+  if (score <= 60) return ZONES[2];
+  return ZONES[3];
+}
+
+function useAnimatedScore(target, enabled) {
+  const [animated, setAnimated] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) {
+      setAnimated(0);
+      return undefined;
+    }
+
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (reduceMotion) {
+      setAnimated(target);
+      return undefined;
+    }
+
+    setAnimated(0);
+    let frameId;
+    let startedAt;
+
+    function animate(now) {
+      if (startedAt == null) startedAt = now;
+      const progress = clamp((now - startedAt) / ANIMATION_MS, 0, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      setAnimated(progress === 1 ? target : target * eased);
+      if (progress < 1) frameId = window.requestAnimationFrame(animate);
+    }
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [enabled, target]);
+
+  return animated;
+}
+
+export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, label }) {
+  const numericValue = Number(value);
+  const hasScore = value != null && Number.isFinite(numericValue) && Number(max) > 0;
+  const score = hasScore ? clamp((numericValue / Number(max)) * 100, 0, 100) : 0;
+  const animatedScore = useAnimatedScore(score, hasScore);
+  const needleAngle = scoreAngle(animatedScore);
+  const finalZone = zoneFor(score);
+  const shown = hasScore ? Math.round(animatedScore) : display ?? "—";
+
+  const ticks = useMemo(
+    () =>
+      Array.from({ length: 51 }, (_, index) => {
+        const tickScore = index * 2;
+        const angle = scoreAngle(tickScore);
+        const major = tickScore % 10 === 0;
+        return {
+          tickScore,
+          major,
+          inner: point(major ? 76 : 81, angle),
+          outer: point(88, angle),
+        };
+      }),
+    []
+  );
+
+  const labels = useMemo(
+    () =>
+      [0, 20, 40, 60, 80, 100].map((tickScore) => ({
+        tickScore,
+        position: point(66, scoreAngle(tickScore)),
+      })),
+    []
+  );
+
+  const accessibleScore = hasScore ? `${Math.round(score)} out of 100, ${finalZone.label} zone` : "no reading";
 
   return (
-    <figure className="flex flex-col items-center">
-      <svg
-        viewBox="0 0 200 112"
-        className="w-full max-w-[13rem]"
-        role="img"
-        aria-label={`${label || "Score"}: ${has ? `${value} out of ${max}` : "no reading"}${verdict ? `, ${verdict.label}` : ""}`}
-      >
-        <path d={sector(180, 360)} className="fill-brand-100" />
-        {frac > 0.004 && (
-          <path
-            d={sector(180, end)}
-            className="fill-chart-brand stroke-brand-600/60"
-            strokeWidth="1"
-            // The one authored motion moment this component gets: the arc
-            // sweeps up from empty. Honoured by `motion-reduce` below rather
-            // than by animating anyway at a shorter duration.
-            style={{ transition: "d 700ms var(--ease-out)" }}
-          />
+    <figure
+      className="flex min-w-0 flex-col items-center"
+      aria-label={`${label || "Score"}: ${accessibleScore}${verdict ? `, ${verdict.label}` : ""}`}
+    >
+      <span className="sr-only" aria-live="polite">{`${label || "Score"}: ${accessibleScore}`}</span>
+
+      <svg viewBox="0 0 240 151" className="h-auto w-full max-w-[15rem] overflow-visible" aria-hidden="true">
+        <path
+          d={arcPath(ARC_RADIUS, START_ANGLE, END_ANGLE)}
+          fill="none"
+          stroke="#E4E4E7"
+          strokeWidth="18"
+          strokeLinecap="round"
+        />
+
+        {ZONES.map((zone) => {
+          const gap = 1.2;
+          return (
+            <path
+              key={zone.label}
+              d={arcPath(ARC_RADIUS, scoreAngle(zone.from) + gap, scoreAngle(zone.to) - gap)}
+              fill="none"
+              stroke={zone.color}
+              strokeWidth="13"
+              strokeLinecap="butt"
+            />
+          );
+        })}
+
+        <g>
+          {ticks.map((tick) => (
+            <line
+              key={tick.tickScore}
+              x1={tick.inner.x}
+              y1={tick.inner.y}
+              x2={tick.outer.x}
+              y2={tick.outer.y}
+              stroke={tick.major ? "#3F3F46" : "#A1A1AA"}
+              strokeWidth={tick.major ? 1.7 : 0.8}
+              strokeLinecap="round"
+            />
+          ))}
+        </g>
+
+        {labels.map(({ tickScore, position }) => (
+          <text
+            key={tickScore}
+            x={position.x}
+            y={position.y + 2}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="#71717A"
+            fontSize="7"
+            fontWeight="600"
+          >
+            {tickScore}
+          </text>
+        ))}
+
+        {hasScore && (
+          <g transform={`rotate(${needleAngle} ${CX} ${CY})`}>
+            <path
+              d={`M ${CX - 9} ${CY + 2.8} L ${CX + 72} ${CY} L ${CX - 9} ${CY - 2.8} Z`}
+              fill={finalZone.color}
+            />
+          </g>
         )}
+
+        <circle cx={CX} cy={CY} r="9" fill="#18181B" stroke="#FFFFFF" strokeWidth="2.5" />
+        <circle cx={CX} cy={CY} r="3.2" fill={hasScore ? finalZone.color : "#A1A1AA"} />
+
         <text
           x={CX}
-          y={CY - 6}
+          y="143"
           textAnchor="middle"
-          className="fill-text-strong font-display text-[34px] font-extrabold tabular-nums"
-          style={{ letterSpacing: "-0.02em" }}
+          fill="#09090B"
+          fontSize="28"
+          fontWeight="800"
+          style={{ fontVariantNumeric: "tabular-nums" }}
         >
           {shown}
         </text>
       </svg>
 
       {verdict && (
-        <span
-          className={`-mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${
-            CHIP_TONE[verdict.tone] || CHIP_TONE.neutral
-          }`}
-        >
+        <span className={`-mt-0.5 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${CHIP_TONE[verdict.tone] || CHIP_TONE.neutral}`}>
           {verdict.label}
         </span>
       )}
@@ -110,3 +212,5 @@ export default function ScoreGauge({ value, max = 100, display, verdict, caption
     </figure>
   );
 }
+
+export default ScoreSpeedometer;

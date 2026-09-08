@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import api from "../api/client.js";
 import { getSocket } from "../lib/socket.js";
 
@@ -18,7 +18,7 @@ export function CompanyDataProvider({ children }) {
   // brand-new tenant. Exposed on the context so any consumer can show a real error instead.
   const [loadError, setLoadError] = useState("");
 
-  const load = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
       // Phase 12.5: ONE paginated company-wide request replaces the old
@@ -56,8 +56,33 @@ export function CompanyDataProvider({ children }) {
     }
   }, []);
 
+  // A stage move calls refresh() directly AND the backend echoes `candidate:stage`
+  // on the socket, which the effect below also turns into a reload — so a single
+  // move used to run the whole workspace fan-out (5 requests) twice. A short
+  // trailing debounce coalesces that burst (and any other rapid-fire refresh)
+  // into one fetch; every caller still gets a promise that resolves when it lands.
+  const loadTimer = useRef(null);
+  const waiters = useRef([]);
+  const load = useCallback(
+    () =>
+      new Promise((resolve) => {
+        waiters.current.push(resolve);
+        if (loadTimer.current) clearTimeout(loadTimer.current);
+        loadTimer.current = setTimeout(() => {
+          loadTimer.current = null;
+          const pending = waiters.current;
+          waiters.current = [];
+          fetchAll().finally(() => pending.forEach((r) => r()));
+        }, 300);
+      }),
+    [fetchAll]
+  );
+
   useEffect(() => {
     load();
+    return () => {
+      if (loadTimer.current) clearTimeout(loadTimer.current);
+    };
   }, [load]);
 
   // Live-sync: any candidate stage change (from the profile page, the Hiring
@@ -70,7 +95,11 @@ export function CompanyDataProvider({ children }) {
     if (!socket) return;
     const onStage = () => load();
     socket.on("candidate:stage", onStage);
-    return () => socket.off("candidate:stage", onStage);
+    socket.on("job:capacity", onStage);
+    return () => {
+      socket.off("candidate:stage", onStage);
+      socket.off("job:capacity", onStage);
+    };
   }, [load]);
 
   const allCandidates = useMemo(() => {

@@ -13,6 +13,7 @@ const EMPTY = {
   location: "",
   description: "",
   requirements: "",
+  numberOfOpenings: "1",
   requiredSkills: "",
   minExperienceYears: "0",
   requiredEducation: "",
@@ -58,6 +59,7 @@ function fromJob(j) {
     location: j.location || "",
     description: j.description || "",
     requirements: j.requirements || "",
+    numberOfOpenings: String(j.numberOfOpenings ?? 1),
     requiredSkills: (j.requiredSkills || []).join(", "),
     minExperienceYears: String(j.minExperienceYears ?? 0),
     requiredEducation: j.requiredEducation || "",
@@ -78,6 +80,7 @@ function toPayload(f) {
     location: f.location.trim(),
     description: f.description,
     requirements: f.requirements,
+    numberOfOpenings: Number(f.numberOfOpenings),
     requiredSkills: f.requiredSkills
       .split(",")
       .map((s) => s.trim())
@@ -135,6 +138,9 @@ export default function JobForm() {
       return "Screening threshold must be between 0 and 100";
     const exp = Number(form.minExperienceYears);
     if (!Number.isFinite(exp) || exp < 0) return "Minimum experience must be 0 or more years";
+    const openings = Number(form.numberOfOpenings);
+    if (!Number.isInteger(openings) || openings < 1 || openings > 10000)
+      return "Number of openings must be a whole number from 1 to 10,000";
     const min = form.interviewMinQuestions === "" ? null : Number(form.interviewMinQuestions);
     const max = form.interviewMaxQuestions === "" ? null : Number(form.interviewMaxQuestions);
     for (const [label, v] of [["Minimum questions", min], ["Maximum questions", max]]) {
@@ -253,6 +259,13 @@ export default function JobForm() {
                 <FormGroup>
                   <Label>Location</Label>
                   <Input name="location" value={form.location} onChange={handleChange} />
+                </FormGroup>
+                <FormGroup>
+                  <Label required>Number of openings</Label>
+                  <Input type="number" min="1" max="10000" step="1" name="numberOfOpenings" value={form.numberOfOpenings} onChange={handleChange} required />
+                  <p className="mt-1 text-xs text-[#64736A]">
+                    Recruiter-only. The role closes automatically after this many candidates accept an offer.
+                  </p>
                 </FormGroup>
                 <FormGroup className="sm:col-span-2">
                   <Label required>Description</Label>

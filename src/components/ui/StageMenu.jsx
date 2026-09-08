@@ -72,12 +72,13 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
     return <span className={`text-xs font-medium text-[#64736A] ${className}`}>Final stage</span>;
   }
 
+  // Every stage move is confirmed, not just the terminal ones. Advancing a
+  // candidate is a decision a human owns (CLAUDE.md), and on the kanban board the
+  // "Advance" button sits under the pointer on hover — a single stray click
+  // should never move someone forward. The modal copy below adapts to whether
+  // the destination is terminal.
   function request(stage) {
-    if (isTerminal(stage)) {
-      setConfirming(stage);
-      return;
-    }
-    onMove(stage);
+    setConfirming(stage);
   }
 
   function commit() {
@@ -194,11 +195,25 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
         open={Boolean(confirming)}
         onClose={() => setConfirming(null)}
         size="sm"
-        title={confirming === REJECTED ? `Reject ${who}?` : `Mark ${who} as ${stageLabel(confirming || "")}?`}
+        title={
+          confirming === REJECTED
+            ? `Reject ${who}?`
+            : confirming && isTerminal(confirming)
+            ? `Mark ${who} as ${stageLabel(confirming)}?`
+            : `Advance ${who} to ${stageLabel(confirming || "")}?`
+        }
       >
         <p className="text-sm leading-relaxed text-[#64736A]">
-          <span className="font-medium text-[#17221C]">{stageLabel(confirming || "")}</span> is a final stage. Once set,{" "}
-          {who} cannot be moved to any other stage from the pipeline.
+          {confirming && isTerminal(confirming) ? (
+            <>
+              <span className="font-medium text-[#17221C]">{stageLabel(confirming)}</span> is a final stage. Once set,{" "}
+              {who} cannot be moved to any other stage from the pipeline.
+            </>
+          ) : (
+            <>
+              {who} moves to <span className="font-medium text-[#17221C]">{stageLabel(confirming || "")}</span>.
+            </>
+          )}
           {confirming && notifiesCandidate(confirming) && " The candidate is emailed about this move."}
         </p>
         <div className="mt-5 flex justify-end gap-2">

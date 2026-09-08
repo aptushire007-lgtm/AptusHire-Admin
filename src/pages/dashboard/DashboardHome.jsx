@@ -17,9 +17,16 @@ import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { Badge, Card, EmptyState, SectionHeader, Skeleton } from "../../components/ui/Card.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { stageLabel, stageTone } from "../../lib/pipeline.js";
+import { VISUALIZATION_PALETTE } from "../../lib/visualizationColors.js";
 import TrendChart from "../../components/dashboard/TrendChart.jsx";
 
 const DAY = 86_400_000;
+
+// One person can hold several applications (multi-role, Phase 17). Identity is
+// the stable account id, then the lowercased email for rows that predate it,
+// then the doc id — so the same person is never counted twice.
+const personKey = (c) => String(c.candidateUser || c.basicDetails?.email?.toLowerCase() || c._id);
+const countPeople = (list) => new Set(list.map(personKey)).size;
 
 function greeting() {
   const hour = new Date().getHours();
@@ -46,8 +53,23 @@ export default function DashboardHome() {
   const { me, jobs, allCandidates, queue, loading, loadError, refresh } = useCompanyData();
   const [jobPage, setJobPage] = useState(0);
 
+  // "Current data" only: an application counts on this dashboard when its role
+  // still exists AND it was not released from the pipeline (role deleted /
+  // filled / closed — Phase 17 `pipelineExit`). Delete every job and every KPI
+  // below goes to zero, which is the truth.
+  const activeCandidates = useMemo(
+    () => allCandidates.filter((candidate) => !candidate.pipelineExit?.at && candidate.job),
+    [allCandidates]
+  );
+  // The interview queue is not cleaned when a job is deleted, so drop entries
+  // whose role is gone before they inflate the "Interviews" figure.
+  const liveQueue = useMemo(() => (queue || []).filter((entry) => entry.job), [queue]);
+
   const model = useMemo(() => {
     const now = Date.now();
+    // Activity/trend is platform history — every application that ever came in,
+    // even for a role since deleted. The pipeline-state figures below use
+    // `activeCandidates` instead.
     const dated = allCandidates.filter((candidate) => candidate.createdAt);
     const last30 = dated.filter((candidate) => now - new Date(candidate.createdAt).getTime() <= 30 * DAY).length;
     const prior30 = dated.filter((candidate) => {
@@ -67,13 +89,13 @@ export default function DashboardHome() {
         }).length,
       };
     });
-    const scored = allCandidates.filter((candidate) => candidate.ats?.decision && candidate.ats.decision !== "pending");
+    const scored = activeCandidates.filter((candidate) => candidate.ats?.decision && candidate.ats.decision !== "pending");
     const avgScore = scored.length
       ? Math.round(scored.reduce((sum, candidate) => sum + (candidate.ats?.overallScore || 0), 0) / scored.length)
       : null;
     const approvedJobs = jobs.filter((job) => job.rubricStatus === "approved");
     const stageCounts = new Map();
-    for (const candidate of allCandidates) {
+    for (const candidate of activeCandidates) {
       if (!candidate.status) continue;
       stageCounts.set(candidate.status, (stageCounts.get(candidate.status) || 0) + 1);
     }
@@ -86,22 +108,24 @@ export default function DashboardHome() {
       rubricHealth: jobs.length ? Math.round((approvedJobs.length / jobs.length) * 100) : 100,
       stages,
       totalWithStage,
-      recent: [...allCandidates].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5),
-      upcomingInterviews: allCandidates
-        .filter((candidate) => ["interview_scheduled", "interview_completed", "screening_passed"].includes(candidate.status))
+      recent: [...activeCandidates].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5),
+      upcomingInterviews: activeCandidates
+        .filter((candidate) =>
+          ["interview_scheduled", "ai_interview_completed", "ats_passed"].includes(candidate.status)
+        )
         .slice(0, 4),
     };
-  }, [allCandidates, jobs]);
+  }, [allCandidates, activeCandidates, jobs]);
 
   const jobsPerPage = 4;
   const totalJobPages = Math.ceil(jobs.length / jobsPerPage) || 1;
   const paginatedJobs = jobs.slice(jobPage * jobsPerPage, (jobPage + 1) * jobsPerPage);
   const stats = [
-    { label: "Open Roles",    value: jobs.length,             sub: `${jobs.filter((job) => job.status === "published").length} published`,  icon: Briefcase, delta: null,                  to: "/jobs",          accent: "brand" },
-    { label: "Candidates",    value: allCandidates.length,    sub: "In hiring pipeline",                                                    icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
-    { label: "Interviews",    value: queue.length,            sub: "Screened candidates",                                                   icon: Layers,    deltaLabel: model.avgScore ? `${model.avgScore}% avg` : null, to: "/ai-interviews", accent: "orange" },
-    { label: "Shortlisted",   value: allCandidates.filter(c => c.status === "shortlisted").length, sub: "Ready for offer",                  icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
-    { label: "Hired",         value: allCandidates.filter(c => c.status === "hired").length,       sub: "Successfully placed",             icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
+    { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, delta: null, to: "/jobs", accent: "brand" },
+    { label: "Candidates",    value: countPeople(allCandidates),      sub: "Distinct people who applied",                                   icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
+    { label: "Interviews",    value: liveQueue.length,            sub: "Screened candidates",                                                   icon: Layers,    deltaLabel: model.avgScore ? `${model.avgScore}% avg` : null, to: "/ai-interviews", accent: "orange" },
+    { label: "Shortlisted",   value: countPeople(activeCandidates.filter((c) => c.status === "shortlisted")), sub: "Ready for offer",        icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
+    { label: "Hired",         value: countPeople(activeCandidates.filter((c) => c.status === "joined")),      sub: "Successfully placed",     icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
   ];
 
   return (
@@ -154,7 +178,43 @@ export default function DashboardHome() {
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,1fr)]">
         <Card className="border-[#E5EBE7] bg-white"><SectionHeader icon={TrendingUp} title="Recruitment activity" description="Applications received over the past 12 weeks" />{loading ? <Skeleton className="mt-6 h-56 w-full rounded-control" /> : <TrendChart buckets={model.buckets} />}</Card>
-        <Card className="border-[#E5EBE7] bg-white"><SectionHeader icon={Layers} title="Hiring funnel" description="Candidate distribution by stage" />{loading ? <Skeleton className="mt-6 h-56 w-full rounded-control" /> : model.stages.length === 0 ? <p className="mt-8 text-sm text-[#64736A]">No candidate applications yet.</p> : <div className="mt-6 space-y-4">{model.stages.map(([stage, count]) => { const percentage = Math.round((count / model.totalWithStage) * 100); return <div key={stage} className="space-y-1.5"><div className="flex items-center justify-between text-sm"><span className="font-medium text-[#64736A]">{stageLabel(stage)}</span><span className="font-semibold tabular-nums text-[#17221C]">{count} <span className="text-xs font-normal text-[#64736A]">({percentage}%)</span></span></div><div className="h-2 w-full overflow-hidden rounded-full bg-[#E8F2EC]"><div className="h-full rounded-full bg-[#176B45] transition-all duration-500" style={{ width: `${Math.max(4, percentage)}%` }} /></div></div>; })}{queue.length > 0 && <div className="flex items-center justify-between rounded-control border border-orange-200 bg-[#176B45]-soft p-3 text-sm"><span className="flex items-center gap-2 font-semibold text-[#17221C]"><Scale className="h-4 w-4 text-[#176B45]" />{queue.length} need review</span><Link to="/review-queue" className="font-semibold text-[#176B45] hover:underline">Resolve</Link></div>}</div>}</Card>
+        <Card className="border-[#E5EBE7] bg-white">
+          <SectionHeader icon={Layers} title="Hiring funnel" description="Candidate distribution by stage" />
+          {loading ? (
+            <Skeleton className="mt-6 h-56 w-full rounded-control" />
+          ) : model.stages.length === 0 ? (
+            <p className="mt-8 text-sm text-[#64736A]">No candidate applications yet.</p>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {model.stages.map(([stage, count], index) => {
+                const percentage = Math.round((count / model.totalWithStage) * 100);
+                const barColor = VISUALIZATION_PALETTE[index % VISUALIZATION_PALETTE.length];
+                return (
+                  <div key={stage} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-[#64736A]">{stageLabel(stage)}</span>
+                      <span className="font-semibold tabular-nums text-[#17221C]">
+                        {count} <span className="text-xs font-normal text-[#64736A]">({percentage}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#EEF1EF]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ backgroundColor: barColor, width: `${Math.max(4, percentage)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              {liveQueue.length > 0 && (
+                <div className="flex items-center justify-between rounded-control border border-orange-200 bg-[#176B45]-soft p-3 text-sm">
+                  <span className="flex items-center gap-2 font-semibold text-[#17221C]"><Scale className="h-4 w-4 text-[#176B45]" />{liveQueue.length} need review</span>
+                  <Link to="/review-queue" className="font-semibold text-[#176B45] hover:underline">Resolve</Link>
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-3">

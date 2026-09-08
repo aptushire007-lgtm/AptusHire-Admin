@@ -4,14 +4,14 @@
  */
 
 const cardTones = {
-  default:        { border: "border border-[#E5EBE7]",       surface: "bg-white" },
-  brand:          { border: "border border-[#C7DDD1]",        surface: "bg-[#F1F7F3]" },
-  ember:          { border: "border border-[#C7DDD1]",        surface: "bg-[#E8F2EC]" },
+  default:        { border: "border border-[#E4E4E7]",       surface: "bg-white" },
+  brand:          { border: "border border-[#BBF7D0]",        surface: "bg-[#F0FDF4]" },
+  ember:          { border: "border border-[#BBF7D0]",        surface: "bg-[#F0FDF4]" },
   "filled-brand": { border: "border border-transparent",      surface: "bg-[#176B45] text-white" },
   "filled-gold":  { border: "border border-transparent",      surface: "bg-[#176B45] text-white" },
   "filled-ember": { border: "border border-transparent",      surface: "bg-[#176B45] text-white" },
   "filled-orange":{ border: "border border-transparent",      surface: "bg-[#176B45] text-white" },
-  white:          { border: "border border-[#E5EBE7]",        surface: "bg-white" },
+  white:          { border: "border border-[#E4E4E7]",        surface: "bg-white" },
 };
 
 const OWN_SURFACE  = /(^|\s)(bg-|surface-|fill-)/;
@@ -30,9 +30,9 @@ export function toneText(tone) {
   if (tone === "filled-gold")    return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
   if (tone === "filled-ember")   return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
   if (tone === "filled-orange")  return { strong: "text-white", soft: "text-white/80", tile: "on-fill" };
-  if (tone === "ember")          return { strong: "text-[#17221C]", soft: "text-[#64736A]", tile: "ember" };
-  if (tone === "brand")          return { strong: "text-[#17221C]", soft: "text-[#64736A]", tile: "brand" };
-  return                                { strong: "text-[#17221C]", soft: "text-[#64736A]", tile: "brand" };
+  if (tone === "ember")          return { strong: "text-[#09090B]", soft: "text-[#71717A]", tile: "ember" };
+  if (tone === "brand")          return { strong: "text-[#09090B]", soft: "text-[#71717A]", tile: "brand" };
+  return                                { strong: "text-[#09090B]", soft: "text-[#71717A]", tile: "brand" };
 }
 
 const cardPadding = { default: "p-6", compact: "p-4", none: "p-0" };
@@ -50,12 +50,12 @@ export function Card({
   return (
     <Component
       className={[
-        "min-w-0 rounded-card shadow-[0_1px_2px_rgba(23,34,28,0.05),0_1px_4px_rgba(23,34,28,0.04)]",
+        "min-w-0 rounded-card shadow-sm",
         cardPadding[padding] ?? cardPadding.default,
         ownsBorderColor(className) ? "" : t.border,
         OWN_SURFACE.test(className) ? "" : t.surface,
         interactive
-          ? "transition-[box-shadow,transform,border-color] duration-200 ease-out hover:-translate-y-px hover:border-[#C7DDD1] hover:shadow-[0_4px_12px_rgba(23,34,28,0.09)] motion-reduce:hover:translate-y-0"
+          ? "transition-[box-shadow,border-color] duration-150 hover:border-[#D4D4D8] hover:shadow-md"
           : "",
         className,
       ].filter(Boolean).join(" ")}
@@ -136,7 +136,7 @@ export function Avatar({ name, size = "md", className = "" }) {
 export function Badge({ children, tone = "slate", className = "" }) {
   const tones = {
     // Neutral
-    slate:  "bg-[#F1F7F3] text-[#64736A] border border-[#E5EBE7]",
+    slate:  "border border-[#E4E4E7] bg-[#FAFAFA] text-[#3F3F46]",
     // Positive / hired / shortlisted
     green:  "bg-[#DDF1E5] text-[#238653] font-semibold",
     // Pending / screening / warning
@@ -151,7 +151,7 @@ export function Badge({ children, tone = "slate", className = "" }) {
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
         tones[tone] ?? tones.slate,
         className,
       ].join(" ")}
@@ -198,14 +198,14 @@ export function SectionHeader({ title, description, action, icon: Icon, classNam
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 export function Skeleton({ className = "" }) {
   return (
-    <div className={`animate-pulse motion-reduce:animate-none rounded-lg bg-[#E5EBE7] ${className}`} />
+    <div className={`animate-pulse motion-reduce:animate-none rounded-md bg-[#E4E4E7] ${className}`} />
   );
 }
 
 // ── EmptyState ────────────────────────────────────────────────────────────────
 export function EmptyState({ icon: Icon, title, description, action }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-[#C7DDD1] bg-white px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-[#D4D4D8] bg-white px-6 py-14 text-center">
       {Icon && (
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#E8F2EC] text-[#176B45]">
           <Icon className="h-6 w-6" aria-hidden="true" />

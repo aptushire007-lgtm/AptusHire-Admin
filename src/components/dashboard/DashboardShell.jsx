@@ -16,8 +16,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Scale,
-  Video,
-  Search,
   Building2,
   Sparkles,
   CreditCard,
@@ -58,7 +56,6 @@ const NAV_GROUPS = [
   {
     label: "Intelligence",
     items: [
-      { to: "/recordings", label: "Recordings", icon: Video },
       { to: "/reports", label: "Analytics & Reports", icon: BarChart3 },
       { to: "/notifications", label: "Notifications", icon: Bell },
     ],
@@ -72,21 +69,14 @@ const NAV_GROUPS = [
 ];
 
 function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
-  const { user } = useAdminAuth();
   const { me } = useCompanyData();
-  const roleName =
-    user?.role === "super_admin"
-      ? "Platform Admin"
-      : me?.role === "owner"
-      ? "Head of Recruitment"
-      : "Recruiter";
 
   return (
-    <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-white">
+    <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div>
         {/* ── Brand Header ─────────────────────────────────────── */}
         <div
-          className={`flex h-16 shrink-0 items-center border-b border-[#E5EBE7] px-4 ${
+          className={`flex h-16 shrink-0 items-center border-b border-[#E4E4E7] px-4 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
@@ -99,18 +89,14 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
 
         {/* ── Workspace Capsule ─────────────────────────────────── */}
         {!collapsed && (
-          <div className="mx-3 mt-4 mb-1 flex items-center gap-2.5 rounded-xl border border-[#E5EBE7] bg-[#F1F7F3] p-2.5">
+          <div className="mx-3 mb-1 mt-4 flex items-center gap-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-2.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#176B45] text-white">
               <Building2 className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-[#17221C]">
+              <p className="truncate text-[13px] font-bold text-[#17221C]">
                 {me?.company?.name || "Aptus Workspace"}
               </p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#176B45]">
-                <Sparkles className="h-3 w-3" />
-                {roleName}
-              </span>
             </div>
           </div>
         )}
@@ -123,7 +109,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               {!collapsed && (
-                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-[#9BAAA1]">
+                <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-widest text-[#9BAAA1]">
                   {group.label}
                 </p>
               )}
@@ -136,12 +122,12 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
                     onClick={onNavigate}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) =>
-                      `group relative flex items-center gap-3 rounded-lg py-2.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45] ${
+                      `group relative flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45] ${
                         collapsed ? "justify-center px-2.5" : "px-3"
                       } ${
                         isActive
-                          ? "before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-r-full before:bg-[#176B45] bg-[#F8FAF9] font-semibold text-[#176B45]"
-                          : "text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45]"
+                          ? "bg-[#F4F4F5] font-medium text-[#09090B]"
+                          : "text-[#71717A] hover:bg-[#F4F4F5] hover:text-[#09090B]"
                       }`
                     }
                   >
@@ -167,7 +153,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
       </div>
 
       {/* ── Sidebar Footer ────────────────────────────────────────── */}
-      <div className="space-y-2 border-t border-[#E5EBE7] p-3">
+      <div className="space-y-2 border-t border-[#E4E4E7] p-3">
         {!collapsed && (
           <div className="rounded-xl border border-[#E5EBE7] bg-[#F1F7F3] p-3.5">
             <div className="flex items-center justify-between">
@@ -239,7 +225,8 @@ function TopNav({ onMenuClick }) {
   }, [profileOpen]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#E5EBE7] bg-white px-4 shadow-[0_1px_3px_rgba(27,67,50,0.06)] sm:px-6">
+    <>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
       {/* Left */}
       <div className="flex min-w-0 items-center gap-3">
         <button
@@ -251,35 +238,11 @@ function TopNav({ onMenuClick }) {
         </button>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h2 className="truncate text-sm font-bold text-[#17221C]">
-              {companyName}
-            </h2>
-            <span className="hidden rounded-full bg-[#E8F2EC] px-2.5 py-0.5 text-[11px] font-semibold text-[#176B45] sm:inline-block">
-              {roleName}
-            </span>
-          </div>
+          <h2 className="truncate text-sm font-semibold text-[#09090B]">{companyName}</h2>
           <p className="truncate text-[11px] tabular-nums text-[#9BAAA1]">
             {me?.company?.companyCode || "APT-01"}
           </p>
         </div>
-      </div>
-
-      {/* Centre — search */}
-      <div className="hidden max-w-xs flex-1 md:block lg:max-w-sm">
-        <button
-          type="button"
-          onClick={() => navigate("/candidates")}
-          className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-[#E5EBE7] bg-[#F1F7F3] px-3 py-2 text-xs text-[#64736A] transition-colors hover:border-[#C7DDD1] hover:bg-[#DDECE3]"
-        >
-          <span className="flex items-center gap-2">
-            <Search className="h-3.5 w-3.5 text-[#9BAAA1]" />
-            <span>Search candidates, jobs, rubrics…</span>
-          </span>
-          <kbd className="rounded border border-[#E5EBE7] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#9BAAA1]">
-            Ctrl K
-          </kbd>
-        </button>
       </div>
 
       {/* Right */}
@@ -289,7 +252,7 @@ function TopNav({ onMenuClick }) {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-xl border border-[#E5EBE7] bg-[#F8FAF9] px-2.5 py-1.5 text-xs font-semibold text-[#17221C] transition-colors hover:border-[#C7DDD1] hover:bg-[#DDECE3]"
+            className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs font-medium text-[#18181B] shadow-sm transition-colors hover:bg-[#F4F4F5]"
             aria-expanded={profileOpen}
             aria-haspopup="true"
             aria-label="User menu"
@@ -304,7 +267,7 @@ function TopNav({ onMenuClick }) {
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-[#E5EBE7] bg-white p-1.5 shadow-lift">
+            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-[#E4E4E7] bg-white p-1.5 shadow-lift">
               <div className="border-b border-[#E5EBE7] px-3 py-2.5">
                 <p className="truncate text-[13px] font-bold text-[#17221C]">{user?.name}</p>
                 <p className="truncate text-[11px] text-[#64736A]">{user?.email}</p>
@@ -350,6 +313,7 @@ function TopNav({ onMenuClick }) {
         </div>
       </div>
     </header>
+    </>
   );
 }
 
@@ -384,7 +348,7 @@ function ShellInner({ children }) {
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F8FAF9] text-[#17221C]">
+    <div className="admin-portal flex min-h-screen flex-col bg-[#FAFAFA] text-[#09090B]">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#176B45] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
@@ -409,7 +373,7 @@ function ShellInner({ children }) {
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar — white, matches user UI */}
         <aside
-          className={`hidden shrink-0 flex-col border-r border-[#E5EBE7] bg-white transition-[width] duration-200 lg:flex ${
+          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#E4E4E7] bg-white transition-[width] duration-200 lg:flex ${
             collapsed ? "w-[4.5rem]" : "w-64"
           }`}
         >
@@ -445,7 +409,7 @@ function ShellInner({ children }) {
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 bg-[#F8FAF9] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 bg-[#FAFAFA] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
           >
             {children}
           </main>

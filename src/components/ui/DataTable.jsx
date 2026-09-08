@@ -5,7 +5,7 @@
 
 export function TableWrap({ children }) {
   return (
-    <div className="max-w-full overflow-x-auto rounded-card border border-[#E5EBE7] bg-white shadow-[0_1px_4px_rgba(27,67,50,0.07)] rounded-card overflow-x-auto">{children}</div>
+    <div className="max-w-full overflow-x-auto rounded-card border border-[#E4E4E7] bg-white shadow-sm">{children}</div>
   );
 }
 
@@ -19,7 +19,7 @@ export function Table({ children, className = "" }) {
 
 export function THead({ children }) {
   return (
-    <thead className="border-b border-[#E5EBE7] bg-[#F8FAF9] text-xs font-semibold text-[#64736A]">
+    <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-xs font-medium text-[#71717A]">
       {children}
     </thead>
   );
@@ -51,12 +51,12 @@ export function TH({ children, align = "left", padding = "default", className = 
 }
 
 export function TBody({ children }) {
-  return <tbody className="divide-y divide-[#E5EBE7]">{children}</tbody>;
+  return <tbody className="divide-y divide-[#E4E4E7]">{children}</tbody>;
 }
 
 export function TR({ children, className = "" }) {
   return (
-    <tr className={`bg-white transition-colors duration-150 hover:bg-[#DDECE3] ${className}`}>
+    <tr className={`bg-white transition-colors duration-150 hover:bg-[#F4F4F5] ${className}`}>
       {children}
     </tr>
   );
@@ -65,7 +65,7 @@ export function TR({ children, className = "" }) {
 export function TD({ children, align = "left", padding = "default", className = "" }) {
   return (
     <td
-      className={`text-[#17221C] ${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`}
+      className={`text-[#09090B] ${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`}
     >
       {children}
     </td>

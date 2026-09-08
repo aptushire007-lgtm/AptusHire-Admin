@@ -23,7 +23,7 @@ export function PageHero({
 }) {
   return (
     <Component
-      className={`overflow-hidden rounded-panel border border-[#E5EBE7] bg-white px-6 py-7 shadow-[0_1px_4px_rgba(27,67,50,0.07)] sm:px-8 sm:py-8 ${className}`}
+      className={`overflow-hidden rounded-panel border border-[#E4E4E7] bg-white px-6 py-7 shadow-sm sm:px-8 sm:py-8 ${className}`}
       {...props}
     >
       <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
@@ -82,11 +82,11 @@ export function Chip({
       aria-current={active && Component !== "button" ? "page" : undefined}
       aria-pressed={active && Component === "button" ? "true" : undefined}
       className={[
-        "tap-target inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap",
+        "tap-target inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium whitespace-nowrap",
         "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-3",
         active
           ? "border-[#176B45] bg-[#176B45] text-white shadow-[0_1px_2px_rgba(23,107,69,0.20)] focus-visible:ring-[#176B45]/25"
-          : "border-[#E5EBE7] bg-white text-[#64736A] hover:border-[#C7DDD1] hover:bg-[#DDECE3] hover:text-[#176B45] focus-visible:ring-primary/20",
+          : "border-[#E4E4E7] bg-white text-[#3F3F46] shadow-sm hover:bg-[#F4F4F5] hover:text-[#09090B] focus-visible:ring-primary/20",
         className,
       ].join(" ")}
       {...props}

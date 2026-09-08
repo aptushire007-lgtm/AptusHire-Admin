@@ -11,6 +11,7 @@ import { useToast } from "../components/ui/Toast.jsx";
 import { STAGES, stageLabel, stageTone, normalizeStage, isTerminal } from "../lib/pipeline.js";
 import ScorecardPanel from "../components/dashboard/ScorecardPanel.jsx";
 import { useCompanyData } from "../context/CompanyDataContext.jsx";
+import CandidatePortal from "../components/candidate/CandidatePortal.jsx";
 
 function Section({ title, children }) {
   return (
@@ -74,6 +75,77 @@ function ProvenanceSource({ provenance }) {
 function formatWhen(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function formatDay(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// Short label for why an application left the active pipeline (Phase 17).
+const PIPELINE_EXIT_LABELS = {
+  hired_for_other_role: "Closed — hired for another role",
+  job_filled: "Closed — role filled",
+  job_closed: "Closed — role closed",
+  job_deleted: "Closed — role deleted",
+};
+
+// Other applications this same person has made to OTHER roles at this company
+// (Phase 17 multi-role). One person, many applications — this makes that
+// legible on the recruiter side without treating them as unrelated candidates.
+// Company-scoped by the API, so it can never leak another company's applications.
+function RelatedApplications({ candidateId }) {
+  const [data, setData] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setData(null);
+    setFailed(false);
+    api
+      .get(`/candidates/${candidateId}/related`)
+      .then((res) => alive && setData(res.data))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [candidateId]);
+
+  if (failed || !data || data.count === 0) return null;
+
+  return (
+    <Card>
+      <h3 className="mb-1 text-base font-semibold text-[#17221C]">
+        Other applications from this candidate
+      </h3>
+      <p className="mb-3 text-xs text-[#64736A]">
+        Same person, {data.count === 1 ? "one other role" : `${data.count} other roles`} at this company.
+      </p>
+      <ul className="divide-y divide-[#E5EBE7] overflow-hidden rounded-xl border border-[#E5EBE7]">
+        {data.applications.map((a) => (
+          <li key={a._id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3.5 py-2.5">
+            <Link
+              to={`/candidates/${a._id}`}
+              className="min-w-0 flex-1 truncate text-sm font-medium text-[#17221C] hover:text-brand-700"
+            >
+              {a.job?.title || "Role no longer listed"}
+              {a.job?.department ? <span className="text-[#64736A]"> · {a.job.department}</span> : null}
+            </Link>
+            <span className="flex shrink-0 items-center gap-2">
+              {a.pipelineExit ? (
+                <Badge tone="slate">
+                  {PIPELINE_EXIT_LABELS[a.pipelineExit.reason] || "Closed"}
+                </Badge>
+              ) : (
+                <Badge tone={stageTone(a.status)}>{stageLabel(a.status)}</Badge>
+              )}
+              <span className="text-xs tabular-nums text-[#9BAAA1]">{formatDay(a.appliedAt)}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
 }
 
 // Format a Date as the `YYYY-MM-DDTHH:mm` string a datetime-local input expects,
@@ -200,6 +272,7 @@ export default function CandidateDetail() {
   const [candidate, setCandidate] = useState(null);
   const [timeline, setTimeline] = useState(null);
   const [session, setSession] = useState(null);
+  const [report, setReport] = useState(null);
   // A failed initial load has to be VISIBLE. Before this, the 404 from
   // /candidates/:id escaped Promise.all as an unhandled rejection and the page sat
   // on its loading skeleton forever — a placeholder rendered as if the fetch were
@@ -252,19 +325,22 @@ export default function CandidateDetail() {
 
   const load = useCallback(async () => {
     try {
-      const [cRes, tRes, sRes, aRes] = await Promise.all([
+      const [cRes, tRes, sRes, aRes, rRes] = await Promise.all([
         api.get(`/candidates/${id}`),
         api.get(`/candidates/${id}/timeline`).catch(() => ({ data: null })),
         // 404 = candidate never reached the interview stage — no session yet.
         api.get(`/interview-sessions/candidate/${id}`).catch(() => ({ data: null })),
         // 404 also covers the assessment engine being disabled — section just hides.
         api.get(`/assessments/candidate/${id}`).catch(() => ({ data: null })),
+        // Reuse the existing report payload for the Overall → Know More cards.
+        api.get(`/candidates/${id}/interview-report`).catch(() => ({ data: null })),
       ]);
       setLoadError(null);
       setCandidate(cRes.data);
       setTimeline(tRes.data);
       setSession(sRes.data);
       setAssessment(aRes.data);
+      setReport(rRes.data);
     } catch (err) {
       // Only /candidates/:id is left un-caught above, so anything arriving here means the
       // record itself could not be read. A 401 never reaches this branch — the axios
@@ -529,6 +605,25 @@ export default function CandidateDetail() {
         <ArrowLeft className="h-4 w-4" /> Back to candidates
       </Link>
 
+      <CandidatePortal
+        candidate={candidate}
+        timeline={timeline}
+        session={session}
+        assessment={assessment}
+        report={report}
+        onResumeDownload={handleResumeDownload}
+      />
+
+      <RelatedApplications candidateId={id} />
+
+      <details className="group rounded-2xl border border-[#DCE5DF] bg-[#F8FAF9]">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-[#415048] marker:content-none hover:text-brand-700">
+          Recruiter controls and source data
+          <span className="text-xs font-medium text-[#7A8A80] group-open:hidden">Open</span>
+          <span className="hidden text-xs font-medium text-[#7A8A80] group-open:inline">Close</span>
+        </summary>
+        <div className="space-y-6 border-t border-[#DCE5DF] p-4 sm:p-5">
+
       <Card>
         {/* THREE ZONES, NOT ONE WRAPPING ROW.
             Identity, then state, then actions. Previously all of it — score
@@ -572,12 +667,6 @@ export default function CandidateDetail() {
               Erase is irreversible and is deliberately the quietest control on
               the card. */}
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to={`/candidates/${candidate._id}/interview-report`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700"
-            >
-              <Cpu className="h-4 w-4" aria-hidden="true" /> AI Report
-            </Link>
             {ats?.overallScore != null && (
               <button
                 type="button"
@@ -1211,6 +1300,8 @@ export default function CandidateDetail() {
           ))}
         </div>
       </Section>
+        </div>
+      </details>
     </div>
   );
 }

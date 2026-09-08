@@ -29,11 +29,11 @@ function useFieldA11y(explicitId, error) {
 
 // Base chrome — white bg, charcoal text, green focus ring
 const fieldChrome = [
-  "rounded-lg border border-[#E5EBE7] bg-white",
-  "text-sm text-[#17221C] placeholder:text-[#9BAAA1]",
-  "shadow-[0_1px_4px_rgba(27,67,50,0.07)] transition-colors duration-150",
-  "focus:border-[#176B45] focus:outline-none focus:ring-2 focus:ring-[#176B45]/15",
-  "disabled:bg-[#F8FAF9] disabled:text-[#64736A] disabled:cursor-not-allowed",
+  "rounded-md border border-[#E4E4E7] bg-white",
+  "text-sm text-[#09090B] placeholder:text-[#A1A1AA]",
+  "shadow-sm transition-[border-color,box-shadow] duration-150",
+  "focus:border-[#176B45] focus:outline-none focus:ring-2 focus:ring-[#176B45]/20",
+  "disabled:cursor-not-allowed disabled:bg-[#F4F4F5] disabled:text-[#71717A] disabled:opacity-60",
 ].join(" ");
 
 const fieldClass        = `${fieldChrome} px-3.5 py-2.5`;
@@ -142,7 +142,7 @@ export const Switch = forwardRef(function Switch(
         "disabled:cursor-not-allowed disabled:opacity-50",
         checked
           ? "border-[#176B45] bg-[#176B45]"
-          : "border-[#E5EBE7] bg-[#F8FAF9]",
+          : "border-[#E4E4E7] bg-[#F4F4F5]",
         className,
       ].join(" ")}
       {...props}
