@@ -6,9 +6,63 @@ import {
   clearAdminAuth,
 } from "../auth/adminAuth.js";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:9000/api";
+// Set at BUILD time by Vite (inlined). Intended production value is the backend
+// origin PLUS the "/api" path, no trailing slash — e.g.
+// https://aptushire-backend-production.up.railway.app/api
+function normalizeApiBase(value) {
+  let v = String(value || "").trim();
+  if (!v) return "http://localhost:9000/api";
+  // A relative base ("/api") is a deliberate dev-proxy setup — leave it alone.
+  if (v.startsWith("/")) return v.replace(/\/+$/, "");
+  // A bare hostname pasted from a hosting dashboard ("host.up.railway.app") —
+  // add the scheme so axios treats it as an absolute URL, not a relative path.
+  if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+  v = v.replace(/\/+$/, "");
+  // Origin with no path — the backend mounts every route under "/api".
+  if (/^https?:\/\/[^/]+$/i.test(v)) v += "/api";
+  return v;
+}
+export const baseURL = normalizeApiBase(import.meta.env.VITE_API_URL);
+
+// A production bundle still pointed at localhost means VITE_API_URL was not set
+// when Vercel built it. Every request will then fail and the app will look broken
+// for no obvious reason — so say it loudly. This only reports the
+// misconfiguration; it does not change or hide any behaviour.
+if (import.meta.env.PROD && /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/.test(baseURL)) {
+  console.error(
+    `[api] VITE_API_URL is not configured for this build — using fallback "${baseURL}". ` +
+      `Set VITE_API_URL to the backend origin + "/api" in the Vercel project settings and redeploy.`
+  );
+}
 
 const api = axios.create({ baseURL });
+
+// Guard against a misrouted API call. When VITE_API_URL is wrong (relative, or
+// pointing at the frontend domain), a request for `/api/...` is answered by
+// Vercel's SPA rewrite with `index.html` and HTTP 200. Axios then resolves it,
+// and every page that does `res.data.map(...)` / `.filter(...)` throws a cryptic
+// "x is not a function" with no clue why. Turn that into one clear, rejected
+// error the pages' existing `.catch()` blocks already handle — and log the real
+// cause once. This does not hide a failure; it names it.
+api.interceptors.response.use((response) => {
+  const body = response.data;
+  const looksLikeHtml =
+    typeof body === "string" && /^\s*<(?:!doctype|html)[\s>]/i.test(body);
+  if (looksLikeHtml) {
+    console.error(
+      `[api] ${response.config?.url} returned an HTML page, not JSON. VITE_API_URL ` +
+        `is misconfigured — it must be the absolute backend origin + "/api" ` +
+        `(current base: "${baseURL}"). Redeploy the frontend after fixing it.`
+    );
+    return Promise.reject(
+      Object.assign(new Error("The API returned an HTML page instead of data (VITE_API_URL is misconfigured)."), {
+        response,
+        isApiMisroute: true,
+      })
+    );
+  }
+  return response;
+});
 
 // Phase 16.5 — read-only "view as tenant". When platform staff activate it,
 // every request carries the header; the SERVER rejects any non-GET carrying it,
