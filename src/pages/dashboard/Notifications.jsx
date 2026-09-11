@@ -44,7 +44,7 @@ function timeAgo(date) {
 
 export default function Notifications() {
   const navigate = useNavigate();
-  const { refreshUnreadCount, refreshRecent } = useNotifications() || {};
+  const { refreshUnreadCount, markRead: markNotificationRead, markAllRead: markAllNotificationsRead } = useNotifications() || {};
   const toast = useToast();
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
@@ -86,10 +86,10 @@ export default function Notifications() {
 
   async function markRead(id) {
     try {
-      await api.patch(`/admin-notifications/${id}/read`);
+      if (markNotificationRead) await markNotificationRead(id);
+      else await api.patch(`/admin-notifications/${id}/read`);
       await load();
-      refreshUnreadCount?.();
-      refreshRecent?.();
+      if (!markNotificationRead) refreshUnreadCount?.();
     } catch (err) {
       toast.error(err.response?.data?.error || "Couldn't mark that as read");
     }
@@ -97,10 +97,10 @@ export default function Notifications() {
 
   async function markAllRead() {
     try {
-      await api.patch("/admin-notifications/read-all");
+      if (markAllNotificationsRead) await markAllNotificationsRead();
+      else await api.patch("/admin-notifications/read-all");
       await load();
-      refreshUnreadCount?.();
-      refreshRecent?.();
+      if (!markAllNotificationsRead) refreshUnreadCount?.();
     } catch (err) {
       toast.error(err.response?.data?.error || "Couldn't mark everything as read");
     }
@@ -111,7 +111,6 @@ export default function Notifications() {
       await api.delete(`/admin-notifications/${id}`);
       await load();
       refreshUnreadCount?.();
-      refreshRecent?.();
     } catch (err) {
       toast.error(err.response?.data?.error || "Couldn't delete that notification");
     }
