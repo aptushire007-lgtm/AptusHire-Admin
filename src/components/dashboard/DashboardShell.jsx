@@ -54,9 +54,14 @@ const NAV_GROUPS = [
       { to: "/jobs", label: "Jobs", icon: Briefcase },
       { to: "/candidates", label: "Candidates", icon: Users },
       { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
+      { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
+    ],
+  },
+  {
+    label: "Screening & Interviews",
+    items: [
       { to: "/review-queue", label: "Screening reviews", icon: Scale },
       { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
-      { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
       { to: "/recordings", label: "Recordings", icon: Mic2 },
     ],
   },
