@@ -3,7 +3,7 @@ import { baseURL } from "../api/client.js";
 
 // Same normalized base as the REST client (scheme added, "/api" ensured), minus
 // the trailing "/api" — socket.io connects to the origin.
-const SOCKET_URL = baseURL.replace(/\/api\/?$/, "");
+const SOCKET_URL = (baseURL || "").replace(/\/api\/?$/, "");
 
 let socket = null;
 

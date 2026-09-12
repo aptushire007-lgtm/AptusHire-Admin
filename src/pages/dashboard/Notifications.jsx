@@ -121,8 +121,8 @@ export default function Notifications() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Notifications</h1>
-          <p className="mt-1 text-sm text-[#64736A]">Workspace, ATS, and billing alerts for your company.</p>
+          <h1 className="text-xl font-bold tracking-[-0.025em] text-slate-900 [overflow-wrap:anywhere]">Notifications</h1>
+          <p className="mt-1 text-sm text-slate-500">Workspace, ATS, and billing alerts for your company.</p>
         </div>
         <Button variant="outline" size="sm" onClick={markAllRead}>
           <CheckCheck className="h-4 w-4" /> Mark all read
@@ -132,7 +132,7 @@ export default function Notifications() {
       <Card>
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64736A]" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <Input
               className="pl-9"
               placeholder="Search notifications…"
@@ -195,13 +195,13 @@ export default function Notifications() {
         )}
 
         {!loading && !loadError && data?.notifications.length > 0 && (
-          <div className="divide-y divide-[#E5EBE7]">
+          <div className="divide-y divide-slate-100">
             {data.notifications.map((n) => {
               // §1.3 — the data (candidateId/jobId in meta) was already there; nothing read it.
               const target = targetFor(n);
               const Content = target ? "button" : "div";
               return (
-                <div key={n._id} className={`flex items-start gap-3 py-4 ${n.read ? "" : "bg-[#E8F2EC]/40"} -mx-2 px-2 rounded-lg`}>
+                <div key={n._id} className={`flex items-start gap-3 py-4 ${n.read ? "" : "bg-brand-50/40"} -mx-2 px-2 rounded-lg`}>
                   <Content
                     type={target ? "button" : undefined}
                     onClick={
@@ -212,28 +212,28 @@ export default function Notifications() {
                           }
                         : undefined
                     }
-                    className={`min-w-0 flex-1 text-left ${target ? "cursor-pointer rounded-lg hover:bg-[#DDECE3]" : ""}`}
+                    className={`min-w-0 flex-1 text-left ${target ? "cursor-pointer rounded-lg hover:bg-slate-50" : ""}`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-[#17221C]">{n.title}</p>
+                      <p className="text-sm font-semibold text-slate-800">{n.title}</p>
                       <Badge tone={TONE_BY_TYPE[n.type] || "slate"}>{n.type.replace(/_/g, " ")}</Badge>
                       {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
                     </div>
-                    <p className="mt-1 text-sm text-[#64736A]">{n.message}</p>
-                    <p className="mt-1 text-xs text-[#64736A]">{timeAgo(n.createdAt)}</p>
+                    <p className="mt-1 text-sm text-slate-500">{n.message}</p>
+                    <p className="mt-1 text-xs text-slate-500">{timeAgo(n.createdAt)}</p>
                   </Content>
                   <div className="flex shrink-0 items-center gap-1">
                     {!n.read && (
                       <button
                         onClick={() => markRead(n._id)}
-                        className="rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-[#DDECE3]"
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50"
                       >
                         Mark read
                       </button>
                     )}
                     <button
                       onClick={() => remove(n._id)}
-                      className="rounded-lg p-1.5 text-[#64736A] hover:bg-red-50 hover:text-red-600"
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
                       aria-label="Delete notification"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -246,8 +246,8 @@ export default function Notifications() {
         )}
 
         {!loading && data?.totalPages > 1 && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#E5EBE7] pt-4">
-            <p className="text-xs text-[#64736A]">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
+            <p className="text-xs text-slate-500">
               Page {data.page} of {data.totalPages} ({data.total} total)
             </p>
             <div className="flex gap-2">

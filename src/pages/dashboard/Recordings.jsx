@@ -5,6 +5,9 @@ import api from "../../api/client.js";
 import { Card, Badge, Avatar, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
 import { RecordRow, RecordList, Chip, ChipRow } from "../../components/ui/Panels.jsx";
 import Button from "../../components/ui/Button.jsx";
+import PageHeader from "../../components/ui/PageHeader.jsx";
+import Modal from "../../components/ui/Modal.jsx";
+import InterviewPlayback from "../../components/report/InterviewPlayback.jsx";
 
 // "partial" is amber, not red: the footage was captured and is stored, only the assembly into one
 // playable file did not finish. Colouring it as a failure would tell a recruiter the interview
@@ -32,16 +35,14 @@ function formatWhen(value) {
   return new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-// Browse-all index into every candidate's recording (Phase 7, default-off feature). Deliberately
-// does NOT play video itself — selecting a row hands off to InterviewReport.jsx's existing
-// CandidateRecording player, so there is exactly one audit-logged playback surface in the app, not
-// two competing ones.
+// Both this index and the AI report use the same explicitly loaded, audited player.
 export default function Recordings() {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [selected, setSelected] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,10 +70,7 @@ export default function Recordings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Recordings</h1>
-        <p className="mt-1 text-sm text-[#64736A]">Every candidate with an interview recording — select one to watch it on their report.</p>
-      </div>
+      <PageHeader title="Recordings" description="Watch interview recordings or open a candidate’s AI report to review the transcript and findings." />
 
       <ChipRow label="Quick filter">
         <Chip active={status === "all"} onClick={() => selectStatus("all")}>
@@ -93,7 +91,7 @@ export default function Recordings() {
       </ChipRow>
 
       {loading ? (
-        <Card padding="none" className="divide-y divide-[#E5EBE7] overflow-hidden">
+        <Card padding="none" className="divide-y divide-slate-100 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="p-4">
               <Skeleton className="h-10 w-full" />
@@ -110,7 +108,7 @@ export default function Recordings() {
             </button>
           </div>
         </div>
-      ) : data?.recordings.length === 0 ? (
+      ) : !data?.recordings?.length ? (
         <EmptyState icon={Video} title="No recordings yet" description="Recordings appear here once video interviews are enabled and completed." />
       ) : (
         <>
@@ -121,20 +119,23 @@ export default function Recordings() {
                 avatar={<Avatar name={r.candidateName} size="sm" />}
                 title={r.candidateName}
                 subtitle={r.candidateEmail}
-                link={r.candidateId ? { as: Link, to: `/candidates/${r.candidateId}/interview-report` } : undefined}
+                note={`Attempt ${r.attempt || 1}${formatDuration(r.durationMs) ? ` · ${formatDuration(r.durationMs)}` : ""}`}
+                link={{ as: "button", type: "button", onClick: () => setSelected(r) }}
                 meta={[
                   { label: "Role", value: r.jobTitle },
-                  { label: "Duration", value: formatDuration(r.durationMs) },
                   { label: "Updated", value: formatWhen(r.updatedAt) },
                 ]}
-                trailing={<Badge tone={STATUS_TONE[r.status] || "slate"}>{STATUS_LABEL[r.status] || r.status}</Badge>}
+                trailing={<div className="flex flex-wrap items-center gap-3">
+                  <Badge tone={STATUS_TONE[r.status] || "slate"}>{r.source === "egress" && r.status === "recording" ? "Check playback" : STATUS_LABEL[r.status] || r.status}</Badge>
+                </div>}
+                actions={<Button variant="outline" size="sm" onClick={() => setSelected(r)} aria-label={`Open recording for ${r.candidateName}, attempt ${r.attempt || 1}`}>Open recording</Button>}
               />
             ))}
           </RecordList>
 
           {data.totalPages > 1 && (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-[#64736A]">
+              <p className="text-xs text-slate-500">
                 Page {data.page} of {data.totalPages} ({data.total} total)
               </p>
               <div className="flex gap-2">
@@ -149,6 +150,14 @@ export default function Recordings() {
           )}
         </>
       )}
+      <Modal open={Boolean(selected)} onClose={() => setSelected(null)} title={selected ? `${selected.candidateName} — interview recording` : "Interview recording"}
+        description={selected ? [selected.jobTitle, `Attempt ${selected.attempt || 1}`, formatWhen(selected.updatedAt)].filter(Boolean).join(" · ") : undefined}
+        size="4xl" panelClassName="admin-workspace">
+        {selected && <div className="space-y-4">
+          <InterviewPlayback sessionId={selected.sessionId} recordingOnly />
+          {selected.candidateId && <Link to={`/candidates/${selected.candidateId}/interview-report?attempt=${selected.attempt || 1}#sec-playback`} className="inline-flex text-sm font-semibold text-brand-700 underline">Open AI report for this attempt</Link>}
+        </div>}
+      </Modal>
     </div>
   );
 }

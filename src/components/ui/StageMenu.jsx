@@ -69,16 +69,15 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
   // A candidate at a terminal stage has nowhere to go. Saying so is better than
   // an empty cell, which reads as a control that failed to render.
   if (!primary && lateral.length === 0 && !canReject) {
-    return <span className={`text-xs font-medium text-[#64736A] ${className}`}>Final stage</span>;
+    return <span className={`text-xs font-medium text-slate-500 ${className}`}>Final stage</span>;
   }
 
-  // Every stage move is confirmed, not just the terminal ones. Advancing a
-  // candidate is a decision a human owns (CLAUDE.md), and on the kanban board the
-  // "Advance" button sits under the pointer on hover — a single stray click
-  // should never move someone forward. The modal copy below adapts to whether
-  // the destination is terminal.
   function request(stage) {
-    setConfirming(stage);
+    if (isTerminal(stage)) {
+      setConfirming(stage);
+      return;
+    }
+    onMove(stage);
   }
 
   function commit() {
@@ -146,7 +145,7 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
       )}
       {/* The legend earns its line: it is what makes the envelope a stated fact
           rather than a glyph the reader has to guess at. */}
-      <p className="flex items-start gap-1.5 px-2.5 pt-2 pb-1 text-[11px] leading-relaxed text-[#64736A]">
+      <p className="flex items-start gap-1.5 px-2.5 pt-2 pb-1 text-[11px] leading-relaxed text-slate-500">
         <Mail className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
         Marks a move that emails the candidate.
       </p>
@@ -195,25 +194,11 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
         open={Boolean(confirming)}
         onClose={() => setConfirming(null)}
         size="sm"
-        title={
-          confirming === REJECTED
-            ? `Reject ${who}?`
-            : confirming && isTerminal(confirming)
-            ? `Mark ${who} as ${stageLabel(confirming)}?`
-            : `Advance ${who} to ${stageLabel(confirming || "")}?`
-        }
+        title={confirming === REJECTED ? `Reject ${who}?` : `Mark ${who} as ${stageLabel(confirming || "")}?`}
       >
-        <p className="text-sm leading-relaxed text-[#64736A]">
-          {confirming && isTerminal(confirming) ? (
-            <>
-              <span className="font-medium text-[#17221C]">{stageLabel(confirming)}</span> is a final stage. Once set,{" "}
-              {who} cannot be moved to any other stage from the pipeline.
-            </>
-          ) : (
-            <>
-              {who} moves to <span className="font-medium text-[#17221C]">{stageLabel(confirming || "")}</span>.
-            </>
-          )}
+        <p className="text-sm leading-relaxed text-slate-600">
+          <span className="font-medium text-slate-800">{stageLabel(confirming || "")}</span> is a final stage. Once set,{" "}
+          {who} cannot be moved to any other stage from the pipeline.
           {confirming && notifiesCandidate(confirming) && " The candidate is emailed about this move."}
         </p>
         <div className="mt-5 flex justify-end gap-2">
@@ -238,7 +223,7 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
 function Step({ stage }) {
   const step = stageStep(stage);
   return (
-    <span aria-hidden="true" className="w-5 shrink-0 text-[11px] font-semibold tabular-nums text-[#9BAAA1]">
+    <span aria-hidden="true" className="w-5 shrink-0 text-[11px] font-semibold num tabular-nums text-slate-400">
       {step == null ? "" : String(step).padStart(2, "0")}
     </span>
   );
@@ -259,11 +244,11 @@ function Consequence({ stage, next = false }) {
   return (
     <span className="flex shrink-0 items-center gap-1.5">
       {next && (
-        <span className="rounded-full bg-[#E8F2EC] px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">Next</span>
+        <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">Next</span>
       )}
       {mails && (
         <>
-          <Mail className="h-3.5 w-3.5 text-[#9BAAA1]" aria-hidden="true" />
+          <Mail className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
           <span className="sr-only">Emails the candidate</span>
         </>
       )}

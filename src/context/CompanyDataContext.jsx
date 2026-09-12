@@ -4,21 +4,26 @@ import { getSocket } from "../lib/socket.js";
 
 const CompanyDataContext = createContext(null);
 
-export function CompanyDataProvider({ children }) {
+export function CompanyDataProvider({ children, includeCandidates = true }) {
   const [me, setMe] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [candidatesByJob, setCandidatesByJob] = useState({});
   const [queue, setQueue] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadedScope, setLoadedScope] = useState(null);
   // Every downstream page (Dashboard, Hiring Pipeline, AI Interviews, Subscription) reads its
   // data from this one shared fetch. A failure used to be an unhandled promise rejection with
   // `me`/`jobs`/`queue`/`candidatesByJob` frozen at their empty initial values — every consumer
   // then rendered its own legitimate "nothing here yet" empty state, indistinguishable from a
   // brand-new tenant. Exposed on the context so any consumer can show a real error instead.
   const [loadError, setLoadError] = useState("");
+  const requestVersion = useRef(0);
+  const mounted = useRef(false);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (version) => {
+    const isCurrent = () => mounted.current && version === requestVersion.current;
+    if (!isCurrent()) return;
     setLoading(true);
     try {
       // Phase 12.5: ONE paginated company-wide request replaces the old
@@ -27,34 +32,48 @@ export function CompanyDataProvider({ children }) {
         api.get("/auth/me"),
         api.get("/jobs"),
         api.get("/interview-queue"),
-        api.get("/candidates", { params: { limit: 500 } }),
+        includeCandidates ? api.get("/candidates", { params: { limit: 500 } }) : Promise.resolve({ data: { items: [], pages: 0 } }),
       ]);
-      setLoadError("");
-      setMe(meRes.data);
-      setJobs(jobsRes.data);
-      setQueue(queueRes.data);
+      if (!isCurrent()) return;
 
+      // Keep report drill-downs complete beyond the first API page.
+      const candidateItems = [...(candidatesRes.data.items || [])];
+      for (let page = 2; page <= (candidatesRes.data.pages || 1); page += 1) {
+        const next = await api.get("/candidates", { params: { limit: 500, page } });
+        if (!isCurrent()) return;
+        candidateItems.push(...(next.data.items || []));
+      }
       const grouped = {};
       for (const job of jobsRes.data) grouped[job._id] = [];
-      for (const c of candidatesRes.data.items || []) {
+      for (const c of candidateItems) {
         const jobId = c.job?._id || c.job;
         if (!grouped[jobId]) grouped[jobId] = [];
         grouped[jobId].push(c);
       }
-      setCandidatesByJob(grouped);
-
+      let nextSubscription = null;
       try {
         const subRes = await api.get("/subscriptions/me");
-        setSubscription(subRes.data);
+        nextSubscription = subRes.data;
       } catch {
-        setSubscription(null);
+        // Subscription availability must not block core recruiting data.
       }
+      if (!isCurrent()) return;
+      setMe(meRes.data);
+      setJobs(jobsRes.data);
+      setQueue(queueRes.data);
+      setCandidatesByJob(grouped);
+      setSubscription(nextSubscription);
+      setLoadedScope(includeCandidates);
+      setLoadError("");
     } catch (err) {
-      setLoadError(err.response?.data?.error || "Could not load your workspace data.");
+      if (isCurrent()) {
+        setLoadedScope(includeCandidates);
+        setLoadError(err.response?.data?.error || "Could not load your workspace data. Try refreshing again.");
+      }
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, []);
+  }, [includeCandidates]);
 
   // A stage move calls refresh() directly AND the backend echoes `candidate:stage`
   // on the socket, which the effect below also turns into a reload — so a single
@@ -66,22 +85,29 @@ export function CompanyDataProvider({ children }) {
   const load = useCallback(
     () =>
       new Promise((resolve) => {
+        if (!mounted.current) { resolve(); return; }
+        const version = ++requestVersion.current;
         waiters.current.push(resolve);
         if (loadTimer.current) clearTimeout(loadTimer.current);
         loadTimer.current = setTimeout(() => {
           loadTimer.current = null;
           const pending = waiters.current;
           waiters.current = [];
-          fetchAll().finally(() => pending.forEach((r) => r()));
+          fetchAll(version).finally(() => pending.forEach((r) => r()));
         }, 300);
       }),
     [fetchAll]
   );
 
   useEffect(() => {
+    mounted.current = true;
     load();
     return () => {
+      mounted.current = false;
+      requestVersion.current += 1;
       if (loadTimer.current) clearTimeout(loadTimer.current);
+      loadTimer.current = null;
+      waiters.current.splice(0).forEach((resolve) => resolve());
     };
   }, [load]);
 
@@ -110,8 +136,8 @@ export function CompanyDataProvider({ children }) {
   }, [candidatesByJob, jobs]);
 
   const value = useMemo(
-    () => ({ me, jobs, candidatesByJob, allCandidates, queue, subscription, loading, loadError, refresh: load }),
-    [me, jobs, candidatesByJob, allCandidates, queue, subscription, loading, loadError, load]
+    () => ({ me, jobs, candidatesByJob, allCandidates, queue, subscription, loading: loading || loadedScope !== includeCandidates, loadError, refresh: load }),
+    [me, jobs, candidatesByJob, allCandidates, queue, subscription, loading, loadedScope, includeCandidates, loadError, load]
   );
 
   return <CompanyDataContext.Provider value={value}>{children}</CompanyDataContext.Provider>;

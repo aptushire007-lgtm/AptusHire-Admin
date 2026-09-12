@@ -55,21 +55,21 @@ function QuotePair({ probe }) {
   return (
     <div className="mt-3 grid gap-2 sm:grid-cols-2">
       {claim && (
-        <figure className="min-w-0 rounded-lg border border-[#E5EBE7] bg-[#F8FAF9] p-2.5">
-          <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-[#9BAAA1] uppercase">
+        <figure className="min-w-0 rounded-lg border border-[#E3EBE4] bg-[#FAFCF8] p-2.5">
+          <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-[#5B6B63] uppercase">
             What the CV claimed
           </figcaption>
-          <blockquote className="mt-1 text-[11px] leading-relaxed text-[#64736A] italic [overflow-wrap:anywhere]">
+          <blockquote className="mt-1 text-[11px] leading-relaxed text-[#5B6B63] italic [overflow-wrap:anywhere]">
             &ldquo;{claim}&rdquo;
           </blockquote>
         </figure>
       )}
       {answer && (
-        <figure className="min-w-0 rounded-lg border border-[#C7DDD1] bg-[#E8F2EC]/40 p-2.5">
+        <figure className="min-w-0 rounded-lg border border-[#C5D2C8] bg-[#EAF8E4]/40 p-2.5">
           <figcaption className="text-[10px] font-semibold tracking-[0.06em] text-brand-700 uppercase">
             What they said when asked
           </figcaption>
-          <blockquote className="mt-1 text-[11px] leading-relaxed text-[#64736A] italic [overflow-wrap:anywhere]">
+          <blockquote className="mt-1 text-[11px] leading-relaxed text-[#5B6B63] italic [overflow-wrap:anywhere]">
             &ldquo;{answer}&rdquo;
           </blockquote>
         </figure>
@@ -83,12 +83,12 @@ function Row({ row, open, onToggle }) {
   const kind = KIND_MARK[row.kind] || KIND_MARK.nice_to_have;
 
   return (
-    <li className="border-b border-[#E5EBE7] last:border-b-0">
+    <li className="border-b border-[#E3EBE4] last:border-b-0">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="tap-target flex w-full items-center gap-3 px-1 py-3 text-left transition-colors duration-150 hover:bg-[#DDECE3]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="tap-target flex w-full items-center gap-3 px-1 py-3 text-left transition-colors duration-150 hover:bg-[#E3EBE4]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         {/* The left bar encodes IMPORTANCE, which is the one thing about a
             requirement that is true before any evidence arrives. The reference
@@ -98,9 +98,9 @@ function Row({ row, open, onToggle }) {
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {kind.badge && <Badge tone={kind.badge}>{kind.label}</Badge>}
-            <span className="text-sm font-semibold text-[#17221C] [overflow-wrap:anywhere]">{row.label}</span>
+            <span className="text-sm font-semibold text-slate-900 [overflow-wrap:anywhere]">{row.label}</span>
           </span>
-          <span className="mt-0.5 block text-[11px] leading-snug text-[#64736A]">{row.evidence}</span>
+          <span className="mt-0.5 block text-[11px] leading-snug text-[#5B6B63]">{row.evidence}</span>
         </span>
 
         {/* Glyph AND word, never colour alone — the green/red pair only clears
@@ -116,7 +116,7 @@ function Row({ row, open, onToggle }) {
         </span>
 
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-[#9BAAA1] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>
@@ -125,11 +125,11 @@ function Row({ row, open, onToggle }) {
         <div className="px-1 pb-4 pl-[1.1rem]">
           <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-[11px]">
             <div className="flex items-baseline gap-1.5">
-              <dt className="text-[#64736A]">Share of role</dt><dd className="font-bold tabular-nums text-[#17221C]">{pctOf(row.weight)}%</dd>
+              <dt className="text-slate-500">Share of role</dt><dd className="font-bold tabular-nums text-slate-900">{pctOf(row.weight)}%</dd>
             </div>
             {row.assessmentDetail?.itemCount > 0 && (
               <div className="flex items-baseline gap-1.5">
-                <dt className="text-[#64736A]">Test items</dt><dd className="font-semibold tabular-nums text-[#17221C]">
+                <dt className="text-[#5B6B63]">Test items</dt><dd className="font-semibold tabular-nums text-[#0C1F1B]">
                   {row.assessmentDetail.correctCount}/{row.assessmentDetail.itemCount}
                 </dd>
               </div>
@@ -137,7 +137,7 @@ function Row({ row, open, onToggle }) {
           </dl>
 
           {row.anchorCovered && row.anchorTerms?.length > 0 && (
-            <p className="mt-2 text-[11px] text-[#64736A]">
+            <p className="mt-2 text-[11px] text-[#5B6B63]">
               Came up via their CV: {row.anchorTerms.join(", ")}. That proves the subject was raised, not what the
               answer showed.
             </p>
@@ -146,13 +146,13 @@ function Row({ row, open, onToggle }) {
           <QuotePair probe={row.decidingProbe} />
 
           {row.untestedCause && UNTESTED_CAUSE_COPY[row.untestedCause] && (
-            <p className="mt-3 rounded-lg bg-[#E8F2EC] px-3 py-2 text-[11px] leading-relaxed text-[#64736A]">
+            <p className="mt-3 rounded-lg bg-[#EAF8E4] px-3 py-2 text-[11px] leading-relaxed text-[#5B6B63]">
               {UNTESTED_CAUSE_COPY[row.untestedCause]}
             </p>
           )}
 
           {row.underpowered && (
-            <p className="mt-2 text-[11px] leading-relaxed text-[#64736A]">
+            <p className="mt-2 text-[11px] leading-relaxed text-[#5B6B63]">
               We didn&apos;t ask enough here to say either way. Not their fault — ours.
             </p>
           )}
@@ -185,12 +185,12 @@ export default function RubricAccordion({ coverage, id, provenance }) {
 
   return (
     <Card id={id} className="scroll-mt-32">
-      <h3 className="font-display text-base font-bold tracking-tight text-[#17221C]">
-        Assessment Rubrics <span className="font-normal text-[#64736A]">({all.length})</span>
+      <h3 className="font-display text-base font-bold tracking-tight text-slate-900">
+        Assessment Rubrics <span className="font-normal text-slate-500">({all.length})</span>
       </h3>
       {provenance}
 
-      <ul className="mt-3 border-t border-[#E5EBE7]">
+      <ul className="mt-3 border-t border-slate-100">
         {rows.map((r) => (
           <Row key={r.criterionId} row={r} open={open.has(r.criterionId)} onToggle={() => toggle(r.criterionId)} />
         ))}

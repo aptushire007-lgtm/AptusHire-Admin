@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -20,6 +20,10 @@ import {
   Sparkles,
   CreditCard,
   Zap,
+  Search,
+  Mic2,
+  Plus,
+  FileQuestion,
 } from "lucide-react";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
 import { clearAdminAuth, getAdminRefreshToken } from "../../auth/adminAuth.js";
@@ -29,6 +33,7 @@ import { NotificationProvider } from "../../context/NotificationContext.jsx";
 import Modal from "../ui/Modal.jsx";
 import NotificationBell from "./NotificationBell.jsx";
 import BrandLogo, { AptusMark } from "../ui/BrandLogo.jsx";
+import CommandPalette from "./CommandPalette.jsx";
 
 const SIDEBAR_COLLAPSED_KEY = "admin_sidebar_collapsed:v1";
 
@@ -46,11 +51,13 @@ const NAV_GROUPS = [
     label: "Recruitment",
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-      { to: "/jobs", label: "Active Jobs", icon: Briefcase },
+      { to: "/jobs", label: "Jobs", icon: Briefcase },
       { to: "/candidates", label: "Candidates", icon: Users },
       { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
-      { to: "/review-queue", label: "Review Queue", icon: Scale },
+      { to: "/review-queue", label: "Screening reviews", icon: Scale },
       { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
+      { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
+      { to: "/recordings", label: "Recordings", icon: Mic2 },
     ],
   },
   {
@@ -68,8 +75,57 @@ const NAV_GROUPS = [
   },
 ];
 
+function getNavGroups(user) {
+  if (user?.role !== "super_admin") return NAV_GROUPS;
+  return [
+    ...NAV_GROUPS,
+    {
+      label: "Administration",
+      items: [
+        { to: "/platform", label: "Platform administration", icon: Building2 },
+      ],
+    },
+  ];
+}
+
+function getBreadcrumbs(pathname) {
+  if (pathname.startsWith("/jobs/") && pathname.includes("/rubric")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Screening rubric", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/questions")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Interview questions", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/assessment")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Skills assessment", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/post")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Job post", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/candidates")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Candidates", current: true },
+    ];
+  }
+  return null;
+}
+
 function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
   const { me } = useCompanyData();
+  const { user } = useAdminAuth();
+  const navGroups = getNavGroups(user);
 
   return (
     <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -106,7 +162,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           aria-label="Dashboard Navigation"
           className="mt-3 flex flex-1 flex-col gap-5 px-3"
         >
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label}>
               {!collapsed && (
                 <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-widest text-[#9BAAA1]">
@@ -122,12 +178,12 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
                     onClick={onNavigate}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) =>
-                      `group relative flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45] ${
+                      `group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E3B2E] ${
                         collapsed ? "justify-center px-2.5" : "px-3"
                       } ${
                         isActive
-                          ? "bg-[#F4F4F5] font-medium text-[#09090B]"
-                          : "text-[#71717A] hover:bg-[#F4F4F5] hover:text-[#09090B]"
+                          ? "bg-[#EAF5EF] font-semibold text-[#0E3B2E] border border-[#CDE5D6] shadow-2xs"
+                          : "text-slate-600 hover:bg-white/80 hover:text-slate-900 border border-transparent"
                       }`
                     }
                   >
@@ -135,7 +191,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
                       <>
                         <item.icon
                           className={`h-4 w-4 shrink-0 transition-colors ${
-                            isActive ? "text-[#176B45]" : "text-[#9BAAA1] group-hover:text-[#176B45]"
+                            isActive ? "text-[#0E3B2E]" : "text-slate-400 group-hover:text-[#0E3B2E]"
                           }`}
                           aria-hidden="true"
                         />
@@ -182,15 +238,16 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium text-[#9BAAA1] transition-colors hover:bg-[#F1F7F3] hover:text-[#64736A]"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium text-[#9BAAA1] transition-colors hover:bg-[#F1F7F3] hover:text-[#64736A]"
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4" />
-                <span>Collapse</span>
+                <span>Collapse sidebar</span>
               </>
             )}
           </button>
@@ -200,10 +257,11 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
   );
 }
 
-function TopNav({ onMenuClick }) {
+function TopNav({ onMenuClick, onOpenSearch }) {
   const { user } = useAdminAuth();
   const { me } = useCompanyData();
   const navigate = useNavigate();
+  const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -215,6 +273,8 @@ function TopNav({ onMenuClick }) {
       ? "Head of Recruitment"
       : "Recruiter";
 
+  const breadcrumbs = getBreadcrumbs(location.pathname);
+
   useEffect(() => {
     if (!profileOpen) return undefined;
     function handle(e) {
@@ -225,7 +285,6 @@ function TopNav({ onMenuClick }) {
   }, [profileOpen]);
 
   return (
-    <>
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
       {/* Left */}
       <div className="flex min-w-0 items-center gap-3">
@@ -237,16 +296,55 @@ function TopNav({ onMenuClick }) {
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold text-[#09090B]">{companyName}</h2>
-          <p className="truncate text-[11px] tabular-nums text-[#9BAAA1]">
-            {me?.company?.companyCode || "APT-01"}
-          </p>
-        </div>
+        {breadcrumbs ? (
+          <nav aria-label="Workspace breadcrumb" className="flex items-center gap-2 text-xs font-medium">
+            {breadcrumbs.map((b, i) => (
+              <span key={i} className="flex items-center gap-2">
+                {i > 0 && <span className="text-slate-400">/</span>}
+                {b.current ? (
+                  <span aria-current="page" className="font-semibold text-slate-900">
+                    {b.label}
+                  </span>
+                ) : (
+                  <NavLink to={b.to} className="text-slate-500 hover:text-slate-900 transition-colors">
+                    {b.label}
+                  </NavLink>
+                )}
+              </span>
+            ))}
+          </nav>
+        ) : (
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-semibold text-[#09090B]">{companyName}</h2>
+            <p className="truncate text-[11px] tabular-nums text-[#9BAAA1]">
+              {me?.company?.companyCode || "APT-01"}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Right */}
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={() => navigate("/jobs?create=1")}
+          className="hidden sm:flex items-center gap-1.5 rounded-lg bg-[#0E3B2E] hover:bg-[#154d3d] text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>Create Job</span>
+        </button>
+
+        <button
+          type="button"
+          aria-label="Search workspace"
+          onClick={onOpenSearch}
+          className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-slate-50/80 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shadow-2xs"
+        >
+          <Search className="h-3.5 w-3.5 text-slate-400" />
+          <span className="hidden sm:inline">Search workspace…</span>
+          <kbd className="hidden sm:inline rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">Ctrl K</kbd>
+        </button>
+
         <NotificationBell />
 
         <div className="relative" ref={profileRef}>
@@ -255,7 +353,7 @@ function TopNav({ onMenuClick }) {
             className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs font-medium text-[#18181B] shadow-sm transition-colors hover:bg-[#F4F4F5]"
             aria-expanded={profileOpen}
             aria-haspopup="true"
-            aria-label="User menu"
+            aria-label="Account options"
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#176B45] text-[11px] font-bold text-white">
               {(user?.name || "A")[0].toUpperCase()}
@@ -279,6 +377,15 @@ function TopNav({ onMenuClick }) {
 
               <div className="py-1">
                 <button
+                  role="menuitem"
+                  onClick={() => { setProfileOpen(false); navigate("/subscription"); }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
+                >
+                  <CreditCard className="h-4 w-4 text-[#9BAAA1]" />
+                  Plan and billing
+                </button>
+                <button
+                  role="menuitem"
                   onClick={() => { setProfileOpen(false); navigate("/settings"); }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
                 >
@@ -286,6 +393,7 @@ function TopNav({ onMenuClick }) {
                   Workspace Settings
                 </button>
                 <button
+                  role="menuitem"
                   onClick={() => { setProfileOpen(false); navigate("/ai-interviews"); }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
                 >
@@ -313,13 +421,14 @@ function TopNav({ onMenuClick }) {
         </div>
       </div>
     </header>
-    </>
   );
 }
 
 function ShellInner({ children }) {
+  const { user } = useAdminAuth();
   const [collapsed, setCollapsed] = useState(readSidebarCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const { pathname } = useLocation();
   const viewAs = getViewAsCompany();
   const mainRef = useRef(null);
@@ -331,6 +440,17 @@ function ShellInner({ children }) {
       writeSidebarCollapsed(next);
       return next;
     });
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -347,17 +467,19 @@ function ShellInner({ children }) {
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname]);
 
+  const navGroups = getNavGroups(user);
+
   return (
-    <div className="admin-portal flex min-h-screen flex-col bg-[#FAFAFA] text-[#09090B]">
+    <div className="admin-portal flex min-h-screen flex-col bg-[#F6F8F7] text-slate-900">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#176B45] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#0E3B2E] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
       >
         Skip to main content
       </a>
 
       {viewAs && (
-        <div className="flex items-center justify-between gap-3 bg-[#176B45] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
+        <div className="flex items-center justify-between gap-3 bg-[#0E3B2E] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
           <span>
             Viewing as tenant <span className="font-bold">{viewAs.name}</span> — read-only mode.
           </span>
@@ -371,10 +493,10 @@ function ShellInner({ children }) {
       )}
 
       <div className="flex min-h-0 flex-1">
-        {/* Desktop sidebar — white, matches user UI */}
+        {/* Desktop sidebar — softly tinted surface */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#E4E4E7] bg-white transition-[width] duration-200 lg:flex ${
-            collapsed ? "w-[4.5rem]" : "w-64"
+          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#E2E8E4] bg-[#F0F4F1]/90 backdrop-blur-xs transition-[width] duration-200 lg:flex ${
+            collapsed ? "w-[4.5rem]" : "w-[236px]"
           }`}
         >
           <SidebarContent
@@ -389,7 +511,7 @@ function ShellInner({ children }) {
           onClose={() => setMobileOpen(false)}
           placement="left"
           label="Navigation menu"
-          panelClassName="w-72 border-r border-[#E5EBE7] bg-white"
+          panelClassName="w-72 border-r border-[#E5EBE7] bg-[#F0F4F1]"
         >
           <button
             className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45]"
@@ -403,25 +525,27 @@ function ShellInner({ children }) {
 
         {/* Main content */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopNav onMenuClick={() => setMobileOpen(true)} />
+          <TopNav onMenuClick={() => setMobileOpen(true)} onOpenSearch={() => setCommandOpen(true)} />
           <main
             key={pathname}
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 bg-[#FAFAFA] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 bg-[#F6F8F7] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
           >
             {children}
           </main>
         </div>
       </div>
+
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} groups={navGroups} />
     </div>
   );
 }
 
 export default function DashboardShell({ children }) {
   return (
-    <CompanyDataProvider>
+    <CompanyDataProvider includeCandidates={false}>
       <NotificationProvider>
         <ShellInner>{children}</ShellInner>
       </NotificationProvider>

@@ -15,10 +15,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const read = (rel) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
+const read = (rel) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8").replace(/\r\n/g, "\n");
 
 const ADMIN_PANELS = read("../src/components/ui/Panels.jsx");
-const USER_PANELS = read("../../user/src/components/ui/Panels.jsx");
+const USER_PANELS = read("../../AptusHire-Frontend/src/components/ui/Panels.jsx");
 
 /**
  * Pull one `export function NAME(...) { ... }` block out of a source file by

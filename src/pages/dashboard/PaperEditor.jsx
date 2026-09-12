@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -44,8 +44,9 @@ function keySummary(item) {
   return (item.key?.optionIds || []).join(", ");
 }
 
-export default function PaperEditor() {
-  const { id: jobId } = useParams();
+export default function PaperEditor({ jobId: propJobId, onClose, isModal = false }) {
+  const params = useParams();
+  const jobId = propJobId || params.id;
   const navigate = useNavigate();
   const toast = useToast();
   const [job, setJob] = useState(null);
@@ -183,8 +184,13 @@ export default function PaperEditor() {
       const res = await api.post(`/assessments/papers/${selectedId}/approve`);
       setPapers((list) => list.map((p) => (p._id === selectedId ? res.data : { ...p, status: p.status === "approved" ? "archived" : p.status })));
       setConfirmApprove(false);
-      toast.success("Paper approved & frozen — opening interview questions to review");
-      navigate(`/jobs/${jobId}/questions`);
+      if (isModal) {
+        toast.success("Paper approved & frozen!");
+        onClose?.();
+      } else {
+        toast.success("Paper approved & frozen — opening interview questions to review");
+        navigate(`/jobs/${jobId}/questions`);
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || "Approval failed");
     } finally {
@@ -223,15 +229,21 @@ export default function PaperEditor() {
   const planBySection = new Map((plan?.sections || []).map((s) => [s.sectionId, s]));
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isModal ? "p-6 overflow-y-auto max-h-[88vh]" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button as={Link} to={`/jobs/${jobId}/edit`} variant="ghost" className="!px-2">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          {isModal ? (
+            <Button type="button" onClick={onClose} variant="ghost" className="!px-2">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button as={Link} to={`/jobs/${jobId}/edit`} variant="ghost" className="!px-2">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
           <div>
-            <h1 className="text-xl font-bold text-[#17221C]">Assessment Paper</h1>
-            <p className="text-sm text-[#64736A]">{job?.title}</p>
+            <h1 className="text-xl font-bold text-slate-900">Assessment Paper Studio</h1>
+            <p className="text-sm text-slate-500">{job?.title}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -239,6 +251,11 @@ export default function PaperEditor() {
             <Badge tone={(STATUS_META[selected.status] || STATUS_META.draft).tone}>
               v{selected.version} · {(STATUS_META[selected.status] || STATUS_META.draft).label}
             </Badge>
+          )}
+          {isModal && (
+            <Button type="button" onClick={onClose} variant="secondary" size="sm" className="text-xs">
+              Done
+            </Button>
           )}
           <Button onClick={compile} disabled={busy} variant="secondary">
             <Cpu className="h-4 w-4" /> {papers.length ? "Compile new version" : "Compile blueprint"}
@@ -266,7 +283,7 @@ export default function PaperEditor() {
               key={p._id}
               onClick={() => setSelectedId(p._id)}
               className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                p._id === selectedId ? "border-brand-400 bg-[#E8F2EC] text-brand-700" : "border-[#E5EBE7] bg-white text-[#64736A]"
+                p._id === selectedId ? "border-brand-400 bg-brand-50 text-brand-700" : "border-slate-200 bg-white text-slate-500"
               }`}
             >
               v{p.version} · {(STATUS_META[p.status] || STATUS_META.draft).label}
@@ -280,7 +297,7 @@ export default function PaperEditor() {
           {/* Frozen disclosure — engineering rule 5: an immutable artifact says so.
               The "compiled by <model>" credit line was dropped (UI clutter). */}
           {selected.frozenAt && (
-            <Card className="!p-4 text-xs text-[#64736A]">
+            <Card className="!p-4 text-xs text-slate-500">
               <span className="inline-flex items-center gap-1 text-emerald-700">
                 <Lock className="h-3.5 w-3.5" /> Frozen {new Date(selected.frozenAt).toLocaleString()} — immutable; changes create a new version
               </span>
@@ -290,9 +307,9 @@ export default function PaperEditor() {
           {/* Draft controls */}
           <Card>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-base font-semibold text-[#17221C]">Structure & difficulty</h2>
+              <h2 className="text-base font-semibold text-slate-800">Structure & difficulty</h2>
               {isDraft && (
-                <span className="text-xs text-[#64736A]">Editable until Approve & Freeze</span>
+                <span className="text-xs text-slate-500">Editable until Approve & Freeze</span>
               )}
             </div>
 
@@ -307,7 +324,7 @@ export default function PaperEditor() {
                   <option value="fixed">Fixed tier — same difficulty for every candidate</option>
                   <option value="claim_tiered">Claim-tiered — difficulty follows each résumé's own claims (recruiter can override per candidate)</option>
                 </Select>
-                <p className="mt-1 text-xs text-[#64736A]">
+                <p className="mt-1 text-xs text-slate-500">
                   Claim-tiered pitches the test at the level the résumé asserts — verifying “8 years of React” requires the hard items.
                   The tier is derived in code from the candidate's claims, never by a model, and your per-candidate override always wins.
                 </p>
@@ -341,8 +358,8 @@ export default function PaperEditor() {
             </div>
 
             {plan && (
-              <p className="mt-4 rounded-xl border border-[#E5EBE7] bg-[#E8F2EC] p-3 text-xs text-[#64736A]">
-                <strong className="text-[#17221C]">This paper generates {plan.total} question(s)</strong> across{" "}
+              <p className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                <strong className="text-slate-700">This paper generates {plan.total} question(s)</strong> across{" "}
                 {selected.sections.length} section(s) — more than any one candidate answers, on purpose. Each section keeps a bank
                 roughly twice the number it serves so no two candidates get the same draw, and so items the blind solvers reject can
                 be discarded without leaving the section short.
@@ -369,7 +386,7 @@ export default function PaperEditor() {
               </div>
               <div>
                 <Label>Integrity</Label>
-                <label className="mt-1 flex items-start gap-2 text-sm text-[#64736A]">
+                <label className="mt-1 flex items-start gap-2 text-sm text-slate-600">
                   <input
                     type="checkbox"
                     className="mt-0.5"
@@ -412,7 +429,7 @@ export default function PaperEditor() {
                       <option value="pause">Pause — ping a reviewer; auto-resumes if nobody responds</option>
                       <option value="auto_submit">Auto-submit — end the test immediately, no reviewer step</option>
                     </Select>
-                    <p className="mt-1 text-xs text-[#64736A]">
+                    <p className="mt-1 text-xs text-slate-500">
                       {(selected.integrityDefaults?.softLock?.action || "pause") === "auto_submit"
                         ? "Auto-submit counts only camera/identity/device flags (not tab-switches or window-blur) and ends the test as soon as it's tripped. What was answered is scored and flagged for review — this is irreversible for that attempt."
                         : "Pause never ends the test by itself — a human always decides."}
@@ -427,8 +444,8 @@ export default function PaperEditor() {
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-[#17221C]">Items</h2>
-                <p className="text-xs text-[#64736A]">
+                <h2 className="text-base font-semibold text-slate-800">Items</h2>
+                <p className="text-xs text-slate-500">
                   {selected.items.filter((i) => i.status === "active").length} approved ·{" "}
                   <span className={flaggedCount ? "font-semibold text-amber-600" : ""}>{flaggedCount} flagged</span> ·{" "}
                   {selected.items.filter((i) => i.status === "retired").length} retired
@@ -442,7 +459,7 @@ export default function PaperEditor() {
             </div>
 
             {generating && (
-              <div className="mt-4 rounded-xl border border-[#C7DDD1] bg-[#E8F2EC]/60 p-4 text-sm text-brand-800">
+              <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50/60 p-4 text-sm text-brand-800">
                 <div className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   Generating and blind-solving items… {selected.generationRun.generated + selected.generationRun.flagged}/
@@ -481,9 +498,9 @@ export default function PaperEditor() {
             <div className="mt-5 space-y-6">
               {selected.sections.map((section) => (
                 <div key={section.id}>
-                  <h3 className="mb-2 text-sm font-semibold text-[#17221C]">
+                  <h3 className="mb-2 text-sm font-semibold text-slate-700">
                     {section.title}{" "}
-                    <span className="font-normal text-[#64736A]">
+                    <span className="font-normal text-slate-500">
                       — serves {section.servedItemCount} of {(itemsBySection.get(section.id) || []).filter((i) => i.status === "active").length} active items
                     </span>
                   </h3>
@@ -501,7 +518,7 @@ export default function PaperEditor() {
                       />
                     ))}
                     {!(itemsBySection.get(section.id) || []).length && (
-                      <p className="text-xs text-[#64736A]">No items yet — run generation.</p>
+                      <p className="text-xs text-slate-500">No items yet — run generation.</p>
                     )}
                   </div>
                 </div>
@@ -511,13 +528,13 @@ export default function PaperEditor() {
 
           {/* Approve & freeze */}
           {isDraft && (
-            <Card className="border-[#C7DDD1]">
+            <Card className="border-brand-200">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="max-w-2xl">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-[#17221C]">
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
                     <ShieldCheck className="h-5 w-5 text-brand-600" /> Approve & Freeze
                   </h2>
-                  <p className="mt-1 text-sm text-[#64736A]">
+                  <p className="mt-1 text-sm text-slate-500">
                     Freezing makes this paper immutable and versioned — every candidate for this role is served from this identical
                     pool, which is what makes cross-candidate comparison legitimate and auditable. Changes after freezing create v
                     {selected.version + 1}; candidates mid-test keep v{selected.version}.
@@ -557,24 +574,24 @@ function SectionRow({ section, plan, editable, onSave }) {
   const [time, setTime] = useState(String(section.timeLimitSec));
   const dirty = Number(served) !== section.servedItemCount || Number(time) !== section.timeLimitSec;
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[#E5EBE7] bg-[#E8F2EC]/60 p-3">
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
       <div className="min-w-[12rem] flex-1">
-        <p className="text-sm font-semibold text-[#17221C]">{section.title}</p>
-        <p className="text-xs text-[#64736A]">criteria: {section.criterionIds.join(", ")}</p>
+        <p className="text-sm font-semibold text-slate-700">{section.title}</p>
+        <p className="text-xs text-slate-500">criteria: {section.criterionIds.join(", ")}</p>
       </div>
       <div>
         <Label className="!text-xs">Questions served</Label>
         <Input type="number" min="2" max="8" value={served} disabled={!editable} onChange={(e) => setServed(e.target.value)} className="w-24" />
-        <p className="mt-1 text-[11px] text-[#64736A]">what one candidate answers</p>
+        <p className="mt-1 text-[11px] text-slate-500">what one candidate answers</p>
       </div>
       <div>
         <Label className="!text-xs">Questions generated</Label>
         {/* Read-only and derived, not a second knob: the bank is sized from the
             served count so the two can never drift out of step. */}
-        <div className="mt-1 w-28 rounded-xl border border-[#E5EBE7] bg-white px-3 py-2 text-sm font-semibold text-[#17221C]">
+        <div className="mt-1 w-28 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
           {plan ? plan.planned : section.poolItemCount}
         </div>
-        <p className="mt-1 text-[11px] text-[#64736A]">
+        <p className="mt-1 text-[11px] text-slate-500">
           {plan?.perTier ? `${plan.perTier} × 3 tiers` : `bank of ${section.poolItemCount}`}
         </p>
       </div>
@@ -582,7 +599,7 @@ function SectionRow({ section, plan, editable, onSave }) {
         <Label className="!text-xs">Time limit (sec)</Label>
         <Input type="number" min="60" step="30" value={time} disabled={!editable} onChange={(e) => setTime(e.target.value)} className="w-28" />
       </div>
-      <div className="text-xs text-[#64736A]">
+      <div className="text-xs text-slate-500">
         mix: {section.difficultyMix?.easy || 0}E / {section.difficultyMix?.medium || 0}M / {section.difficultyMix?.hard || 0}H
       </div>
       {editable && dirty && (
@@ -599,10 +616,10 @@ function ItemRow({ item, open, onToggle, isDraft, busy, onRegenerate, onRetire }
   const flagged = item.status === "flagged";
   const retired = item.status === "retired";
   return (
-    <div className={`rounded-xl border p-3 ${flagged ? "border-amber-300 bg-amber-50/50" : retired ? "border-[#E5EBE7] bg-[#E8F2EC] opacity-60" : "border-[#E5EBE7] bg-white"}`}>
+    <div className={`rounded-xl border p-3 ${flagged ? "border-amber-300 bg-amber-50/50" : retired ? "border-slate-200 bg-slate-50 opacity-60" : "border-slate-200 bg-white"}`}>
       <button onClick={onToggle} className="flex w-full items-start justify-between gap-3 text-left">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-[#17221C]">{item.stem}</p>
+          <p className="truncate text-sm font-medium text-slate-800">{item.stem}</p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <Badge tone={DIFF_TONES[item.difficulty] || "slate"}>{item.difficulty}</Badge>
             <Badge tone="slate">{TYPE_LABELS[item.type] || item.type}</Badge>
@@ -622,23 +639,23 @@ function ItemRow({ item, open, onToggle, isDraft, busy, onRegenerate, onRetire }
         </div>
       </button>
       {open && (
-        <div className="mt-3 space-y-2 border-t border-[#E5EBE7] pt-3 text-sm">
+        <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 text-sm">
           {(item.options || []).map((o) => {
             const isKey =
               item.type === "ordering"
                 ? false
                 : (item.key?.optionIds || []).includes(o.id);
             return (
-              <p key={o.id} className={isKey ? "font-semibold text-emerald-700" : "text-[#64736A]"}>
+              <p key={o.id} className={isKey ? "font-semibold text-emerald-700" : "text-slate-600"}>
                 {o.id}) {o.text} {isKey && "✓"}
               </p>
             );
           })}
-          <p className="text-xs text-[#64736A]">
+          <p className="text-xs text-slate-500">
             <strong>Key:</strong> {keySummary(item)}
           </p>
           {item.rationale && (
-            <p className="text-xs text-[#64736A]">
+            <p className="text-xs text-slate-500">
               <strong>Why:</strong> {item.rationale}
             </p>
           )}

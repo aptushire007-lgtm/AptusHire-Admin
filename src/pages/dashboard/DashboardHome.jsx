@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -14,19 +14,18 @@ import {
   Users,
 } from "lucide-react";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
-import { Badge, Card, EmptyState, SectionHeader, Skeleton } from "../../components/ui/Card.jsx";
+import { Badge, Card, CardHeader, CardRow, EmptyState, StatCard, StatGrid, Skeleton } from "../../components/ui/Card.jsx";
+import PageHeader from "../../components/ui/PageHeader.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { stageLabel, stageTone } from "../../lib/pipeline.js";
 import { VISUALIZATION_PALETTE } from "../../lib/visualizationColors.js";
 import TrendChart from "../../components/dashboard/TrendChart.jsx";
+import { recruiterTasks } from "../../lib/recruiterTasks.js";
 
-const DAY = 86_400_000;
+import { useEffect } from "react";
+import api from "../../api/client.js";
+import { getSocket } from "../../lib/socket.js";
 
-// One person can hold several applications (multi-role, Phase 17). Identity is
-// the stable account id, then the lowercased email for rows that predate it,
-// then the doc id — so the same person is never counted twice.
-const personKey = (c) => String(c.candidateUser || c.basicDetails?.email?.toLowerCase() || c._id);
-const countPeople = (list) => new Set(list.map(personKey)).size;
 
 function greeting() {
   const hour = new Date().getHours();
@@ -37,7 +36,7 @@ function greeting() {
 
 function Monogram({ name }) {
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-[#E8F2EC] text-sm font-bold text-[#176B45]">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-[#EAF8E4] text-sm font-bold text-[#0E3B2E]">
       {(name || "?")[0].toUpperCase()}
     </span>
   );
@@ -50,177 +49,108 @@ function DeltaBadge({ value }) {
 }
 
 export default function DashboardHome() {
-  const { me, jobs, allCandidates, queue, loading, loadError, refresh } = useCompanyData();
+  const { me, jobs, queue, loading: workspaceLoading, loadError: workspaceError, refresh: refreshWorkspace } = useCompanyData();
   const [jobPage, setJobPage] = useState(0);
-
-  // "Current data" only: an application counts on this dashboard when its role
-  // still exists AND it was not released from the pipeline (role deleted /
-  // filled / closed — Phase 17 `pipelineExit`). Delete every job and every KPI
-  // below goes to zero, which is the truth.
-  const activeCandidates = useMemo(
-    () => allCandidates.filter((candidate) => !candidate.pipelineExit?.at && candidate.job),
-    [allCandidates]
-  );
-  // The interview queue is not cleaned when a job is deleted, so drop entries
-  // whose role is gone before they inflate the "Interviews" figure.
-  const liveQueue = useMemo(() => (queue || []).filter((entry) => entry.job), [queue]);
-
-  const model = useMemo(() => {
-    const now = Date.now();
-    // Activity/trend is platform history — every application that ever came in,
-    // even for a role since deleted. The pipeline-state figures below use
-    // `activeCandidates` instead.
-    const dated = allCandidates.filter((candidate) => candidate.createdAt);
-    const last30 = dated.filter((candidate) => now - new Date(candidate.createdAt).getTime() <= 30 * DAY).length;
-    const prior30 = dated.filter((candidate) => {
-      const age = now - new Date(candidate.createdAt).getTime();
-      return age > 30 * DAY && age <= 60 * DAY;
-    }).length;
-    const applicantDelta = prior30 === 0 ? null : Math.round(((last30 - prior30) / prior30) * 100);
-    const buckets = Array.from({ length: 12 }, (_, index) => {
-      const end = now - (11 - index) * 7 * DAY;
-      const start = end - 7 * DAY;
-      const date = new Date(end);
-      return {
-        label: `${date.getDate()} ${date.toLocaleString("en", { month: "short" })}`,
-        count: dated.filter((candidate) => {
-          const time = new Date(candidate.createdAt).getTime();
-          return time > start && time <= end;
-        }).length,
-      };
-    });
-    const scored = activeCandidates.filter((candidate) => candidate.ats?.decision && candidate.ats.decision !== "pending");
-    const avgScore = scored.length
-      ? Math.round(scored.reduce((sum, candidate) => sum + (candidate.ats?.overallScore || 0), 0) / scored.length)
-      : null;
-    const approvedJobs = jobs.filter((job) => job.rubricStatus === "approved");
-    const stageCounts = new Map();
-    for (const candidate of activeCandidates) {
-      if (!candidate.status) continue;
-      stageCounts.set(candidate.status, (stageCounts.get(candidate.status) || 0) + 1);
-    }
-    const stages = [...stageCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
-    const totalWithStage = [...stageCounts.values()].reduce((sum, count) => sum + count, 0) || 1;
-    return {
-      applicantDelta,
-      avgScore,
-      buckets,
-      rubricHealth: jobs.length ? Math.round((approvedJobs.length / jobs.length) * 100) : 100,
-      stages,
-      totalWithStage,
-      recent: [...activeCandidates].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5),
-      upcomingInterviews: activeCandidates
-        .filter((candidate) =>
-          ["interview_scheduled", "ai_interview_completed", "ats_passed"].includes(candidate.status)
-        )
-        .slice(0, 4),
-    };
-  }, [allCandidates, activeCandidates, jobs]);
+  const [taskPage, setTaskPage] = useState(1);
+  const [summary, setSummary] = useState({ total: 0, shortlisted: 0, joined: 0, buckets: [], stages: [], totalWithStage: 1, recent: [], upcomingInterviews: [], attention: [], attentionTotal: 0 });
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    setSummaryLoading(true);
+    api.get("/candidates/dashboard-summary", { params: { page: taskPage } })
+      .then(({ data }) => { if (alive) { setSummary(data); setSummaryError(""); } })
+      .catch(() => { if (alive) setSummaryError("Could not load application summary. Retry to get current figures."); })
+      .finally(() => { if (alive) setSummaryLoading(false); });
+    return () => { alive = false; };
+  }, [taskPage, attempt]);
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    const reload = () => setAttempt(value => value + 1);
+    socket.on("candidate:stage", reload);
+    socket.on("candidate:review", reload);
+    socket.on("job:capacity", reload);
+    return () => { socket.off("candidate:stage", reload); socket.off("candidate:review", reload); socket.off("job:capacity", reload); };
+  }, []);
+  const loading = workspaceLoading || summaryLoading;
+  const loadError = workspaceError || summaryError;
+  const refresh = () => { refreshWorkspace(); setAttempt(value => value + 1); };
+  const rubricTasks = useMemo(() => recruiterTasks([], jobs), [jobs]);
+  const tasks = useMemo(() => recruiterTasks(summary.attention, jobs).filter(task => task.kind === "application"), [summary.attention, jobs]);
+  const visibleTasks = [...tasks, ...(taskPage === 1 ? rubricTasks : [])];
+  const taskTotal = summary.attentionTotal + rubricTasks.length;
+  const liveQueue = useMemo(() => (queue || []).filter(entry => entry.job), [queue]);
+  const model = summary;
 
   const jobsPerPage = 4;
   const totalJobPages = Math.ceil(jobs.length / jobsPerPage) || 1;
   const paginatedJobs = jobs.slice(jobPage * jobsPerPage, (jobPage + 1) * jobsPerPage);
   const stats = [
     { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, delta: null, to: "/jobs", accent: "brand" },
-    { label: "Candidates",    value: countPeople(allCandidates),      sub: "Distinct people who applied",                                   icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
-    { label: "Interviews",    value: liveQueue.length,            sub: "Screened candidates",                                                   icon: Layers,    deltaLabel: model.avgScore ? `${model.avgScore}% avg` : null, to: "/ai-interviews", accent: "orange" },
-    { label: "Shortlisted",   value: countPeople(activeCandidates.filter((c) => c.status === "shortlisted")), sub: "Ready for offer",        icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
-    { label: "Hired",         value: countPeople(activeCandidates.filter((c) => c.status === "joined")),      sub: "Successfully placed",     icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
+    { label: "Applications",    value: summary.total,      sub: "All roles, including historical applications",                                   icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
+    { label: "Interview queue",    value: liveQueue.length,            sub: "Queue entries for existing roles",                                                   icon: Layers,    delta: null, to: "/ai-interviews", accent: "orange" },
+    { label: "Shortlisted",   value: summary.shortlisted, sub: "Applications at shortlist stage",        icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
+    { label: "Hired",         value: summary.joined,      sub: "Applications marked joined",     icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
   ];
 
   return (
-    <div className="mx-auto max-w-360 space-y-8 pb-12">
-      {loadError && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 shrink-0" /><span>{loadError} Figures may be incomplete.</span></div>
-          <button type="button" onClick={refresh} className="rounded-control bg-red-100 px-3 py-1.5 font-semibold text-red-700 hover:bg-red-200">Refresh</button>
-        </div>
-      )}
-
-      <section className="flex flex-col justify-between gap-6 border-b border-[#E5EBE7] pb-7 sm:flex-row sm:items-end">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#176B45]">{greeting()}, {me?.company?.name || "AptusHire"}</p>
-          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-[#17221C] sm:text-4xl">{me?.name || "Admin"}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64736A]">Manage your recruitment platform from one place with evidence-backed candidate intelligence.</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span className="hidden items-center gap-2 text-xs font-medium text-[#64736A] sm:inline-flex"><Calendar className="h-4 w-4 text-[#176B45]" />{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-          <Link to="/jobs/new" className="inline-flex min-h-10 items-center gap-2 rounded-control bg-[#176B45] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#176B45]-dark"><FilePlus2 className="h-4 w-4" />Post a Job</Link>
-        </div>
+    <div className="space-y-[18px]">
+      <PageHeader title="Today" description={`${greeting()}${me?.name ? `, ${me.name.split(" ")[0]}` : ""}. Here is what needs your attention.`}
+        action={<Button as={Link} to="/jobs?create=1"><FilePlus2 className="h-4 w-4" aria-hidden="true" />Create job</Button>} />
+      {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <span>{loadError} Figures may be incomplete.</span><Button variant="secondary" size="sm" onClick={refresh}>Refresh</Button>
+      </div>}
+      <Card padding="none">
+        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Recorded workflow states requiring a recruiter action." aside="No action is taken automatically." />
+        {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
+          visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
+          <ul>{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
+            <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
+            <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
+          </li>)}</ul>}
+        {summary.attentionTotal > 20 && <div className="flex flex-wrap items-center gap-3 p-3">
+          <Button variant="secondary" size="sm" disabled={taskPage === 1} onClick={() => setTaskPage(page => page - 1)}>Previous tasks</Button>
+          <span className="text-xs">Page {taskPage} of {Math.ceil(summary.attentionTotal / 20)}</span>
+          <Button variant="secondary" size="sm" disabled={taskPage >= Math.ceil(summary.attentionTotal / 20)} onClick={() => setTaskPage(page => page + 1)}>Next tasks</Button>
+        </div>}
+      </Card>
+      <section aria-label="Key Performance Indicators">
+        <StatGrid min={170}>{stats.map(item => <StatCard key={item.label} as={Link} to={item.to} interactive
+          aria-label={loading ? item.label : `${item.value} ${item.label}`}
+          label={item.label} value={loading ? <Skeleton className="h-7 w-16" /> : loadError ? "—" : item.value}
+          note={item.sub} icon={item.icon}
+          chip={item.delta == null ? undefined : `${item.delta > 0 ? "+" : ""}${item.delta}%`}
+          chipTone={item.delta > 0 ? "green" : item.delta < 0 ? "red" : "slate"}
+        />)}</StatGrid>
       </section>
-
-      <section aria-label="Key Performance Indicators" className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map((item) => (
-          <Card key={item.label} as={Link} to={item.to} interactive padding="compact"
-            className="group border-[#E5EBE7] bg-white hover:border-[#C7DDD1]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                item.accent === "orange" ? "bg-[#176B45]-soft text-[#176B45]" : "bg-[#E8F2EC] text-[#176B45]"
-              }`}>
-                <item.icon className="h-5 w-5" />
-              </span>
-              <ArrowUpRight className="h-4 w-4 text-[#9BAAA1] opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-            <p className="mt-4 font-display text-3xl font-bold tracking-tight text-[#17221C]">
-              {loading ? <Skeleton className="h-9 w-16" /> : item.value}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <p className="text-sm font-semibold text-[#17221C]">{item.label}</p>
-              {item.deltaLabel
-                ? <Badge tone="orange">{item.deltaLabel}</Badge>
-                : <DeltaBadge value={item.delta} />}
-            </div>
-            <p className="mt-0.5 text-xs text-[#64736A]">{item.sub}</p>
-          </Card>
-        ))}
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,1fr)]">
-        <Card className="border-[#E5EBE7] bg-white"><SectionHeader icon={TrendingUp} title="Recruitment activity" description="Applications received over the past 12 weeks" />{loading ? <Skeleton className="mt-6 h-56 w-full rounded-control" /> : <TrendChart buckets={model.buckets} />}</Card>
-        <Card className="border-[#E5EBE7] bg-white">
-          <SectionHeader icon={Layers} title="Hiring funnel" description="Candidate distribution by stage" />
-          {loading ? (
-            <Skeleton className="mt-6 h-56 w-full rounded-control" />
-          ) : model.stages.length === 0 ? (
-            <p className="mt-8 text-sm text-[#64736A]">No candidate applications yet.</p>
-          ) : (
-            <div className="mt-6 space-y-4">
-              {model.stages.map(([stage, count], index) => {
-                const percentage = Math.round((count / model.totalWithStage) * 100);
-                const barColor = VISUALIZATION_PALETTE[index % VISUALIZATION_PALETTE.length];
-                return (
-                  <div key={stage} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-[#64736A]">{stageLabel(stage)}</span>
-                      <span className="font-semibold tabular-nums text-[#17221C]">
-                        {count} <span className="text-xs font-normal text-[#64736A]">({percentage}%)</span>
-                      </span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#EEF1EF]">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ backgroundColor: barColor, width: `${Math.max(4, percentage)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {liveQueue.length > 0 && (
-                <div className="flex items-center justify-between rounded-control border border-orange-200 bg-[#176B45]-soft p-3 text-sm">
-                  <span className="flex items-center gap-2 font-semibold text-[#17221C]"><Scale className="h-4 w-4 text-[#176B45]" />{liveQueue.length} need review</span>
-                  <Link to="/review-queue" className="font-semibold text-[#176B45] hover:underline">Resolve</Link>
-                </div>
-              )}
-            </div>
-          )}
+      <section className="grid items-start gap-[18px] lg:grid-cols-2">
+        <Card padding="none">
+          <CardHeader title="Recruitment activity" description="Applications received over the past 12 weeks" />
+          <div className="p-[18px]">{loading ? <Skeleton className="h-48" /> : <TrendChart buckets={model.buckets} />}</div>
+        </Card>
+        <Card padding="none">
+          <CardHeader title="Hiring funnel" description="Current application distribution by stage" action={<Button as={Link} to="/pipeline" variant="secondary" size="sm">Open pipeline</Button>} />
+          <div className="space-y-3 p-[18px]">{loading ? <Skeleton className="h-48" /> : model.stages.length === 0 ? <p className="text-sm text-slate-500">No candidate applications yet.</p> : model.stages.map(([stage,count],index) => {
+            const percentage = model.totalWithStage > 0 ? Math.round(count / model.totalWithStage * 100) : 0;
+            return <div key={stage}><div className="mb-1 flex items-center justify-between text-xs"><span className="font-semibold text-slate-700">{stageLabel(stage)}</span><span className="num text-slate-700">{count} ({percentage}%)</span></div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{backgroundColor:VISUALIZATION_PALETTE[index % VISUALIZATION_PALETTE.length],width:`${percentage}%`}} /></div>
+            </div>;
+          })}</div>
         </Card>
       </section>
-
-      <section className="grid gap-6 xl:grid-cols-3">
-        <Card className="border-[#E5EBE7] bg-white"><div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-bold text-[#17221C]">Recent candidates</h2><p className="mt-1 text-xs text-[#64736A]">Latest additions to your pipeline</p></div><Link to="/candidates" className="text-xs font-semibold text-[#176B45] hover:underline">View all</Link></div><div className="mt-5 space-y-2">{loading ? <><Skeleton className="h-12 w-full rounded-control" /><Skeleton className="h-12 w-full rounded-control" /></> : model.recent.length === 0 ? <p className="py-6 text-sm text-[#64736A]">No candidates yet.</p> : model.recent.map((candidate) => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="flex min-w-0 items-center gap-3 rounded-control border border-transparent p-2 transition-colors hover:border-[#E5EBE7] hover:bg-[#F8FAF9]"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-[#17221C]">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-[#64736A]">{candidate.job?.title || "Application"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}</div></Card>
-        <Card className="border-[#E5EBE7] bg-white"><div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-bold text-[#17221C]">Recent jobs</h2><p className="mt-1 text-xs text-[#64736A]">Roles currently in your workspace</p></div><Link to="/jobs" className="text-xs font-semibold text-[#176B45] hover:underline">View all</Link></div><div className="mt-5 space-y-2">{loading ? <><Skeleton className="h-12 w-full rounded-control" /><Skeleton className="h-12 w-full rounded-control" /></> : paginatedJobs.length === 0 ? <EmptyState icon={Briefcase} title="No jobs posted yet" description="Create a role to begin recruiting." action={<Button as={Link} to="/jobs/new" size="sm">Create job</Button>} /> : paginatedJobs.map((job) => <Link key={job._id} to={`/jobs/${job._id}`} className="flex min-w-0 items-center gap-3 rounded-control border border-transparent p-2 transition-colors hover:border-[#E5EBE7] hover:bg-[#F8FAF9]"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-[#E8F2EC] text-[#176B45]"><Briefcase className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-[#17221C]">{job.title}</span><span className="block truncate text-xs text-[#64736A]">{job.department || "General"} - {job.location || "Remote"}</span></span><Badge tone={job.rubricStatus === "approved" ? "green" : "amber"}>{job.rubricStatus === "approved" ? "Active" : "Draft"}</Badge></Link>)}</div>{totalJobPages > 1 && <div className="mt-4 flex items-center justify-end gap-2 border-t border-[#E5EBE7] pt-3"><button type="button" onClick={() => setJobPage((page) => Math.max(0, page - 1))} disabled={jobPage === 0} aria-label="Previous jobs" className="tap-target inline-flex items-center justify-center rounded-control border border-[#E5EBE7] text-[#64736A] disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><span className="text-xs font-medium text-[#64736A]">{jobPage + 1} / {totalJobPages}</span><button type="button" onClick={() => setJobPage((page) => Math.min(totalJobPages - 1, page + 1))} disabled={jobPage >= totalJobPages - 1} aria-label="Next jobs" className="tap-target inline-flex items-center justify-center rounded-control border border-[#E5EBE7] text-[#64736A] disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div>}</Card>
-        <Card className="border-[#E5EBE7] bg-white"><div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-bold text-[#17221C]">Recent interviews</h2><p className="mt-1 text-xs text-[#64736A]">AI interview activity</p></div><Link to="/ai-interviews" className="text-xs font-semibold text-[#176B45] hover:underline">View all</Link></div><div className="mt-5 space-y-2">{loading ? <><Skeleton className="h-12 w-full rounded-control" /><Skeleton className="h-12 w-full rounded-control" /></> : model.upcomingInterviews.length === 0 ? <p className="py-6 text-sm text-[#64736A]">No interview activity yet.</p> : model.upcomingInterviews.map((candidate) => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="flex min-w-0 items-center gap-3 rounded-control border border-transparent p-2 transition-colors hover:border-[#E5EBE7] hover:bg-[#F8FAF9]"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-[#17221C]">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-[#64736A]">{candidate.job?.title || "Interview"}</span></span>{candidate.ats?.overallScore != null ? <Badge tone="green">{candidate.ats.overallScore}% match</Badge> : <Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge>}</Link>)}</div></Card>
+      <section className="grid items-start gap-[18px] xl:grid-cols-3">
+        <Card padding="none"><CardHeader title="Recent candidates" action={<Link to="/candidates" className="text-xs font-semibold text-brand-700 hover:underline">View all</Link>} />
+          {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.recent.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No candidates yet.</p> : model.recent.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Application"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
+        </Card>
+        <Card padding="none"><CardHeader title="Recent jobs" action={<Link to="/jobs" className="text-xs font-semibold text-brand-700 hover:underline">View all</Link>} />
+          {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : paginatedJobs.length === 0 ? <EmptyState icon={Briefcase} title="No jobs posted yet" description="Create a role to begin recruiting." action={<Button as={Link} to="/jobs?create=1" size="sm">Create job</Button>} /> : paginatedJobs.map(job => <Link key={job._id} to={`/jobs?jobId=${job._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Briefcase className="h-4 w-4 shrink-0 text-brand-700" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{job.title}</span><span className="block truncate text-xs text-slate-500">{job.department || "General"} · {job.location || "Location not specified"}</span></span><Badge tone={job.status === "published" ? "green" : "slate"}>{job.status || "Status unavailable"}</Badge></Link>)}
+          {totalJobPages > 1 && <div className="flex items-center justify-end gap-2 p-3"><Button variant="secondary" size="sm" onClick={() => setJobPage(page => Math.max(0,page-1))} disabled={jobPage === 0} aria-label="Previous jobs"><ChevronLeft className="h-3.5 w-3.5" /></Button><span className="num text-xs">{jobPage+1} / {totalJobPages}</span><Button variant="secondary" size="sm" onClick={() => setJobPage(page => Math.min(totalJobPages-1,page+1))} disabled={jobPage >= totalJobPages-1} aria-label="Next jobs"><ChevronRight className="h-3.5 w-3.5" /></Button></div>}
+        </Card>
+        <Card padding="none"><CardHeader title="Recent interviews" action={<Link to="/ai-interviews" className="text-xs font-semibold text-brand-700 hover:underline">View all</Link>} />
+          {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.upcomingInterviews.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No interview activity yet.</p> : model.upcomingInterviews.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Interview"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
+        </Card>
       </section>
     </div>
   );

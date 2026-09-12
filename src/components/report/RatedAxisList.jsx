@@ -36,15 +36,15 @@ import { ChevronDown, Info } from "lucide-react";
 // stars on a 0-5 scale, not a percentage, and reusing the verdict bands would
 // silently assert that 3/5 on Insightfulness means the same as a 60% score.
 function toneFor(score) {
-  if (score == null) return "text-[#9BAAA1]";
-  if (score >= 4) return "text-[#176B45]";
-  if (score >= 3) return "text-[#176B45]";
-  return "text-[#C95C5C]";
+  if (score == null) return "text-[#5B6B63]";
+  if (score >= 4) return "text-[#0E3B2E]";
+  if (score >= 3) return "text-[#0E3B2E]";
+  return "text-[#B23B33]";
 }
 
 function Stars({ score }) {
   if (score == null) {
-    return <span className="text-xs font-medium text-[#9BAAA1]">Not measured</span>;
+    return <span className="text-xs font-medium text-slate-400">Not measured</span>;
   }
   const tone = toneFor(score);
   return (
@@ -92,21 +92,21 @@ function Row({ axis }) {
   const canOpen = observations.length > 0 || axis.score == null;
 
   return (
-    <div className="border-b border-[#E5EBE7] last:border-b-0">
+    <div className="border-b border-slate-100 last:border-b-0">
       <button
         type="button"
         onClick={() => canOpen && setOpen((v) => !v)}
         aria-expanded={canOpen ? open : undefined}
         disabled={!canOpen}
         className={`flex w-full items-center gap-3 px-3 py-2.5 text-left ${
-          canOpen ? "hover:bg-[#F8FAF9]" : "cursor-default"
+          canOpen ? "hover:bg-canvas" : "cursor-default"
         }`}
       >
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
-          <span className="truncate text-sm font-semibold text-[#17221C]">{axis.label}</span>
+          <span className="truncate text-sm font-semibold text-slate-900">{axis.label}</span>
           {axis.hint && (
             <span className="group/hint relative inline-flex shrink-0" title={axis.hint}>
-              <Info className="h-3 w-3 text-[#9BAAA1]" aria-hidden="true" />
+              <Info className="h-3 w-3 text-slate-400" aria-hidden="true" />
               <span className="sr-only">{axis.hint}</span>
             </span>
           )}
@@ -114,22 +114,22 @@ function Row({ axis }) {
         <Stars score={axis.score} />
         {canOpen && (
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-[#9BAAA1] transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
             aria-hidden="true"
           />
         )}
       </button>
 
       {open && (
-        <div className="space-y-2 border-t border-[#E5EBE7] bg-[#F8FAF9] px-3 py-3">
+        <div className="space-y-2 border-t border-slate-100 bg-canvas px-3 py-3">
           {axis.score == null ? (
-            <p className="text-xs text-[#64736A]">
+            <p className="text-xs text-slate-600">
               {NOT_MEASURED_COPY[axis.reason] ||
                 "Not enough could be verified in the transcript to give a reading. This is a gap in our evidence, not a finding about the candidate."}
             </p>
           ) : (
             <>
-              <p className="text-[11px] font-semibold tracking-[0.06em] text-[#64736A] uppercase">
+              <p className="text-[11px] font-semibold tracking-[0.06em] text-slate-500 uppercase">
                 What this is based on
               </p>
               <ul className="space-y-1.5">
@@ -137,16 +137,16 @@ function Row({ axis }) {
                   <li key={i} className="flex gap-2 text-xs">
                     <span
                       className={`mt-0.5 shrink-0 font-bold ${
-                        o.adverse ? "text-[#C95C5C]" : "text-[#176B45]"
+                        o.adverse ? "text-verdict-negative" : "text-verdict-positive"
                       }`}
                       aria-hidden="true"
                     >
                       {o.adverse ? "−" : "+"}
                     </span>
                     <span className="min-w-0">
-                      <span className="text-[#64736A]">{humanise(o.indicator)}</span>
+                      <span className="text-slate-500">{humanise(o.indicator)}</span>
                       {o.quote && (
-                        <span className="mt-0.5 block border-l-2 border-[#E5EBE7] pl-2 text-[#17221C] italic [overflow-wrap:anywhere]">
+                        <span className="mt-0.5 block border-l-2 border-slate-200 pl-2 text-slate-700 italic [overflow-wrap:anywhere]">
                           “{o.quote}”
                         </span>
                       )}
@@ -158,13 +158,13 @@ function Row({ axis }) {
                   four spans when nine were thrown away for bad audio is a different
                   finding from one over thirteen, and the star cannot say so. */}
               {axis.excluded > 0 && (
-                <p className="pt-1 text-[11px] text-[#64736A]">
+                <p className="pt-1 text-[11px] text-slate-500">
                   {axis.excluded} further span{axis.excluded === 1 ? "" : "s"} {axis.excluded === 1 ? "was" : "were"}{" "}
                   excluded — the transcription there wasn&rsquo;t reliable enough to attribute to the candidate.
                 </p>
               )}
               {axis.answersScored != null && axis.answersTotal != null && (
-                <p className="text-[11px] text-[#64736A]">
+                <p className="text-[11px] text-slate-500">
                   Read over {axis.answersScored} of {axis.answersTotal} answer
                   {axis.answersTotal === 1 ? "" : "s"}.
                 </p>
@@ -181,7 +181,7 @@ export default function RatedAxisList({ axes = [] }) {
   const list = axes.filter(Boolean);
   if (!list.length) return null;
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E5EBE7]">
+    <div className="overflow-hidden rounded-lg border border-slate-200">
       {list.map((a) => (
         <Row key={a.axis} axis={a} />
       ))}

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useSearchParams, useLocation } from "react-router-dom";
+import { safeCandidateReturn } from "../../lib/candidateJourney.js";
 
 /**
  * The report's sticky trail.
@@ -22,6 +24,9 @@ import { ChevronRight } from "lucide-react";
  * than the header does.
  */
 export default function ReportBreadcrumb({ candidateId, candidateName, title, at, trailing }) {
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const candidateReturn = safeCandidateReturn(params.get("returnTo"), `/candidates/${candidateId}`);
   return (
     <nav
       aria-label="Breadcrumb"
@@ -39,7 +44,8 @@ export default function ReportBreadcrumb({ candidateId, candidateName, title, at
         <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/50" aria-hidden="true" />
         <li className="shrink-0">
           <Link
-            to={`/candidates/${candidateId}`}
+            to={candidateReturn}
+            state={location.state}
             className="font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             {candidateName || "Candidate"}

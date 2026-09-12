@@ -1,10 +1,10 @@
 ﻿import { createContext, forwardRef, useContext, useId, useMemo, useRef } from "react";
-import { Search as SearchIcon } from "lucide-react";
 
 /**
- * AptusHire Form Primitives — light theme, green brand, charcoal text.
- * White backgrounds, green focus rings, no dark-mode variants.
+ * Form primitives with complete light/dark contrast compliance.
  */
+import { Search as SearchIcon } from "lucide-react";
+import { Children, isValidElement } from "react";
 
 const FieldContext = createContext(null);
 
@@ -19,32 +19,23 @@ function useControlId(explicitId) {
 
 function useFieldA11y(explicitId, error) {
   const ctx = useContext(FieldContext);
-  const id  = useControlId(explicitId);
+  const id = useControlId(explicitId);
   return {
     id,
-    "aria-invalid":     error ? "true" : undefined,
-    "aria-describedby": error && ctx ? ctx.errorId : undefined,
+    "aria-invalid": error ? "true" : undefined,
+    "aria-describedby": [ctx?.hasHint && ctx.hintId, error && ctx?.errorId].filter(Boolean).join(" ") || undefined,
   };
 }
 
-// Base chrome — white bg, charcoal text, green focus ring
-const fieldChrome = [
-  "rounded-md border border-[#E4E4E7] bg-white",
-  "text-sm text-[#09090B] placeholder:text-[#A1A1AA]",
-  "shadow-sm transition-[border-color,box-shadow] duration-150",
-  "focus:border-[#176B45] focus:outline-none focus:ring-2 focus:ring-[#176B45]/20",
-  "disabled:cursor-not-allowed disabled:bg-[#F4F4F5] disabled:text-[#71717A] disabled:opacity-60",
-].join(" ");
-
-const fieldClass        = `${fieldChrome} px-3.5 py-2.5`;
+const fieldChrome =
+"rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 shadow-xs transition-colors duration-150 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-brand-700/20 disabled:bg-slate-100 disabled:text-slate-400";
+const fieldClass = `${fieldChrome} px-3.5 py-2.5`;
 const fieldCompactClass = `${fieldChrome} px-2.5 py-1.5`;
 
 const HAS_WIDTH = /(?:^|\s)(?:[\w.[\]/-]+:)*(?:w-|size-)\S/;
-function withWidth(cn) {
-  return HAS_WIDTH.test(cn) ? "" : "w-full";
+function withWidth(className) {
+  return HAS_WIDTH.test(className) ? "" : "w-full";
 }
-
-const errorChrome = "border-verdict-negative focus:border-verdict-negative focus:ring-verdict-negative/15";
 
 export const Input = forwardRef(function Input({ className = "", error, id, ...props }, ref) {
   const a11y = useFieldA11y(id, error);
@@ -52,7 +43,7 @@ export const Input = forwardRef(function Input({ className = "", error, id, ...p
     <input
       ref={ref}
       {...a11y}
-      className={`${withWidth(className)} ${fieldClass} ${error ? errorChrome : ""} ${className}`}
+      className={`${withWidth(className)} ${fieldClass} ${error ?"border-red-400 focus:border-red-500 focus:ring-red-100" :""} ${className}`}
       {...props}
     />
   );
@@ -64,7 +55,7 @@ export const Textarea = forwardRef(function Textarea({ className = "", error, id
     <textarea
       ref={ref}
       {...a11y}
-      className={`${withWidth(className)} ${fieldClass} resize-y ${error ? errorChrome : ""} ${className}`}
+      className={`${withWidth(className)} ${fieldClass} resize-y ${error ?"border-red-400 focus:border-red-500 focus:ring-red-100" :""} ${className}`}
       {...props}
     />
   );
@@ -76,7 +67,7 @@ export const Select = forwardRef(function Select({ className = "", error, id, co
     <select
       ref={ref}
       {...a11y}
-      className={`${withWidth(className)} ${compact ? fieldCompactClass : fieldClass} ${error ? errorChrome : ""} ${className}`}
+      className={`${withWidth(className)} ${compact ? fieldCompactClass : fieldClass} ${error ?"border-red-400" :""} ${className}`}
       {...props}
     >
       {children}
@@ -84,11 +75,54 @@ export const Select = forwardRef(function Select({ className = "", error, id, co
   );
 });
 
+export function Label({ children, required, htmlFor, className = "" }) {
+  const ctx = useContext(FieldContext);
+  return (
+    <label htmlFor={htmlFor || ctx?.id} className={`mb-1.5 block text-xs font-bold text-slate-700 ${className}`}>
+      {children}
+      {required && (
+        <>
+          <span aria-hidden="true" className="text-red-500"> *</span>
+          <span className="sr-only"> (required)</span>
+        </>
+      )}
+    </label>
+  );
+}
+
+export function FieldError({ children, id }) {
+  const ctx = useContext(FieldContext);
+  if (!children) return null;
+  return (
+    <p id={id || ctx?.errorId} className="mt-1 text-xs font-medium text-red-600">
+      {children}
+    </p>
+  );
+}
+
+export function FieldHint({ children, id, className = "" }) {
+  const ctx = useContext(FieldContext);
+  return <p id={id || ctx?.hintId} className={`mt-1 text-xs text-slate-600 ${className}`}>{children}</p>;
+}
+
+export function FormGroup({ children, className = "", id: explicitId }) {
+  const generatedId = useId();
+  const id = explicitId || generatedId;
+  const claimed = useRef(null);
+  const hasHint = Children.toArray(children).some(child => isValidElement(child) && child.type === FieldHint);
+  const value = useMemo(() => ({ id, errorId: `${id}-error`, hintId: `${id}-hint`, hasHint, claimed }), [id, hasHint]);
+  return (
+    <FieldContext.Provider value={value}>
+      <div className={`mb-4 ${className}`}>{children}</div>
+    </FieldContext.Provider>
+  );
+}
+
 export const Search = forwardRef(function Search({ className = "", id, ...props }, ref) {
   return (
     <div className="relative">
       <SearchIcon
-        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9BAAA1]"
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5B6B63]"
         aria-hidden="true"
       />
       <Input ref={ref} id={id} type="search" className={`pl-10 ${className}`} {...props} />
@@ -106,7 +140,7 @@ export const Checkbox = forwardRef(function Checkbox({ className = "", error, id
       ref={ref}
       {...useFieldA11y(id, error)}
       type="checkbox"
-      className={`h-4 w-4 rounded border-[#E5EBE7] text-[#176B45] accent-primary focus:ring-2 focus:ring-primary/20 ${className}`}
+      className={`h-4 w-4 rounded border-[#E3EBE4] text-[#0E3B2E] accent-primary focus:ring-2 focus:ring-primary/20 ${className}`}
       {...props}
     />
   );
@@ -118,7 +152,7 @@ export const Radio = forwardRef(function Radio({ className = "", error, id, ...p
       ref={ref}
       {...useFieldA11y(id, error)}
       type="radio"
-      className={`h-4 w-4 border-[#E5EBE7] text-[#176B45] accent-primary focus:ring-2 focus:ring-primary/20 ${className}`}
+      className={`h-4 w-4 border-[#E3EBE4] text-[#0E3B2E] accent-primary focus:ring-2 focus:ring-primary/20 ${className}`}
       {...props}
     />
   );
@@ -141,8 +175,8 @@ export const Switch = forwardRef(function Switch(
         "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20",
         "disabled:cursor-not-allowed disabled:opacity-50",
         checked
-          ? "border-[#176B45] bg-[#176B45]"
-          : "border-[#E4E4E7] bg-[#F4F4F5]",
+          ? "border-[#0E3B2E] bg-[#0E3B2E]"
+          : "border-[#E3EBE4] bg-[#F3F7F1]",
         className,
       ].join(" ")}
       {...props}
@@ -155,45 +189,3 @@ export const Switch = forwardRef(function Switch(
     </button>
   );
 });
-
-export function Label({ children, required, htmlFor, className = "" }) {
-  const ctx = useContext(FieldContext);
-  return (
-    <label
-      htmlFor={htmlFor || ctx?.id}
-      className={`mb-1.5 block text-xs font-semibold text-[#17221C] ${className}`}
-    >
-      {children}
-      {required && (
-        <>
-          <span aria-hidden="true" className="ml-0.5 text-[#C95C5C]"> *</span>
-          <span className="sr-only"> (required)</span>
-        </>
-      )}
-    </label>
-  );
-}
-
-export function FieldError({ children, id }) {
-  const ctx = useContext(FieldContext);
-  if (!children) return null;
-  return (
-    <p
-      id={id || ctx?.errorId}
-      className="mt-1 text-xs font-medium text-[#C95C5C]"
-    >
-      {children}
-    </p>
-  );
-}
-
-export function FormGroup({ children, className = "" }) {
-  const id      = useId();
-  const claimed = useRef(null);
-  const value   = useMemo(() => ({ id, errorId: `${id}-error`, claimed }), [id]);
-  return (
-    <FieldContext.Provider value={value}>
-      <div className={`mb-4 ${className}`}>{children}</div>
-    </FieldContext.Provider>
-  );
-}

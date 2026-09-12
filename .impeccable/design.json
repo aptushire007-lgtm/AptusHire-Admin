@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-10T00:00:00Z",
+  "title": "Design System: AptusHire original admin",
+  "extensions": {
+    "motion": [{ "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Original state transitions" }],
+    "breakpoints": [{ "name": "desktop-navigation", "value": "1024px" }],
+    "shadows": [{ "name": "lift", "value": "0 12px 30px -4px rgba(8,18,16,0.10), 0 6px 12px -2px rgba(8,18,16,0.04)", "purpose": "Menus and overlays" }]
+  },
+  "components": [
+    { "name": "Primary button", "kind": "button", "refersTo": "button-primary", "html": "<button class=\"ds-primary\">Review candidate</button>", "css": ".ds-primary{background:#0E3B2E;color:white;border:0;border-radius:8px;height:32px;padding:0 14px;font:600 12.5px Inter,system-ui}.ds-primary:hover{background:#147A40}.ds-primary:focus-visible{outline:2px solid #147A40;outline-offset:3px}.ds-primary:disabled{background:#E3EBE4;color:#5B6B63}" },
+    { "name": "Secondary button", "kind": "button", "html": "<button class=\"ds-secondary\">View details</button>", "css": ".ds-secondary{background:white;color:#162420;border:1px solid #E3EBE4;border-radius:8px;height:32px;padding:0 14px;font:600 12.5px Inter,system-ui}.ds-secondary:hover{border-color:#C5D2C8}.ds-secondary:focus-visible{outline:2px solid #147A40;outline-offset:3px}" },
+    { "name": "Field", "kind": "input", "html": "<label class=\"ds-label\">Candidate name<input class=\"ds-input\" placeholder=\"Search candidates\"></label>", "css": ".ds-label{display:grid;gap:6px;color:#24332E;font:600 11.5px Inter,system-ui}.ds-input{background:white;color:#0C1F1B;border:1px solid #E3EBE4;border-radius:8px;padding:8px 12px;font:400 12.5px Inter,system-ui}.ds-input:focus-visible{outline:2px solid #147A40;outline-offset:2px}" },
+    { "name": "Navigation", "kind": "nav", "html": "<a class=\"ds-nav\" href=\"#\" aria-current=\"page\">Candidates</a>", "css": ".ds-nav{display:block;padding:6px 10px;border-radius:8px;color:#0E3B2E;background:#EAF8E4;font:600 13px Inter,system-ui;text-decoration:none}.ds-nav:hover{background:#C9EEBC}.ds-nav:focus-visible{outline:2px solid #147A40;outline-offset:2px}" },
+    { "name": "Status badge", "kind": "chip", "html": "<span class=\"ds-badge\">Needs review</span>", "css": ".ds-badge{display:inline-flex;border-radius:5px;padding:2px 6px;background:#FFF6E0;color:#8A5E09;font:700 10.5px Inter,system-ui}" },
+    { "name": "Card", "kind": "card", "refersTo": "card", "html": "<section class=\"ds-card\"><h2>Candidate evidence</h2><p>Review the recorded evidence before deciding.</p></section>", "css": ".ds-card{border:1px solid #E3EBE4;border-radius:12px;background:white;padding:18px;color:#0C1F1B;font:400 12.5px Inter,system-ui}.ds-card h2{margin:0 0 6px;font-size:13.5px}.ds-card p{margin:0;color:#5B6B63}" }
+  ],
+  "narrative": {
+    "northStar": "AptusHire Flow",
+    "overview": "The authority is the user's existing Recruitment-AI/admin/src design, not the replaced HiringAnt/gray styling.",
+    "dos": ["Do borrow the original component or layout before introducing a new visual pattern.", "Do adapt presentation around the current server-backed workflows."],
+    "donts": ["Don't overwrite authentication, API clients or environment configuration to restore a design."]
+  }
+}
