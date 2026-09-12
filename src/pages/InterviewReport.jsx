@@ -1347,7 +1347,7 @@ export default function InterviewReport({ candidateId: propCandidateId, hideBrea
             )}
           </div>
 
-          {hasInterviewSections && <InterviewWorkspace key={`${id}:${interview.attempt}`} candidateId={id} interview={interview} onReload={load} onRecorded={(review) => setReport(current => ({ ...current, interview: { ...current.interview, recruiterReview: review } }))} />}
+          {hasInterviewSections && <InterviewWorkspace key={`${id}:${interview.attempt}`} candidateId={id} interview={interview} />}
           {figuresVisible && hasInterviewSections && ev?.overallScore != null && <RecommendedActionCard action={interview.recommendedAction} />}
 
           {/* ---- The two rated panels -------------------------------------- */}

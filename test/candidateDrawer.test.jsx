@@ -105,7 +105,7 @@ it("renders candidate profile, score, and identity in drawer overlay", async () 
   expect(await screen.findByText("Jane Doe")).toBeTruthy();
   expect(screen.getByText("Senior AI Engineer")).toBeTruthy();
   expect(screen.getByText("88")).toBeTruthy();
-  expect(screen.getByRole("link", { name: /Open full profile/i })).toHaveAttribute("href", "/candidates/cand-1");
+  expect(screen.queryByRole("link", { name: /Open full profile/i })).toBeNull();
   expect(screen.getByText("Strong candidate with deep ML systems experience.")).toBeTruthy();
   expect(screen.getByText("PyTorch")).toBeTruthy();
 });
@@ -164,16 +164,17 @@ it("switches tabs across Summary, Evidence, Assessments, Interview, Activity", a
 
   await screen.findByText("Jane Doe");
 
-  // Click Evidence tab
-  fireEvent.click(screen.getByRole("tab", { name: /Evidence & CV/i }));
-  expect(await screen.findByText("CV Screening Breakdown")).toBeTruthy();
+  // Click Profile & CV tab (the tab formerly labelled "Evidence & CV"; its
+  // second copy of the screening breakdown now lives on ATS Score Breakdown).
+  fireEvent.click(screen.getByRole("tab", { name: /Profile & CV/i }));
+  expect(await screen.findByText("Candidate Profile Information")).toBeTruthy();
 
   // Click Activity tab
   fireEvent.click(screen.getByRole("tab", { name: /Activity/i }));
   expect(await screen.findByText("Recorded Stage History")).toBeTruthy();
 });
 
-it("supports all 6 segregated tabs seamlessly: Summary, Overview, Assessments, AI Interview Report, Profile & CV, Activity", async () => {
+it("supports all 6 segregated tabs seamlessly: Summary, ATS Score Breakdown, Assessments, AI Interview Report, Profile & CV, Activity", async () => {
   render(
     <MemoryRouter>
       <CandidateDrawer
@@ -187,19 +188,24 @@ it("supports all 6 segregated tabs seamlessly: Summary, Overview, Assessments, A
 
   await screen.findByText("Jane Doe");
 
-  // 1. Summary tab (default)
+  // 1. Summary tab (default) — it absorbed what the Overview tab used to hold,
+  //    so the application context and last stage event are here now.
   expect(screen.getByRole("tab", { name: /Summary/i, selected: true })).toBeTruthy();
   expect(screen.getByText("Applicant Highlights")).toBeTruthy();
-
-  // 2. Overview tab
-  fireEvent.click(screen.getByRole("tab", { name: /Overview/i }));
-  expect(await screen.findByText("Application Status")).toBeTruthy();
   expect(screen.getByText("Latest Recorded Activity")).toBeTruthy();
+  expect(screen.getByText("AI Interview Evidence Summary")).toBeTruthy();
 
-  // 3. Assessments tab
-  fireEvent.click(screen.getByRole("tab", { name: /Assessments/i }));
+  // 2. ATS Score Breakdown tab — the CV-screening evidence, in one place
+  fireEvent.click(screen.getByRole("tab", { name: /ATS Score Breakdown/i }));
   expect(await screen.findByText("CV Screening Assessment")).toBeTruthy();
-  expect(screen.getByText("AI Voice/Video Interview")).toBeTruthy();
+
+  // 3. Assessments tab — the skills-test paper, and nothing that another tab
+  //    already owns: the CV screening card belongs to ATS Score Breakdown and
+  //    the interview score card to AI Interview Report.
+  fireEvent.click(screen.getByRole("tab", { name: /^Assessments$/i }));
+  expect(await screen.findByText("Technical Skill Assessment Paper")).toBeTruthy();
+  expect(screen.queryByText("CV Screening Assessment")).toBeNull();
+  expect(screen.queryByText("AI Voice/Video Interview")).toBeNull();
 
   // 4. AI Interview Report tab
   fireEvent.click(screen.getByRole("tab", { name: /AI Interview Report/i }));
@@ -377,15 +383,8 @@ it("renders accurate assessment session details without dummy data in Assessment
     </MemoryRouter>
   );
 
-  // Evaluated rubric criteria in CV Screening
-  expect(await screen.findByText("Distributed ML Infrastructure")).toBeTruthy();
-
-  // AI Voice/Video Interview Card shows actual score & questions
-  expect(screen.getByText("88")).toBeTruthy();
-  expect(screen.getByText(/30 mins/i)).toBeTruthy();
-
   // Technical Skill Assessment Paper Card shows real title, percentage, items correct, and criteria
-  expect(screen.getByText("Production Systems Assessment")).toBeTruthy();
+  expect(await screen.findByText("Production Systems Assessment")).toBeTruthy();
   expect(screen.getByText("80")).toBeTruthy(); // 8/10 -> 80%
   expect(screen.getByText(/8\/10 correct/i)).toBeTruthy();
   expect(screen.getAllByText("Algorithm Optimization").length).toBeGreaterThanOrEqual(1);
@@ -393,3 +392,83 @@ it("renders accurate assessment session details without dummy data in Assessment
   expect(screen.getByText(/Verified/i)).toBeTruthy();
 });
 
+
+// ── Absence is not a verdict ────────────────────────────────────────────────
+// Each of these cards used to answer a question the record never answered.
+// Reading a missing field as a good result is the one failure mode a hiring
+// screen cannot have: it puts a claim in front of a recruiter that no run
+// stands behind, in the same typeface as the claims that do.
+
+it("reports an unproctored session as unmeasured, not as clean", async () => {
+  const candidate = { ...mockCandidateA, _id: "cand-noproc" };
+  get.mockImplementation((url) => {
+    if (url === "/candidates/cand-noproc") return Promise.resolve({ data: candidate });
+    if (url.startsWith("/candidates/cand-noproc/interview-report")) {
+      // An interview exists; no proctoring record was ever written for it.
+      return Promise.resolve({
+        data: { hasInterview: true, interview: { sessionId: "s1", status: "completed" } },
+      });
+    }
+    return Promise.resolve({ data: null });
+  });
+
+  render(
+    <MemoryRouter>
+      <CandidateDrawer candidateId="cand-noproc" initialTab="ai-interview" onClose={vi.fn()} />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText(/No proctoring record was stored/i)).toBeTruthy();
+  expect(screen.getByText(/That is not a clean result/i)).toBeTruthy();
+  // The two sentences that were invented out of the absence.
+  expect(screen.queryByText(/anti-cheat and environment verification was enabled/i)).toBeNull();
+  expect(screen.queryByText(/No integrity signals or suspicious events were recorded/i)).toBeNull();
+  expect(screen.queryByText(/Standard Verification/i)).toBeNull();
+});
+
+it("does not claim high confidence for a run that reported none", async () => {
+  const candidate = { ...mockCandidateA, _id: "cand-noconf" };
+  get.mockImplementation((url) => {
+    if (url === "/candidates/cand-noconf") return Promise.resolve({ data: candidate });
+    if (url.startsWith("/candidates/cand-noconf/assessment")) {
+      // `confidence` has no schema default, so it is simply absent here.
+      return Promise.resolve({
+        data: { overallScore: 81, engine: "evidence", criterionFindings: [] },
+      });
+    }
+    return Promise.resolve({ data: null });
+  });
+
+  render(
+    <MemoryRouter>
+      <CandidateDrawer candidateId="cand-noconf" onClose={vi.fn()} />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText(/Confidence not reported/i)).toBeTruthy();
+  expect(screen.queryByText(/High Confidence/i)).toBeNull();
+});
+
+it("withholds the keyword-screening prose for a candidate nobody screened", async () => {
+  // `ats.overallScore` DEFAULTS TO 0 in the schema, so an unscreened candidate
+  // used to be described as a 0% match — a measurement about a run that never
+  // happened. `isScored()` gates the prose the same way it gates the cards.
+  const candidate = {
+    ...mockCandidateA,
+    _id: "cand-unscored",
+    ats: { overallScore: 0, decision: "pending" }, // no scoredAt
+  };
+  get.mockImplementation((url) => {
+    if (url === "/candidates/cand-unscored") return Promise.resolve({ data: candidate });
+    return Promise.resolve({ data: null });
+  });
+
+  render(
+    <MemoryRouter>
+      <CandidateDrawer candidateId="cand-unscored" onClose={vi.fn()} />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText(/Autonomous screening has not completed/i)).toBeTruthy();
+  expect(screen.queryByText(/Overall match: 0%/i)).toBeNull();
+});

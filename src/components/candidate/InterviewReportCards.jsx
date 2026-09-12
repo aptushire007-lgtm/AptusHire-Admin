@@ -118,34 +118,40 @@ export function RecommendedActionCard({ action }) {
   );
 }
 
+// A proctoring run that produced no risk reading used to default to `0` and to
+// RISK_BAND.low — a black "0 / Risk" tile under a green "Low risk" badge, which
+// is an exoneration assembled out of two missing fields. An unscored session
+// says so; only a real number is shown as a number.
 export function IntegrityCard({ proctoring, candidateId }) {
-  const band = RISK_BAND[proctoring?.displayRiskBand || proctoring?.riskBand] || RISK_BAND.low;
-  const riskScore = proctoring?.displayRiskScore ?? proctoring?.riskScore ?? 0;
+  const rawBand = proctoring?.displayRiskBand || proctoring?.riskBand;
+  const band = RISK_BAND[rawBand] || null;
+  const riskScore = proctoring?.displayRiskScore ?? proctoring?.riskScore ?? null;
+  const bandBadge = proctoring?.bandWithheld ? (
+    <Badge tone="slate">Band withheld</Badge>
+  ) : band ? (
+    <Badge tone={band.tone}>{band.label}</Badge>
+  ) : (
+    <Badge tone="slate">Risk not scored</Badge>
+  );
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
           <Eye className="h-4 w-4 text-brand-600" /> Integrity & Proctoring
         </h3>
-        {proctoring?.bandWithheld ? (
-          <Badge tone="slate">Band withheld</Badge>
-        ) : (
-          <Badge tone={band.tone}>{band.label}</Badge>
-        )}
+        {bandBadge}
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
         {/* Left: Score Visual */}
         <div className="flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-b from-slate-50 to-white p-5 ring-1 ring-slate-100 lg:sticky lg:top-32 lg:self-start">
           <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-2xl bg-slate-900 text-white">
-            <span className="text-3xl font-bold">{riskScore}</span>
+            <span className={riskScore != null ? "text-3xl font-bold" : "text-2xl font-bold text-slate-400"}>
+              {riskScore != null ? riskScore : "—"}
+            </span>
             <span className="text-[10px] text-slate-300">Risk</span>
           </div>
-          {proctoring?.bandWithheld ? (
-            <Badge tone="slate">Band withheld</Badge>
-          ) : (
-            <Badge tone={band.tone}>{band.label}</Badge>
-          )}
+          {bandBadge}
           {proctoring?.breakdown?.length > 0 && (
             <div className="mt-1 w-full space-y-1.5">
               {proctoring.breakdown.map((row) => (
@@ -505,7 +511,9 @@ export function InstrumentScores({
   const asked = ev?.questionsAsked ?? interview?.questionCount;
   const answered = ev?.questionsAnswered;
   const declined = ev?.questionsDeclined;
-  const band = report?.proctoring ? RISK_BAND[report.proctoring.displayRiskBand] || RISK_BAND.low : null;
+  // No `|| RISK_BAND.low` fallback: a proctoring record that never produced a
+  // band is not a low-risk one, and this Figure is simply omitted instead.
+  const band = report?.proctoring ? RISK_BAND[report.proctoring.displayRiskBand] || null : null;
   const assessResult = report?.assessment?.session?.result;
   const resumeEval = coverage?.resumeEvaluation;
 

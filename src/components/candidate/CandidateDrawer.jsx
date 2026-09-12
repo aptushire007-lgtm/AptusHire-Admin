@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Link } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,8 +20,6 @@ import {
   ArrowLeft,
   Download,
   Send,
-  Check,
-  Copy,
   User,
   MapPin,
   Building2,
@@ -74,8 +71,12 @@ import {
 } from "./InterviewReportCards.jsx";
 
 export const TABS = [
+  // "Overview" used to sit here. It restated Summary: the same job, the same
+  // ATS score, the same interview status, one card lower down. What it alone
+  // carried — applied-on, requisition, the last stage event, the interview
+  // evidence digest — moved into Summary, and the tab went.
   { id: "summary", label: "Summary", icon: Sparkles },
-  { id: "overview", label: "Overview", icon: CheckCircle2 },
+  { id: "ats-breakdown", label: "ATS Score Breakdown", icon: ListChecks },
   { id: "assessments", label: "Assessments", icon: Award },
   { id: "ai-interview", label: "AI Interview Report", icon: Mic },
   { id: "profile-cv", label: "Profile & CV", icon: FileText },
@@ -132,6 +133,8 @@ export default function CandidateDrawer({
   const resolveTab = useCallback((tab) => {
     if (tab === "evidence") return "profile-cv";
     if (tab === "interview") return "ai-interview";
+    // Overview was merged into Summary; existing deep links still land somewhere true.
+    if (tab === "overview") return "summary";
     const found = TABS.find((t) => t.id === tab);
     return found ? found.id : "summary";
   }, []);
@@ -147,7 +150,6 @@ export default function CandidateDrawer({
   const [movingStage, setMovingStage] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
-  const [copiedResume, setCopiedResume] = useState(false);
   const [interviewSubTab, setInterviewSubTab] = useState("all");
 
   // Record tools (rescore / DPDP export / DPDP erasure). These used to live
@@ -434,18 +436,15 @@ export default function CandidateDrawer({
     }
   };
 
-  const handleCopyResumeText = () => {
-    if (!candidate?.rawResumeText) return;
-    navigator.clipboard.writeText(candidate.rawResumeText);
-    setCopiedResume(true);
-    setTimeout(() => setCopiedResume(false), 2000);
-  };
-
   // Computed metrics
   const cvScore = candidate ? (profileAssessment?.overallScore ?? scoreOf(candidate)) : null;
   const caveat = candidate ? scoreCaveat(candidate) : null;
   const findings = profileAssessment?.criterionFindings || [];
   const satisfiedFindings = findings.filter((f) => f.status === "satisfied");
+  const resumeSkillNames = (candidate?.skills || [])
+    .slice(0, 5)
+    .map((s) => (typeof s === "string" ? s : s?.name))
+    .filter(Boolean);
   const topCompetencies = (satisfiedFindings.length > 0 ? satisfiedFindings : findings).slice(0, 3).map((f) => f.label);
 
   // Normalized Interview State
@@ -467,34 +466,19 @@ export default function CandidateDrawer({
     interviewSession?.status ||
     (interviewReport?.hasInterview ? "completed" : null);
 
-  const interviewStartedAt =
-    interviewSession?.aiInterview?.startedAt ||
-    interviewSession?.startedAt ||
-    interviewReport?.interview?.startedAt ||
-    null;
   const interviewCompletedAt =
     interviewSession?.aiInterview?.completedAt ||
     interviewSession?.completedAt ||
     interviewReport?.interview?.completedAt ||
     null;
-  const interviewDurationMins =
-    interviewStartedAt && interviewCompletedAt
-      ? Math.max(1, Math.round((new Date(interviewCompletedAt) - new Date(interviewStartedAt)) / 60000))
-      : null;
 
-  const interviewQuestionsAnswered =
-    interviewReport?.interview?.substance?.totalAnswers ??
-    interviewReport?.interview?.evaluation?.questionsAnswered ??
-    interviewSession?.aiInterview?.evaluation?.questionsAnswered ??
-    interviewSession?.aiInterview?.turns?.filter((t) => t.role === "candidate" && t.kind === "answer").length ??
-    null;
-
-  const interviewTotalQuestions =
-    interviewReport?.interview?.questionCount ??
-    interviewSession?.aiInterview?.questionCount ??
-    interviewReport?.interview?.evaluation?.questionsAsked ??
-    interviewSession?.aiInterview?.evaluation?.questionsAsked ??
-    null;
+  // A raw `completedAt - startedAt` used to be printed here as the interview's
+  // duration. On a session the pipeline never closed that subtraction returns
+  // days — one candidate's card read "21494 mins" — so it described the gap
+  // between two timestamps and called it the length of a conversation. The
+  // standalone report derives this from the backend's `durationFlag` instead
+  // (secondsPerQuestion, with an abnormally-short warning), which is the only
+  // reading that survives a session that was abandoned rather than finished.
 
   // Normalized Assessment Session & Decision State
   const rawAssessment = assessmentSession || interviewReport?.assessment || null;
@@ -598,13 +582,6 @@ export default function CandidateDrawer({
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              to={`/candidates/${candidateId}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-brand-800"
-            >
-              <span>Open full profile</span>
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
             <button
               type="button"
               onClick={onClose}
@@ -803,7 +780,7 @@ export default function CandidateDrawer({
               TAB 1: SUMMARY — 2D Dashboard (no-scroll)
               ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "summary" && (
-            <div className="flex flex-col gap-3 p-3 h-full min-h-0">
+            <div className="flex flex-col gap-3 p-3 flex-1 overflow-y-auto min-h-0">
               {/* ── Row 1: 3 KPI Score Cards ─────────────────────────────── */}
               <div className="grid grid-cols-3 gap-3 shrink-0">
                 {/* CV Screening */}
@@ -913,7 +890,7 @@ export default function CandidateDrawer({
               </div>
 
               {/* ── Row 2: 3-Column Content Grid (fills remaining height) ── */}
-              <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
                 {/* Column 1: Aptus AI Autonomous Evaluation */}
                 <div
@@ -968,18 +945,29 @@ export default function CandidateDrawer({
                         </p>
                       ) : (
                         <p>
-                          Autonomous screening evaluated candidate against {findings.length} rubric competencies with an
-                          overall match of {profileAssessment.overallScore || 0}%.
+                          Autonomous screening evaluated candidate against {findings.length} rubric competencies
+                          {profileAssessment.overallScore != null
+                            ? ` with an overall match of ${profileAssessment.overallScore}%.`
+                            : ". No overall match was recorded for the run."}
                         </p>
                       )
-                    ) : candidate.ats ? (
+                    ) : isScored(candidate) ? (
+                      // `ats.overallScore` DEFAULTS TO 0 in the schema, so this
+                      // prose is only reachable behind the same `isScored` gate
+                      // the score cards use — otherwise it announced a confident
+                      // "Overall match: 0%" about a candidate nobody screened.
+                      // The skill list is likewise printed only when it exists:
+                      // "competencies in technical skills" named no competency.
                       <p>
-                        Resume keyword screening identified competencies in{" "}
-                        <strong className="text-slate-950 font-semibold">
-                          {candidate.skills?.slice(0, 5).map((s) => (typeof s === "string" ? s : s.name)).join(", ") ||
-                            "technical skills"}
-                        </strong>
-                        . Overall match: {candidate.ats.overallScore || 0}%.
+                        {resumeSkillNames.length > 0 ? (
+                          <>
+                            Resume keyword screening identified competencies in{" "}
+                            <strong className="text-slate-950 font-semibold">{resumeSkillNames.join(", ")}</strong>.{" "}
+                          </>
+                        ) : (
+                          <>Resume keyword screening recorded no extracted skills for this candidate. </>
+                        )}
+                        {candidate.ats.overallScore != null && <>Overall match: {candidate.ats.overallScore}%.</>}
                         {candidate.ats.missingSkills?.length > 0 && (
                           <span className="block mt-1.5 text-amber-800 font-medium">
                             Flagged unverified: {candidate.ats.missingSkills.join(", ")}.
@@ -1012,10 +1000,14 @@ export default function CandidateDrawer({
                         ? "Rubric Evidence Engine"
                         : "ATS Resume Screening"}
                     </span>
+                    {/* `confidence` has no schema default, so an engine that
+                        did not emit one used to be reported as "High
+                        Confidence" — a claim about the run's own certainty
+                        that nothing measured. Absent means absent. */}
                     <span className="font-semibold text-emerald-900">
                       {profileAssessment?.confidence != null
                         ? `Confidence: ${Math.round(profileAssessment.confidence * 100)}%`
-                        : "High Confidence"}
+                        : "Confidence not reported"}
                     </span>
                   </div>
                 </div>
@@ -1030,9 +1022,12 @@ export default function CandidateDrawer({
                     {candidate.experience?.[0] && (
                       <div>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Latest Role</span>
+                        {/* A missing role or employer reads as "—", not as the
+                            words "Role" and "Company" set in the same weight as
+                            a real one. A placeholder rendered as data is data. */}
                         <p className="font-semibold text-slate-900">
-                          {candidate.experience[0].title || candidate.experience[0].role || "Role"} at{" "}
-                          <strong className="font-bold">{candidate.experience[0].company || "Company"}</strong>
+                          {candidate.experience[0].title || candidate.experience[0].role || "—"} at{" "}
+                          <strong className="font-bold">{candidate.experience[0].company || "—"}</strong>
                         </p>
                         {candidate.experience[0].description && (
                           <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{candidate.experience[0].description}</p>
@@ -1044,8 +1039,8 @@ export default function CandidateDrawer({
                       <div>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Education</span>
                         <p className="font-medium text-slate-900">
-                          {candidate.education[0].degree || "Degree"} —{" "}
-                          {candidate.education[0].institution || candidate.education[0].school || "Institution"}
+                          {candidate.education[0].degree || "—"} —{" "}
+                          {candidate.education[0].institution || candidate.education[0].school || "—"}
                         </p>
                       </div>
                     )}
@@ -1091,200 +1086,68 @@ export default function CandidateDrawer({
                   </div>
                 </Card>
 
-                {/* Column 3: Rubric Competency Breakdown */}
-                <Card className="bg-gradient-to-br from-amber-50/60 to-white shadow-sm border-slate-200/80 overflow-y-auto min-h-0 flex flex-col">
-                  <h3 className="text-xs font-bold text-slate-900 mb-2.5 flex items-center justify-between shrink-0">
-                    <span className="flex items-center gap-1.5">
-                      <ListChecks className="w-3.5 h-3.5 text-slate-500" />
-                      Rubric Breakdown
-                    </span>
-                    <span className="text-[10px] font-normal text-slate-500">
-                      {candidate.job?.title ? candidate.job.title : "Role Rubric"}
-                    </span>
+              </div>
+
+              {/* ── Row 3: application context (merged in from Overview) ─── */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <Card className="bg-white shadow-xs border-slate-200/80">
+                  <h3 className="text-xs font-bold text-slate-900 mb-2.5 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+                    Application
                   </h3>
+                  <dl className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <dt className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Applied on</dt>
+                      <dd className="font-semibold text-slate-900">
+                        {candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Requisition</dt>
+                      <dd className="font-semibold text-slate-900">{candidate.job?.title || "No job assigned"}</dd>
+                      {candidate.job?.department && (
+                        <dd className="text-slate-500">{candidate.job.department}</dd>
+                      )}
+                    </div>
+                  </dl>
+                </Card>
 
-                  <div className="space-y-2 flex-1">
-                    {/* `ats.overallScore` and the per-axis fields DEFAULT TO 0 in
-                        the schema (backend/models/Candidate.js), so `|| 0` used to
-                        draw four confident "0%" bars for a candidate the engine
-                        never looked at — a measurement claim about an unmeasured
-                        person. `isScored()` is the honest gate (see
-                        lib/pipelineMetrics.js), and an axis the run did not
-                        produce reads "—" rather than zero. */}
-                    {!isScored(candidate) ? (
-                      <p className="text-[11px] text-slate-500">
-                        Not screened yet — no rubric breakdown to show.
-                      </p>
-                    ) : (
-                      [
-                        { label: "Skills Match", value: candidate.ats?.skillsMatch ?? candidate.ats?.breakdown?.skillsScore },
-                        { label: "Experience Match", value: candidate.ats?.experienceMatch ?? candidate.ats?.breakdown?.experienceScore },
-                        { label: "Education Match", value: candidate.ats?.educationMatch ?? candidate.ats?.breakdown?.educationScore },
-                        { label: "Projects Match", value: candidate.ats?.projectsMatch },
-                      ].map(({ label, value }) => (
-                        <div key={label}>
-                          <div className="flex justify-between text-[11px] mb-0.5">
-                            <span className="font-semibold text-slate-700">{label}</span>
-                            <span className="font-bold text-emerald-800 tabular-nums">
-                              {value == null ? "—" : `${value}%`}
-                            </span>
-                          </div>
-                          {value != null && (
-                            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-emerald-600"
-                                style={{ width: `${Math.min(100, value)}%` }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-
-                    {candidate.ats?.missingSkills?.length > 0 && (
-                      <div className="pt-2 border-t border-slate-100">
-                        <span className="text-[10px] font-semibold text-amber-900 uppercase tracking-wider block mb-1">Missing Skills</span>
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.ats.missingSkills.map((s, idx) => (
-                            <span key={idx} className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[11px] text-amber-800 font-medium">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                {/* Latest Recorded Activity */}
+                <Card className="bg-white shadow-xs border-slate-200/80">
+                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-500" />
+                    Latest Recorded Activity
+                  </h3>
+                  {candidate.stageHistory?.length > 0 ? (
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                        <CheckCircle2 className="w-4 h-4" />
                       </div>
-                    )}
-
-                    {findings.length > 0 && (
-                      <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
-                          Specific Rubric Competencies
-                        </span>
-                        {findings.map((f, idx) => {
-                          // Only a real `criterionScore` becomes a percentage.
-                          // Mapping "satisfied" to 100% and "partial" to 50%
-                          // manufactures precision the engine never claimed —
-                          // the status is a judgement, not a measurement — so a
-                          // finding without a score shows its status word.
-                          const pct = f.criterionScore != null ? Math.round(f.criterionScore * 100) : null;
-                          return (
-                            <div key={idx} className="p-2 rounded-lg border border-slate-100 bg-slate-50/70 text-[11px]">
-                              <div className="flex justify-between items-center gap-2 mb-0.5">
-                                <span className="font-semibold text-slate-800">{f.label}</span>
-                                <span className={`font-bold tabular-nums shrink-0 ${f.status === "satisfied" ? "text-emerald-700" : "text-slate-600"}`}>
-                                  {pct != null ? `${pct}%` : STATUS_WORDS[f.status] || "Not assessed"}
-                                </span>
-                              </div>
-                              {pct != null && (
-                                <div className="w-full h-1 rounded-full bg-slate-200 overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${f.status === "satisfied" ? "bg-emerald-600" : "bg-slate-400"}`}
-                                    style={{ width: `${pct}%` }}
-                                  />
-                                </div>
-                              )}
-                              {/* The engine's justification for this criterion.
-                                  Dropping it left a bare number with nothing a
-                                  recruiter could check it against, which is the
-                                  opposite of an evidence-bound score. */}
-                              {f.reasoning && (
-                                <p className="mt-1 text-[11px] leading-snug text-slate-600">{f.reasoning}</p>
-                              )}
-                            </div>
-                          );
-                        })}
+                      <div className="flex-1 text-xs sm:text-sm">
+                        <div className="flex justify-between items-baseline flex-wrap gap-2">
+                          <strong className="text-slate-900 font-semibold">
+                            Moved to {stageLabel(candidate.stageHistory[candidate.stageHistory.length - 1].stage)}
+                          </strong>
+                          <span className="text-xs text-slate-500">
+                            {candidate.stageHistory[candidate.stageHistory.length - 1].at
+                              ? new Date(candidate.stageHistory[candidate.stageHistory.length - 1].at).toLocaleString()
+                              : "Recorded"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-600">
+                          {candidate.stageHistory[candidate.stageHistory.length - 1].actor
+                            ? `Action performed by ${candidate.stageHistory[candidate.stageHistory.length - 1].actor}`
+                            : // An unrecorded actor is not evidence the move was
+                              // automatic — the record simply does not say who.
+                              "No actor recorded for this move"}
+                        </p>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">No previous stage events recorded.</p>
+                  )}
                 </Card>
               </div>
-            </div>
-          )}
-
-
-
-          {/* ══════════════════════════════════════════════════════════════════
-              TAB 2: OVERVIEW
-              ══════════════════════════════════════════════════════════════════ */}
-          {activeTab === "overview" && (
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
-            <div className="space-y-5">
-              {/* Application Lifecycle Status Card */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                  <div>
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Application Status</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <h2 className="text-lg font-bold text-slate-900">{stageLabel(candidate.status)}</h2>
-                      <Badge tone={stageTone(candidate.status)}>{candidate.status}</Badge>
-                    </div>
-                  </div>
-                  <div className="text-right text-xs text-slate-500">
-                    <span>Applied on: </span>
-                    <strong className="text-slate-800 font-semibold">
-                      {candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : "Recent"}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 block mb-1">Assigned Requisition</span>
-                    <p className="font-bold text-slate-900 text-sm">{candidate.job?.title || "No job assigned"}</p>
-                    <span className="text-slate-400">{candidate.job?.department || "Department not specified"}</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 block mb-1">ATS Screening Engine</span>
-                    <p className="font-bold text-slate-900 text-sm">
-                      {candidate.ats?.engine === "evidence" ? "Rubric Evidence" : "Keyword Match"}
-                    </p>
-                    <span className="text-slate-400">Score: {cvScore != null ? `${cvScore}/100` : "Unscored"}</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 block mb-1">Interview Assessment</span>
-                    <p className="font-bold text-slate-900 text-sm">
-                      {interviewRecommendation?.replaceAll("_", " ") ||
-                        (interviewScore != null ? `${interviewScore}/100` : "Pending")}
-                    </p>
-                    <span className="text-slate-400">
-                      {interviewCompletedAt ? "Session finished" : "In pipeline"}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Latest Recorded Activity */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-500" />
-                  Latest Recorded Activity
-                </h3>
-                {candidate.stageHistory?.length > 0 ? (
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-xs sm:text-sm">
-                      <div className="flex justify-between items-baseline flex-wrap gap-2">
-                        <strong className="text-slate-900 font-semibold">
-                          Moved to {stageLabel(candidate.stageHistory[candidate.stageHistory.length - 1].stage)}
-                        </strong>
-                        <span className="text-xs text-slate-500">
-                          {candidate.stageHistory[candidate.stageHistory.length - 1].at
-                            ? new Date(candidate.stageHistory[candidate.stageHistory.length - 1].at).toLocaleString()
-                            : "Recorded"}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-slate-600">
-                        {candidate.stageHistory[candidate.stageHistory.length - 1].actor
-                          ? `Action performed by ${candidate.stageHistory[candidate.stageHistory.length - 1].actor}`
-                          : "Status updated automatically in pipeline"}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500">No previous stage events recorded.</p>
-                )}
-              </Card>
 
               {/* Interview Evidence Summary Card with jump button */}
               <Card className="bg-white shadow-xs border-slate-200/80">
@@ -1316,9 +1179,15 @@ export default function CandidateDrawer({
                           {interviewScore != null ? `${interviewScore}/100` : "Score pending"}
                         </span>
                       </div>
+                      {/* A missing evaluation summary is not a promise that a
+                          recording and a transcript exist — that sentence was
+                          printed without either being checked. */}
                       <p className="text-slate-700 leading-relaxed text-xs">
-                        {interviewSummary ||
-                          "Interview session audio and transcript recorded. Evidence is available for review."}
+                        {interviewSummary || (
+                          <span className="text-slate-500 italic">
+                            No evaluation summary recorded for this session.
+                          </span>
+                        )}
                       </p>
                     </div>
 
@@ -1340,7 +1209,10 @@ export default function CandidateDrawer({
                                 <li key={i}>{w}</li>
                               ))
                             ) : (
-                              <li>No major gaps noted.</li>
+                              // An empty array and an unproduced field look the
+                              // same from here, and neither is the engine
+                              // affirming the candidate has no gaps.
+                              <li className="list-none text-amber-900/70 italic">None recorded.</li>
                             )}
                           </ul>
                         </div>
@@ -1351,6 +1223,132 @@ export default function CandidateDrawer({
                   <p className="text-xs text-slate-500 py-2">
                     No AI interview session recorded yet for this applicant. You can invite the candidate from the AI Interview Report tab.
                   </p>
+                )}
+              </Card>
+
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════════════════════════════
+              TAB: ATS SCORE BREAKDOWN
+              The CV-screening evidence used to be split in two: a condensed
+              column on Summary and a fuller card buried inside Assessments,
+              which meant the same four axes were rendered twice from two
+              separate (and once divergent) code paths. It is one subject, so
+              it gets one place — and it sits next to Assessments because both
+              answer "what did we measure about this person".
+              ══════════════════════════════════════════════════════════════════ */}
+          {activeTab === "ats-breakdown" && (
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+            <div className="space-y-5">
+              {/* CV Screening Breakdown Card */}
+              <Card className="bg-white shadow-xs border-slate-200/80">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">CV Screening Assessment</h3>
+                    <p className="text-xs text-slate-500">Autonomous evaluation based on job rubric & experience</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-slate-900 tabular-nums">
+                      {cvScore != null ? `${cvScore}/100` : "—"}
+                    </span>
+                    <span className="block text-[11px] text-slate-400">Overall Match</span>
+                  </div>
+                </div>
+
+                {/* The same honest gate as the Summary tab's rubric breakdown:
+                    these axes DEFAULT TO 0 in the schema, so `|| 0` reported
+                    four confident zeroes about a candidate nobody screened.
+                    An axis the run did not produce reads "—", not 0%. */}
+                {!isScored(candidate) ? (
+                  <p className="text-xs text-slate-500">
+                    Not screened yet — there is no CV screening breakdown to show.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: "Skills Match", value: candidate.ats?.skillsMatch ?? candidate.ats?.breakdown?.skillsScore },
+                      { label: "Experience Match", value: candidate.ats?.experienceMatch ?? candidate.ats?.breakdown?.experienceScore },
+                      { label: "Education Match", value: candidate.ats?.educationMatch ?? candidate.ats?.breakdown?.educationScore },
+                      { label: "Projects Match", value: candidate.ats?.projectsMatch },
+                    ].map((axis) => (
+                      <div key={axis.label} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                        <span className="text-xs font-semibold text-slate-600 block mb-1">{axis.label}</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-bold text-slate-900 tabular-nums">
+                            {axis.value != null ? `${axis.value}%` : "—"}
+                          </span>
+                        </div>
+                        {axis.value != null && (
+                          <div className="w-full h-1.5 rounded-full bg-slate-200 mt-2 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-emerald-600"
+                              style={{ width: `${Math.min(100, axis.value)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {candidate.ats?.missingSkills?.length > 0 && (
+                  <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200">
+                    <span className="text-xs font-bold text-amber-900 block mb-1">
+                      Flagged Unverified / Missing Competencies:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {candidate.ats.missingSkills.map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="rounded bg-white border border-amber-300 px-2 py-0.5 text-xs text-amber-900 font-medium"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {findings.length > 0 && (
+                  <div className="mt-4 border-t border-slate-100 pt-3 space-y-1.5">
+                    <span className="text-xs font-bold text-slate-800 block mb-1">
+                      Evaluated Rubric Criteria
+                    </span>
+                    {findings.map((f, idx) => {
+                      // Only a real `criterionScore` becomes a percentage.
+                      // Mapping "satisfied" to 100% and "partial" to 50%
+                      // manufactures precision the engine never claimed —
+                      // the status is a judgement, not a measurement — so a
+                      // finding without a score shows its status word.
+                      const pct = f.criterionScore != null ? Math.round(f.criterionScore * 100) : null;
+                      return (
+                        <div key={idx} className="p-2 rounded-lg border border-slate-100 bg-slate-50/70 text-[11px]">
+                          <div className="flex justify-between items-center gap-2 mb-0.5">
+                            <span className="font-semibold text-slate-800">{f.label}</span>
+                            <span className={`font-bold tabular-nums shrink-0 ${f.status === "satisfied" ? "text-emerald-700" : "text-slate-600"}`}>
+                              {pct != null ? `${pct}%` : STATUS_WORDS[f.status] || "Not assessed"}
+                            </span>
+                          </div>
+                          {pct != null && (
+                            <div className="w-full h-1 rounded-full bg-slate-200 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${f.status === "satisfied" ? "bg-emerald-600" : "bg-slate-400"}`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          )}
+                          {/* The engine's justification for this criterion.
+                              Dropping it left a bare number with nothing a
+                              recruiter could check it against, which is the
+                              opposite of an evidence-bound score. */}
+                          {f.reasoning && (
+                            <p className="mt-1 text-[11px] leading-snug text-slate-600">{f.reasoning}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </Card>
             </div>
@@ -1433,192 +1431,6 @@ export default function CandidateDrawer({
                 </Card>
               )}
 
-              {/* CV Screening Breakdown Card */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">CV Screening Assessment</h3>
-                    <p className="text-xs text-slate-500">Autonomous evaluation based on job rubric & experience</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {cvScore != null ? `${cvScore}/100` : "—"}
-                    </span>
-                    <span className="block text-[11px] text-slate-400">Overall Match</span>
-                  </div>
-                </div>
-
-                {/* The same honest gate as the Summary tab's rubric breakdown:
-                    these axes DEFAULT TO 0 in the schema, so `|| 0` reported
-                    four confident zeroes about a candidate nobody screened.
-                    An axis the run did not produce reads "—", not 0%. */}
-                {!isScored(candidate) ? (
-                  <p className="text-xs text-slate-500">
-                    Not screened yet — there is no CV screening breakdown to show.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: "Skills Match", value: candidate.ats?.skillsMatch ?? candidate.ats?.breakdown?.skillsScore },
-                      { label: "Experience Match", value: candidate.ats?.experienceMatch ?? candidate.ats?.breakdown?.experienceScore },
-                      { label: "Education Match", value: candidate.ats?.educationMatch ?? candidate.ats?.breakdown?.educationScore },
-                      { label: "Projects Match", value: candidate.ats?.projectsMatch },
-                    ].map((axis) => (
-                      <div key={axis.label} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-                        <span className="text-xs font-semibold text-slate-600 block mb-1">{axis.label}</span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold text-slate-900 tabular-nums">
-                            {axis.value != null ? `${axis.value}%` : "—"}
-                          </span>
-                        </div>
-                        {axis.value != null && (
-                          <div className="w-full h-1.5 rounded-full bg-slate-200 mt-2 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-emerald-600"
-                              style={{ width: `${Math.min(100, axis.value)}%` }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {candidate.ats?.missingSkills?.length > 0 && (
-                  <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200">
-                    <span className="text-xs font-bold text-amber-900 block mb-1">
-                      Flagged Unverified / Missing Competencies:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {candidate.ats.missingSkills.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="rounded bg-white border border-amber-300 px-2 py-0.5 text-xs text-amber-900 font-medium"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {findings.length > 0 && (
-                  <div className="mt-4 border-t border-slate-100 pt-3">
-                    <span className="text-xs font-bold text-slate-800 block mb-2">
-                      Evaluated Rubric Criteria
-                    </span>
-                    <div className="space-y-1.5">
-                      {findings.map((f, idx) => (
-                        <div
-                          key={f.criterionId || idx}
-                          className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 text-xs"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`w-2 h-2 rounded-full ${
-                                f.status === "satisfied"
-                                  ? "bg-emerald-500"
-                                  : f.status === "partially_satisfied"
-                                  ? "bg-amber-500"
-                                  : "bg-slate-400"
-                              }`}
-                            />
-                            <span className="font-semibold text-slate-900">{f.label || f.criterionId}</span>
-                          </div>
-                          <Badge
-                            tone={
-                              f.status === "satisfied"
-                                ? "green"
-                                : f.status === "partially_satisfied"
-                                ? "amber"
-                                : "slate"
-                            }
-                          >
-                            {f.status?.replaceAll("_", " ") || "evaluated"}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </Card>
-
-              {/* AI Interview Status & Score Meter */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">AI Voice/Video Interview</h3>
-                    <p className="text-xs text-slate-500">Substantive Q&A and technical evaluation</p>
-                  </div>
-                  <Badge tone={interviewScore != null ? "green" : interviewStatus === "in_progress" ? "blue" : "slate"}>
-                    {interviewStatus ? interviewStatus.replaceAll("_", " ") : (interviewReport ? "Completed" : "Not Started")}
-                  </Badge>
-                </div>
-
-                {interviewSession || interviewReport ? (
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xs text-slate-500 font-medium">Session Score</span>
-                        <div className="mt-1 flex items-baseline gap-1.5">
-                          <span className="text-3xl font-extrabold text-slate-900 tabular-nums">
-                            {interviewScore != null ? interviewScore : "—"}
-                          </span>
-                          <span className="text-xs text-slate-500">/ 100</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1 text-right text-xs">
-                        <span className="text-slate-500 block">
-                          Questions:{" "}
-                          <strong className="text-slate-900">
-                            {interviewQuestionsAnswered != null
-                              ? interviewTotalQuestions != null && interviewTotalQuestions !== interviewQuestionsAnswered
-                                ? `${interviewQuestionsAnswered} / ${interviewTotalQuestions}`
-                                : `${interviewQuestionsAnswered} answered`
-                              : interviewTotalQuestions != null
-                              ? `${interviewTotalQuestions} planned`
-                              : "—"}
-                          </strong>
-                        </span>
-                        <span className="text-slate-500 block">
-                          Duration:{" "}
-                          <strong className="text-slate-900">
-                            {interviewDurationMins != null
-                              ? `${interviewDurationMins} mins`
-                              : interviewStartedAt && !interviewCompletedAt
-                              ? "In Progress"
-                              : "Standard"}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                    {interviewRecommendation && (
-                      <div className="p-3 rounded-lg bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs">
-                        <span className="text-emerald-900 font-medium">
-                          Autonomous Recommendation:
-                        </span>
-                        <Badge tone={RECOMMENDATION[interviewRecommendation]?.tone || "green"}>
-                          {RECOMMENDATION[interviewRecommendation]?.label || interviewRecommendation.replaceAll("_", " ").toUpperCase()}
-                        </Badge>
-                      </div>
-                    )}
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleTabSwitch("ai-interview")}
-                      className="bg-emerald-700 hover:bg-emerald-800 text-white"
-                    >
-                      View Detailed Interview Workspace & Transcript →
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="py-6 text-center text-xs text-slate-500">
-                    <Mic className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p>No interview attempt recorded for this candidate yet.</p>
-                  </div>
-                )}
-              </Card>
-
               {/* Skill Assessment Paper Card */}
               <Card className="bg-white shadow-xs border-slate-200/80">
                 <div className="flex items-center justify-between mb-3">
@@ -1651,7 +1463,10 @@ export default function CandidateDrawer({
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <span className="text-xs text-slate-500 font-medium">
-                          {assessmentPaper?.sections?.[0]?.title || "Core Technical Assessment"}
+                          {/* The paper's own section title, or nothing — an
+                              invented one ("Core Technical Assessment") named a
+                              paper that does not exist under that name. */}
+                          {assessmentPaper?.sections?.[0]?.title || "Untitled section"}
                         </span>
                         <div className="mt-1 flex items-baseline gap-1.5">
                           <span className="text-3xl font-extrabold text-slate-900 tabular-nums">
@@ -1700,8 +1515,8 @@ export default function CandidateDrawer({
                             >
                               <span className="text-slate-600 font-medium">{c.label || c.criterionId}</span>
                               <span className="font-bold text-slate-900 tabular-nums">
-                                {c.correctCount}/{c.itemCount} (
-                                {c.itemCount ? Math.round((c.correctCount / c.itemCount) * 100) : 0}%)
+                                {c.correctCount}/{c.itemCount}
+                                {c.itemCount ? ` (${Math.round((c.correctCount / c.itemCount) * 100)}%)` : ""}
                               </span>
                             </div>
                           ))}
@@ -1768,10 +1583,14 @@ export default function CandidateDrawer({
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-slate-900">AI Interview Workspace & Analysis</h3>
+                    {/* The badge was hardcoded emerald, so a NO HIRE verdict
+                        arrived dressed in the colour of a pass. The colour is
+                        read faster than the word — it has to carry the same
+                        verdict the word does. */}
                     {interviewRecommendation && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <Badge tone={RECOMMENDATION[interviewRecommendation]?.tone || "slate"}>
                         {RECOMMENDATION[interviewRecommendation]?.label || interviewRecommendation.replaceAll("_", " ")}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -1873,15 +1692,24 @@ export default function CandidateDrawer({
                         {reportProctoring ? (
                           <IntegrityCard proctoring={reportProctoring} candidateId={candidateId} />
                         ) : (
+                          /* There is no proctoring record for this session.
+                             This used to render a "Standard Verification" badge
+                             and state that anti-cheat was enabled and that no
+                             suspicious events were recorded — two claims about
+                             a run that left nothing behind to claim them from.
+                             A session nobody proctored and a session proctored
+                             clean produce the identical absence here, and the
+                             difference matters far too much to guess at. */
                           <Card id="drawer-sec-integrity">
                             <div className="flex items-center justify-between gap-3 mb-2">
                               <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
                                 <Eye className="h-4 w-4 text-brand-600" /> Integrity & Proctoring
                               </h3>
-                              <Badge tone="slate">Standard Verification</Badge>
+                              <Badge tone="slate">Not recorded</Badge>
                             </div>
                             <p className="text-sm text-slate-600 mt-1">
-                              Standard anti-cheat and environment verification was enabled for this interview session. No integrity signals or suspicious events were recorded.
+                              No proctoring record was stored for this session. That is not a clean result — it means
+                              nothing was measured, so this session carries no integrity evidence either way.
                             </p>
                           </Card>
                         )}
@@ -1894,9 +1722,6 @@ export default function CandidateDrawer({
                         <InterviewWorkspace
                           candidateId={candidateId}
                           interview={reportInterview}
-                          onRecorded={() => loadData(candidateId)}
-                          onReload={() => loadData(candidateId)}
-                          hideReview={false}
                         />
                       </Card>
                     )}
@@ -2064,61 +1889,6 @@ export default function CandidateDrawer({
                 )}
               </Card>
 
-              {/* CV Screening Breakdown */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <h3 className="text-sm font-bold text-slate-900 mb-3">CV Screening Breakdown</h3>
-                {candidate.ats?.breakdown || candidate.ats?.scores ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                    <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                      <span className="text-xs text-slate-500">Skills Match</span>
-                      <p className="text-lg font-bold text-slate-900 mt-1 tabular-nums">
-                        {candidate.ats?.breakdown?.skillsScore ?? candidate.ats?.scores?.technical ?? candidate.ats?.skillsMatch ?? "—"}/100
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                      <span className="text-xs text-slate-500">Experience Match</span>
-                      <p className="text-lg font-bold text-slate-900 mt-1 tabular-nums">
-                        {candidate.ats?.breakdown?.experienceScore ?? candidate.ats?.scores?.experience ?? candidate.ats?.experienceMatch ?? "—"}/100
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                      <span className="text-xs text-slate-500">Education Match</span>
-                      <p className="text-lg font-bold text-slate-900 mt-1 tabular-nums">
-                        {candidate.ats?.breakdown?.educationScore ?? candidate.ats?.educationMatch ?? "—"}/100
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500">Detailed component breakdown not recorded.</p>
-                )}
-              </Card>
-
-              {/* Extracted Resume Text Viewer */}
-              <Card className="bg-white shadow-xs border-slate-200/80">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-500" />
-                    Extracted Resume Text
-                  </h3>
-                  {candidate.rawResumeText && (
-                    <button
-                      type="button"
-                      onClick={handleCopyResumeText}
-                      className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 font-medium"
-                    >
-                      {copiedResume ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedResume ? "Copied" : "Copy text"}</span>
-                    </button>
-                  )}
-                </div>
-                {candidate.rawResumeText ? (
-                  <pre className="max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
-                    {candidate.rawResumeText}
-                  </pre>
-                ) : (
-                  <p className="text-xs text-slate-500">Raw resume text not stored in database.</p>
-                )}
-              </Card>
             </div>
           </div>
           )}

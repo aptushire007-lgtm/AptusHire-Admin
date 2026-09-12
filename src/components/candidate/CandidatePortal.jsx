@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import InterviewWorkspace, { InterviewSummary } from "./InterviewWorkspace.jsx";
 import { activityLabel, interviewDate } from "../../lib/interviewEvidence.js";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
@@ -351,10 +351,9 @@ function ConversationContent({ interview, history }) {
 // STORY: locate application, inspect the recorded attempt, record a human note, then act explicitly.
 // FIRST VIEWPORT: identity and review action, five grouped destinations, compact evidence limitations.
 // FORM: user-approved refinement, not a new visual world; contextual subsections replace the mixed dropdown.
-export default function CandidatePortal({ candidate, timeline, session, assessment, report, onResumeDownload, onManage, onReviewRecorded, onReload, profileEvidence, onOpenInterviewReport, onReviewEvidence, initialView }) {
+export default function CandidatePortal({ candidate, timeline, session, assessment, report, onResumeDownload, onManage, profileEvidence, onOpenInterviewReport, onReviewEvidence, initialView }) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
-  const [drafts, setDrafts] = useState({});
   const aliases = { "summary-report": "ai-interview", "overall-score": "ai-interview", evaluation: "ai-interview", "evaluation-detail": "ai-interview", recording: "ai-interview", "full-log": "timeline", "ats-breakdown": "cv-screening", "cv-analysis": "cv-screening", "profile-menu": "resume", "evaluation-menu": "ai-interview", "application-menu": "timeline" };
   const requested = params.get("section");
   const defaultInitial = initialView || "ai-summary";
@@ -474,7 +473,7 @@ export default function CandidatePortal({ candidate, timeline, session, assessme
       return <div className="space-y-5">
         <InterviewSummary interview={interview} />
         {session?.interviewAt && <details className="text-xs text-slate-600"><summary className="cursor-pointer">Scheduling record</summary><p className="mt-2">Stored scheduled time: {interviewDate(session.interviewAt)}. Actual attempt timing is shown above; this schedule does not establish when the interview took place.</p></details>}
-        <InterviewWorkspace candidateId={candidate._id} interview={interview} onRecorded={onReviewRecorded} onReload={onReload} draftNote={drafts[`${candidate._id}:${interview.attempt}`] || ""} onDraftChange={note => setDrafts(current => ({ ...current, [`${candidate._id}:${interview.attempt}`]: note }))} />
+        <InterviewWorkspace candidateId={candidate._id} interview={interview} />
         <details className="border-t border-slate-200 pt-4"><summary className="cursor-pointer text-sm font-semibold">Criteria and evidence coverage</summary><div className="mt-3">{report?.coverage?.rows?.length ? <RubricTable coverage={report.coverage} /> : <Empty>No criteria were assessed for this interview.</Empty>}</div></details>
       </div>;
     }

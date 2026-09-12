@@ -104,7 +104,11 @@ it("displays isolated, accurate candidate DB information in inspection modal wit
   expect(screen.getByText("69% Match")).toBeTruthy();
   expect(screen.getAllByText("Generative AI expertise").length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText(/"8 years of experience delivering GenAI solutions"/)).toBeTruthy();
-  expect(screen.getByText(/Validated 8 years delivering GenAI solutions/)).toBeTruthy();
+
+  // The per-criterion reasoning now lives on the ATS Score Breakdown tab,
+  // which is where the CV-screening evidence was consolidated.
+  fireEvent.click(screen.getByRole("tab", { name: /ATS Score Breakdown/i }));
+  expect(await screen.findByText(/Validated 8 years delivering GenAI solutions/)).toBeTruthy();
 
   // Verifies NO dummy/leaked data is present in the DOM
   expect(screen.queryByText(/Razorpay/i)).toBeNull();

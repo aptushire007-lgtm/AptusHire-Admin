@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { it, expect, vi, beforeEach } from 'vitest';
 import CandidatePortal from '../src/components/candidate/CandidatePortal.jsx';
@@ -51,28 +51,8 @@ it('labels processed evidence, searches turns, and does not mint playback on mou
   expect(screen.getAllByText('Processed question').length).toBeGreaterThan(0);
   expect(screen.queryByText('Full original question')).toBeNull();
 });
-it('records an explicit human note without a stage mutation', async () => {
-  api.post.mockResolvedValue({ data: { review: { eligible: true, required: false } } });
-  const onRecorded = vi.fn();
-  render(<InterviewWorkspace candidateId="id" interview={interview} onRecorded={onRecorded} />);
-  fireEvent.change(screen.getByRole('textbox', { name: 'Review note' }), { target: { value: 'Checked the complete conversation.' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Record evidence review' }));
-  await waitFor(() => expect(onRecorded).toHaveBeenCalled());
-  expect(api.post).toHaveBeenCalledTimes(1);
-  expect(api.post).toHaveBeenCalledWith('/candidates/id/interview-review', { attempt: 1, version: 'v1', note: 'Checked the complete conversation.' });
-});
 it('qualifies only the matching attempt end event', () => {
   const end = { ...interview, completedAt: '2026-09-08T04:00:00Z' };
   expect(activityLabel({ stage: 'ai_interview_completed', at: end.completedAt }, end)).toBe('Interview ended — ended early');
   expect(activityLabel({ stage: 'ai_interview_completed', at: '2026-09-07T04:00:00Z' }, end)).toBeNull();
-});
-
-it('keeps a review draft while inspecting criteria and returning to evidence', async () => {
-  render(<MemoryRouter initialEntries={['/candidates/id?section=ai-interview']}><CandidatePortal candidate={{ _id: 'id' }} report={{ hasInterview: true, interview }} /></MemoryRouter>);
-  fireEvent.change(screen.getByRole('textbox', { name: 'Review note' }), { target: { value: 'Draft after reading the conversation.' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Criteria', exact: true }));
-  expect(screen.queryByRole('textbox', { name: 'Review note' })).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Evidence & review', exact: true }));
-  expect(screen.getByRole('textbox', { name: 'Review note' })).toHaveValue('Draft after reading the conversation.');
-  expect(api.post).not.toHaveBeenCalled();
 });

@@ -26,7 +26,9 @@ import {
   RotateCcw,
   Rows3,
   Search,
+  ShieldAlert,
   Sparkles,
+  Trash2,
   Users,
   X,
   Zap,
@@ -35,6 +37,7 @@ import api from "../../api/client.js";
 import { usePipelineData } from "../../lib/usePipelineData.js";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { bulkStageMove } from "../../lib/bulkStageMove.js";
+import { bulkErase } from "../../lib/bulkErase.js";
 import { Avatar, Badge, EmptyState } from "../../components/ui/Card.jsx";
 import Menu, { MenuGroup, MenuItem } from "../../components/ui/Menu.jsx";
 import StageMenu from "../../components/ui/StageMenu.jsx";
@@ -267,6 +270,7 @@ function CandidateCard({
   onToggleSelect,
   onMove,
   onQuickReject,
+  onDelete,
   onPreviewResume,
   onInspect,
   busy,
@@ -514,6 +518,18 @@ function CandidateCard({
           busy={busy}
           onMove={(stage) => onMove(candidate, stage)}
         />
+
+        {/* Permanent delete — distinct from Quick Reject, which only archives */}
+        <button
+          type="button"
+          onClick={() => onDelete(candidate)}
+          disabled={busy}
+          className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-400 hover:text-rose-700 hover:border-rose-300 flex items-center justify-center transition-colors"
+          title="Delete permanently"
+          aria-label={`Delete ${candidate.basicDetails?.name} permanently`}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -531,6 +547,7 @@ const StageColumn = forwardRef(function StageColumn(
     onToggleSelect,
     onMove,
     onQuickReject,
+    onDelete,
     onPreviewResume,
     busyId,
     isHighlighted,
@@ -603,6 +620,7 @@ const StageColumn = forwardRef(function StageColumn(
               onToggleSelect={() => onToggleSelect(c._id)}
               onMove={onMove}
               onQuickReject={onQuickReject}
+              onDelete={onDelete}
               onPreviewResume={onPreviewResume}
               onInspect={onInspect}
               busy={busyId === c._id}
@@ -655,6 +673,9 @@ export default function HiringPipeline() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkResult, setBulkResult] = useState("");
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [deleteTarget, setDeleteTarget] = useState(null); // { candidates, mode: 'single' | 'bulk' }
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [showEmpty, setShowEmpty] = useState(false);
   const density = params.get("view") === "list" ? "list" : "board";
   const setDensity = (value) => setFilter("view", value);
@@ -881,6 +902,57 @@ export default function HiringPipeline() {
 
   async function handleBulkMoveStage(targetStage) {
     if (targetStage) return runBulk(() => targetStage);
+  }
+
+  // Permanent delete (DPDP right-to-erasure). Opens the typed-confirmation modal;
+  // the actual erase only runs from confirmDelete once "DELETE" is typed.
+  function openDeleteCandidate(candidate) {
+    if (bulkRunning.current || deleting) return;
+    setDeleteTarget({ candidates: [candidate], mode: "single" });
+    setDeleteConfirmText("");
+  }
+
+  function openBulkDelete() {
+    if (bulkRunning.current || deleting || !selectedIds.size) return;
+    const candidates = filtered.filter((candidate) => selectedIds.has(candidate._id));
+    if (!candidates.length) return;
+    setDeleteTarget({ candidates, mode: "bulk" });
+    setDeleteConfirmText("");
+  }
+
+  function closeDeleteModal() {
+    if (deleting) return;
+    setDeleteTarget(null);
+    setDeleteConfirmText("");
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget || deleteConfirmText.trim().toUpperCase() !== "DELETE" || deleting) return;
+    setDeleting(true);
+    try {
+      const ids = deleteTarget.candidates.map((candidate) => candidate._id);
+      const result = await bulkErase(ids, (id) =>
+        api.delete(`/data-rights/candidates/${id}`, { data: { reason: "recruiter removed from pipeline" } })
+      );
+      const message =
+        deleteTarget.mode === "single"
+          ? result.succeeded.length
+            ? `${deleteTarget.candidates[0].basicDetails?.name || "Candidate"} deleted permanently`
+            : "Could not delete this candidate"
+          : `${result.succeeded.length} deleted permanently · ${result.failed.length} failed`;
+      if (result.failed.length) toast.error(message);
+      else toast.success(message);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const id of result.succeeded) next.delete(id);
+        return next;
+      });
+      setDeleteTarget(null);
+      setDeleteConfirmText("");
+      await refresh();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   // Horizontal scroll arrows
@@ -1591,6 +1663,15 @@ export default function HiringPipeline() {
                                 busy={busyId === c._id}
                                 onMove={(stage) => handleMove(c, stage)}
                               />
+                              <button
+                                type="button"
+                                onClick={() => openDeleteCandidate(c)}
+                                className="p-1 hover:bg-rose-50 rounded text-slate-400 hover:text-rose-700"
+                                title="Delete permanently"
+                                aria-label={`Delete ${c.basicDetails?.name || "candidate"} permanently`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1654,6 +1735,7 @@ export default function HiringPipeline() {
                 onToggleSelect={toggleSelect}
                 onMove={handleMove}
                 onQuickReject={handleQuickReject}
+                onDelete={openDeleteCandidate}
                 onPreviewResume={setPreviewCandidate}
                 busyId={busyId}
                 isHighlighted={highlightedStage === stage}
@@ -1725,6 +1807,16 @@ export default function HiringPipeline() {
               ))}
             </MenuGroup>
           </Menu>
+
+          <button
+            type="button"
+            onClick={openBulkDelete}
+            disabled={bulkBusy || deleting || !selectedIds.size}
+            title="Permanently delete the selected candidates and all their data"
+            className="flex items-center gap-1 text-xs bg-transparent hover:bg-rose-950/60 text-rose-300 hover:text-rose-100 border border-rose-800/60 font-semibold px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap"
+          >
+            <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
+          </button>
 
           <button
             type="button"
@@ -1835,6 +1927,71 @@ export default function HiringPipeline() {
                 <span>Full Profile</span>
                 <ExternalLink className="h-3.5 w-3.5" />
               </CandidateLink>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Permanent Delete Confirmation Modal (DPDP erasure) ───────────────── */}
+      {deleteTarget && (
+        <Modal
+          open={Boolean(deleteTarget)}
+          onClose={closeDeleteModal}
+          busy={deleting}
+          title={
+            deleteTarget.mode === "single"
+              ? `Delete ${deleteTarget.candidates[0].basicDetails?.name || "this candidate"} permanently?`
+              : `Delete ${deleteTarget.candidates.length} candidates permanently?`
+          }
+          size="sm"
+        >
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5">
+            <p className="flex items-start gap-2 text-sm font-semibold text-rose-800">
+              <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              This permanently deletes the résumé, interview recordings, transcripts and every
+              score for {deleteTarget.mode === "single"
+                ? deleteTarget.candidates[0].basicDetails?.name || "this candidate"
+                : `${deleteTarget.candidates.length} selected candidates`}.
+            </p>
+            <p className="mt-1 text-xs text-rose-700">
+              It cannot be undone, and the record cannot be restored from the interface. Type
+              DELETE to confirm.
+            </p>
+            {deleteTarget.mode === "bulk" && (
+              <ul className="mt-2 max-h-32 space-y-0.5 overflow-y-auto text-xs text-rose-800">
+                {deleteTarget.candidates.map((candidate) => (
+                  <li key={candidate._id} className="truncate">
+                    • {candidate.basicDetails?.name || "Unnamed applicant"}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(event) => setDeleteConfirmText(event.target.value)}
+                aria-label="Type DELETE to confirm"
+                placeholder="DELETE"
+                autoFocus
+                className="w-28 rounded-lg border border-rose-300 bg-white px-2.5 py-1.5 text-sm uppercase tracking-wide text-slate-900 placeholder:text-slate-400 focus:border-rose-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting || deleteConfirmText.trim().toUpperCase() !== "DELETE"}
+                className="rounded-lg bg-rose-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Delete permanently"}
+              </button>
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={deleting}
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </Modal>

@@ -523,13 +523,6 @@ export function CandidateInterviewModal({
                     ? "cv-screening"
                     : "timeline"
                 }
-                onReviewRecorded={(review) => {
-                  setReport((current) => ({
-                    ...current,
-                    interview: { ...current?.interview, recruiterReview: review },
-                  }));
-                }}
-                onReload={loadData}
               />
             </div>
           )}

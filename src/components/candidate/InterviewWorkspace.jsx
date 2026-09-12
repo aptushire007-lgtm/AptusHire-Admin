@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import InterviewPlayback from '../report/InterviewPlayback.jsx';
-import InterviewReview from './InterviewReview.jsx';
 import { conversationEvidence, normalizeTurns, interviewDate } from '../../lib/interviewEvidence.js';
 import { reviewInterview } from '../../lib/recruiterReview.js';
 
@@ -27,24 +26,17 @@ export function InterviewSummary({ interview: source }) {
   </section>;
 }
 
-export default function InterviewWorkspace({ candidateId, interview, onRecorded, onReload, draftNote, onDraftChange, hideReview = false }) {
+export default function InterviewWorkspace({ candidateId, interview }) {
   const [mode, setMode] = useState('full');
   const evidence = conversationEvidence(interview);
   const processed = mode === 'processed';
   const transcript = processed ? normalizeTurns(interview?.transcript) : evidence.transcript;
-  return <div className={!hideReview ? "grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]" : "min-w-0"}>
-    <section className="min-w-0" aria-label="Interview evidence">
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <h2 className="font-semibold text-slate-950">Conversation and recording</h2>
-        {evidence.full && interview?.transcript?.length > 0 && <label className="text-sm">Conversation view <select value={mode} onChange={event => setMode(event.target.value)} className="ml-2 min-h-11 rounded-md border border-slate-300 bg-white px-3"><option value="full">Full conversation</option><option value="processed">Processed Q&amp;A</option></select></label>}
-      </div>
-      <p className="mb-3 text-xs text-slate-600">{processed || !evidence.full ? 'Processed Q&A: responses may be grouped and conversational exchanges omitted. This is not a verbatim conversation.' : 'Full conversation: recorded turns in their original order. Automated transcription may contain errors; verify against the recording.'}</p>
-      <InterviewPlayback id="sec-playback" sessionId={interview?.sessionId} candidateId={candidateId} transcript={transcript} startedAt={interview?.startedAt} transcriptLabel={processed || !evidence.full ? 'Processed Q&A' : 'Full conversation'} />
-    </section>
-    {!hideReview && (
-      <div id="sec-review" className="min-w-0 scroll-mt-40 xl:sticky xl:top-40">
-        {interview?.recruiterReview?.eligible ? <InterviewReview key={`${candidateId}:${interview.attempt}`} candidateId={candidateId} review={interview.recruiterReview} onRecorded={onRecorded} onReload={onReload} draftNote={draftNote} onDraftChange={onDraftChange} /> : <section className="rounded-lg border border-slate-200 p-4 text-sm"><h2 className="font-semibold">Recruiter review</h2><p className="mt-2">No review is available to record for this session yet.</p></section>}
-      </div>
-    )}
-  </div>;
+  return <section className="min-w-0" aria-label="Interview evidence">
+    <div className="mb-3 flex flex-wrap items-center gap-3">
+      <h2 className="font-semibold text-slate-950">Conversation and recording</h2>
+      {evidence.full && interview?.transcript?.length > 0 && <label className="text-sm">Conversation view <select value={mode} onChange={event => setMode(event.target.value)} className="ml-2 min-h-11 rounded-md border border-slate-300 bg-white px-3"><option value="full">Full conversation</option><option value="processed">Processed Q&amp;A</option></select></label>}
+    </div>
+    <p className="mb-3 text-xs text-slate-600">{processed || !evidence.full ? 'Processed Q&A: responses may be grouped and conversational exchanges omitted. This is not a verbatim conversation.' : 'Full conversation: recorded turns in their original order. Automated transcription may contain errors; verify against the recording.'}</p>
+    <InterviewPlayback id="sec-playback" sessionId={interview?.sessionId} candidateId={candidateId} transcript={transcript} startedAt={interview?.startedAt} transcriptLabel={processed || !evidence.full ? 'Processed Q&A' : 'Full conversation'} />
+  </section>;
 }
