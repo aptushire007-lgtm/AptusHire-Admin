@@ -13,17 +13,18 @@ export function AptusMark({ size = 32, className = "" }) {
     >
       <defs>
         <linearGradient id="aptusGradAdmin" x1="15%" y1="0%" x2="85%" y2="100%">
-          <stop offset="0%" stopColor="#5F9475" />
-          <stop offset="55%" stopColor="#3E7C59" />
-          <stop offset="100%" stopColor="#2F6B4F" />
+          <stop offset="0%" stopColor="#D4F056" />
+          <stop offset="38%" stopColor="#7CDE4A" />
+          <stop offset="68%" stopColor="#2FBE62" />
+          <stop offset="100%" stopColor="#12B98A" />
         </linearGradient>
         <linearGradient id="aptusFoldAdmin" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#2F6B4F" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#2F6B4F" stopOpacity="0" />
+          <stop offset="0%" stopColor="#0E3B2E" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#0E3B2E" stopOpacity="0" />
         </linearGradient>
         <linearGradient id="aptusPersonAdmin" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#5F9475" />
-          <stop offset="100%" stopColor="#3E7C59" />
+          <stop offset="0%" stopColor="#55D858" />
+          <stop offset="100%" stopColor="#1AA368" />
         </linearGradient>
       </defs>
 
@@ -46,21 +47,26 @@ export function AptusMark({ size = 32, className = "" }) {
 
 export function BrandLogo({
   to,
-  theme,               // 'light' | 'dark' | undefined (auto)
-  variant = "full",    // 'full' | 'mark' | 'text' | 'icon'
-  size = "md",         // 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  theme, // 'light' | 'dark' | undefined (auto-responsive)
+  variant = "full", // 'full' | 'mark' | 'text' | 'icon'
+  size = "md", // 'sm' | 'md' | 'lg' | 'xl'
   textWeight = "font-extrabold",
   showTagline = false,
   className = "",
   onClick,
 }) {
-  // Both "Aptus" and "Hire" use the same primary green — matching the logo image.
-  let textColor = "text-[#176B45]";
-  let taglineColor = "text-[#64736A]";
+  let textColor ="text-[#0C1F1B]";
+  let taglineColor ="text-[#5B6B63]";
+  let hireColor ="text-[#1A9A4F]";
 
   if (theme === "dark") {
     textColor = "text-white";
-    taglineColor = "text-[#64736A]";
+    taglineColor = "text-slate-300";
+    hireColor = "text-[#7CDE4A]";
+  } else if (theme === "light") {
+    textColor = "text-[#0C1F1B]";
+    taglineColor = "text-[#5B6B63]";
+    hireColor = "text-[#1A9A4F]";
   }
 
   const iconSizes = {
@@ -89,7 +95,7 @@ export function BrandLogo({
 
   const markSize = typeof size === "number" ? size : (iconSizes[size] || 32);
   const textClass = typeof size === "string" && textSizes[size] ? textSizes[size] : "text-lg";
-  const tagClass  = typeof size === "string" && taglineSizes[size] ? taglineSizes[size] : "text-xs";
+  const tagClass = typeof size === "string" && taglineSizes[size] ? taglineSizes[size] : "text-xs";
 
   const content = (
     <div className={`inline-flex items-center gap-2.5 font-display font-bold tracking-tight select-none ${className}`}>
@@ -109,8 +115,8 @@ export function BrandLogo({
 
       {variant !== "mark" && (
         <div className="flex flex-col leading-none">
-          <span className={`${textClass} ${textWeight} ${textColor} transition-colors`}>
-            AptusHire
+          <span className={`${textClass} ${textWeight} ${textColor} flex items-center transition-colors`}>
+            Aptus<span className={hireColor}>Hire</span>
           </span>
           {showTagline && (
             <span className={`font-sans font-medium tracking-wide mt-1 ${tagClass} ${taglineColor} transition-colors`}>
@@ -127,7 +133,7 @@ export function BrandLogo({
       <Link
         to={to}
         onClick={onClick}
-        className="inline-flex items-center rounded-lg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="inline-flex items-center rounded-lg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         {content}
       </Link>

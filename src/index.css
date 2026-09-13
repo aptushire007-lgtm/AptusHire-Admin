@@ -1,233 +1,373 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Lexend:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
-
-/**
- * ============================================================
- *  AptusHire Admin — HiringAnt Design Token System
- *
- *  PALETTE
- *  ───────────────────────────────────────────────────────────
- *  Primary Brand    #176B45  → Main action, active states, CTAs
- *  Primary Hover    #125638  → Hover/pressed on primary
- *  Secondary Green  #5F9475  → Secondary text highlights, icons
- *  Light Green      #E8F2EC  → Active nav bg, icon containers, tints
- *  Very Light Green #F1F7F3  → Section backgrounds, table headers
- *  Main Background  #F8FAF9  → Page body canvas
- *  Surface          #FFFFFF  → Cards, panels, modals
- *  Primary Text     #17221C  → Headings, strong labels
- *  Secondary Text   #64736A  → Body, muted, secondary
- *  Border           #E5EBE7  → Default borders, dividers
- *  Hover            #DDECE3  → Row hover, nav hover
- *  Success          #238653  → Positive outcomes
- *  Error            #C95C5C  → Rejections, errors
- *  Warning          #A88A45  → Pending, caution
- * ============================================================
- */
+@import "./styles/modals.css";
 
 @theme {
-  /* ── Typography ─────────────────────────────────────────── */
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-
-  /*
-   * Admin type is intentionally one step more generous than Tailwind's
-   * compact defaults.  At 100% browser zoom this keeps navigation, table
-   * metadata and card copy readable without making the UI feel oversized.
-   */
-  --text-xs:              0.8125rem;
-  --text-xs--line-height: 1.4;
-  --text-sm:              0.9375rem;
-  --text-sm--line-height: 1.55;
-  --text-base:            1.0625rem;
-  --text-base--line-height: 1.6;
-
-  /* ═══════════════════════════════════════════════════════
-     SEMANTIC DESIGN TOKENS
-     ═══════════════════════════════════════════════════════ */
-
-  /* PRIMARY GREEN */
-  --color-primary:        #176B45;
-  --color-primary-dark:   #125638;
-  --color-primary-light:  #E8F2EC;
-  --color-brand-green:    #176B45;
-
-  /* SECONDARY GREEN */
-  --color-secondary-green:  #5F9475;
-  --color-green-light:      #E8F2EC;
-  --color-green-muted:      #F1F7F3;
-
-  /* ACCENT (legacy aliases → green for backward compat) */
-  --color-accent-orange:       #176B45;
-  --color-accent-orange-dark:  #125638;
-  --color-accent-orange-soft:  #E8F2EC;
-  --color-accent-orange-mid:   #9BBFAD;
-  --color-accent-gold:         #A88A45;
-  --color-accent-gold-dark:    #8A6E32;
-  --color-accent-gold-light:   #F5EDD8;
-  --color-accent-gold-mid:     #D4B877;
-
-  /* GREEN SCALE */
-  --color-brand-50:  #F1F7F3;
-  --color-brand-100: #E8F2EC;
-  --color-brand-200: #C7DDD1;
-  --color-brand-300: #9BBFAD;
-  --color-brand-400: #5F9475;
-  --color-brand-500: #176B45;
-  --color-brand-600: #125638;
-  --color-brand-700: #0E4028;
-  --color-brand-800: #092B1A;
-  --color-brand-900: #05180E;
-  --color-brand-950: #020D07;
-
-  /* SURFACES */
-  --color-canvas:       #FAFAFA;
-  --color-canvas-deep:  #F4F4F5;
-  --color-background:   #FAFAFA;
-  --color-surface:      #FFFFFF;
-  --color-surface-alt:  #FAFAFA;
-  --color-cream:        #FDFEFE;
-  --color-cream-mid:    #F4F8F5;
-
-  /* TYPOGRAPHY */
-  --color-text:         #09090B;
-  --color-text-strong:  #09090B;
-  --color-text-muted:   #71717A;
-  --color-text-faint:   #A1A1AA;
-  --color-text-on-fill: #FFFFFF;
-
-  /* BORDERS */
-  --color-border:       #E4E4E7;
-  --color-border-mid:   #D4D4D8;
-  --color-border-brand: #BBF7D0;
-
-  /* HOVER */
-  --color-hover: #F4F4F5;
-
-  /* SEMANTIC */
-  --color-success:       #238653;
-  --color-success-tint:  #DDF1E5;
-  --color-warning:       #A88A45;
-  --color-warning-tint:  #F5EDD8;
-  --color-error:         #C95C5C;
-  --color-error-tint:    #F8EAEA;
-
-  /* VERDICT SEMANTICS */
-  --color-verdict-positive:      #238653;
-  --color-verdict-positive-tint: #DDF1E5;
-  --color-verdict-pending:       #A88A45;
-  --color-verdict-pending-tint:  #F5EDD8;
-  --color-verdict-negative:      #C95C5C;
-  --color-verdict-negative-tint: #F8EAEA;
-
-  /* LIME → maps to success green */
-  --color-lime:      #238653;
-  --color-lime-soft: #DDF1E5;
-
-  /* NEUTRAL SCALE */
-  --color-slate-50:  #FFFFFF;
-  --color-slate-100: #F8FAF9;
-  --color-slate-200: #E5EBE7;
-  --color-slate-300: #C7D4CC;
-  --color-slate-400: #9BAAA1;
-  --color-slate-500: #64736A;
-  --color-slate-600: #445249;
-  --color-slate-700: #2D3B32;
-  --color-slate-800: #1A2520;
-  --color-slate-900: #17221C;
-  --color-slate-950: #0C1310;
-
-  /* CHART */
-  --color-chart-brand:    #E8F2EC;
-  --color-chart-positive: #DDF1E5;
-  --color-chart-neutral:  #E5EBE7;
-  --color-chart-negative: #F8EAEA;
-
-  /* The five approved colours for meaningful chart lines and bars. */
-  --color-data-purple: #8B5CF6;
-  --color-data-blue:   #3B82F6;
-  --color-data-green:  #34D399;
-  --color-data-amber:  #FBBF24;
-  --color-data-red:    #EF4444;
-
-  /* SHADOWS */
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-soft: 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-lift: 0 10px 30px rgba(0,0,0,0.10);
-  --shadow-deep: 0 20px 48px -12px rgba(0,0,0,0.18);
-  --shadow-glow: 0 0 0 3px rgba(23,107,69,0.20);
-
-  /* SPACING */
-  --spacing-page-x:        1.5rem;
-  --spacing-page-y:        1.5rem;
-  --spacing-card:          1.25rem;
-  --spacing-card-lg:       1.5rem;
-  --spacing-table-cell-x:  0.875rem;
-  --spacing-table-cell-y:  0.75rem;
-
-  /* RADIUS */
+  /* Compatibility aliases for newer workflow components, using the original design. */
+  --color-primary: #0E3B2E;
+  --color-data-purple: #0C7D5F;
+  --color-data-blue: #12B98A;
+  --color-data-green: #2FBE62;
+  --color-data-amber: #E8A317;
+  --color-data-red: #D4534A;
+  --radius-card: 0.75rem;
   --radius-control: 0.5rem;
-  --radius-card:    0.625rem;
-  --radius-panel:   0.75rem;
-  --radius-pill:    9999px;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Lexend", "Inter", system-ui, sans-serif;
 
-  /* HEIGHTS */
-  --control-height-sm: 2.125rem;
-  --control-height-md: 2.5rem;
-  --control-height-lg: 2.75rem;
-  --input-height:      2.75rem;
+  /* ---- Core Official AptusHire Brand Tokens ------------------------------ */
+  --aptus-lime: #7CDE4A;
+  --aptus-lime-bright: #D4F056;
+  --aptus-green: #2FBE62;
+  --aptus-teal: #12B98A;
+  --aptus-forest: #0E3B2E;
+  --aptus-ink: #0C1F1B;
+  --aptus-night: #081210;
+  --aptus-cream: #F3F7F1;
+  --aptus-paper: #FAFCF8;
+  --aptus-white: #FFFFFF;
+  --aptus-cloud: #E3EBE4;
+  --aptus-mist: #C5D2C8;
+  --aptus-slate: #5B6B63;
+  --aptus-body: #24332E;
 
-  /* MOTION */
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  /* ---- Brand Scale (Official Aptus Ramp) ------------------------------ */
+  --color-brand-50:  #F4FDE8;
+  --color-brand-100: #E4F8C6;
+  --color-brand-200: #D4F056;
+  --color-brand-300: #B6E84A;
+  --color-brand-400: #7CDE4A;
+  --color-brand-500: #2FBE62;
+  --color-brand-600: #1A9A4F;
+  --color-brand-700: #147A40;
+  --color-brand-800: #0E3B2E;
+  --color-brand-900: #0C1F1B;
+  --color-brand-950: #081210;
+
+  /* ---- AI Copilot / Intelligence Scale ---------------------------------- */
+  --color-ai-50: #f5f3ff;
+  --color-ai-100: #ede9fe;
+  --color-ai-200: #ddd6fe;
+  --color-ai-300: #c4b5fd;
+  --color-ai-400: #818cf8;
+  --color-ai-500: #6366f1;
+  --color-ai-600: #4f46e5;
+  --color-ai-700: #4338ca;
+  --color-ai-800: #3730a3;
+  --color-ai-900: #312e81;
+
+  /* ---- Elevation Shadows ------------------------------------------------ */
+  --shadow-elevation-low: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-elevation-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --shadow-elevation-drawer: -4px 0 24px -2px rgba(15, 23, 42, 0.08), -2px 0 8px -2px rgba(15, 23, 42, 0.04);
+
+  /* ---- Accent Scale (Teal Intelligence) ---------------------------------- */
+  --color-accent-50: #E8FBF5;
+  --color-accent-100: #C7F4E6;
+  --color-accent-200: #8BE8CB;
+  --color-accent-300: #4DD6B0;
+  --color-accent-400: #12B98A;
+  --color-accent-500: #0E9A74;
+  --color-accent-600: #0C7D5F;
+  --color-accent-700: #0A624B;
+  --color-accent-800: #084538;
+  --color-accent-900: #062E26;
+  --color-accent-950: #041F1A;
+
+  /* ---- Green-cast Neutrals (Paper, Cream, Cloud, Mist, Slate, Ink, Night) - */
+  --color-slate-50: #FAFCF8;
+  --color-slate-100: #F3F7F1;
+  --color-slate-200: #E3EBE4;
+  --color-slate-300: #C5D2C8;
+  --color-slate-400: #8FA396;
+  --color-slate-500: #5B6B63;
+  --color-slate-600: #3E4E46;
+  --color-slate-700: #24332E;
+  --color-slate-800: #162420;
+  --color-slate-900: #0C1F1B;
+  --color-slate-950: #081210;
+
+  /* ---- Outcomes / Hiring Semantics --------------------------------------- */
+  --color-verdict-positive: #2FBE62;
+  --color-verdict-positive-tint: #EAF8E4;
+  --color-verdict-pending: #E8A317;
+  --color-verdict-pending-tint: #FFF6E0;
+  --color-verdict-negative: #D4534A;
+  --color-verdict-negative-tint: #FDECEC;
+
+  /* ---- Secondary Accent Scale (Indigo & Violet Intelligence) ------------ */
+  --color-indigo-50: #EEF2FF;
+  --color-indigo-100: #E0E7FF;
+  --color-indigo-200: #C7D2FE;
+  --color-indigo-300: #A5B4FC;
+  --color-indigo-400: #818CF8;
+  --color-indigo-500: #6366F1;
+  --color-indigo-600: #4F46E5;
+  --color-indigo-700: #4338CA;
+  --color-indigo-800: #3730A3;
+  --color-indigo-900: #312E81;
+  --color-indigo-950: #1E1B4B;
+
+  --color-violet-50: #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-200: #DDD6FE;
+  --color-violet-300: #C4B5FD;
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+  --color-violet-700: #6D28D9;
+  --color-violet-800: #5B21B6;
+  --color-violet-900: #4C1D95;
+  --color-violet-950: #2E1065;
+
+  /* ---- Layered Surfaces -------------------------------------------------- */
+  --color-surface-base: #F6F8F7;
+  --color-surface-workspace: #EFF3F0;
+  --color-surface-card: #FFFFFF;
+  --color-section-neutral: #F2F5F3;
+  --color-section-ai: #F5F3FF;
+  --color-section-indigo: #F0F4FA;
+  --color-section-emerald: #EDF7F1;
+  --color-section-amber: #FFF9ED;
+
+  /* Canvas */
+  --color-canvas: #FAFCF8;
+  --color-canvas-deep: #F3F7F1;
+
+  /* Elevation & Tinted Shadows */
+  --shadow-2xs: 0 1px 2px rgba(12, 31, 27, 0.04);
+  --shadow-xs: 0 1px 3px rgba(12, 31, 27, 0.06), 0 1px 2px rgba(12, 31, 27, 0.04);
+  --shadow-sm: 0 2px 6px -1px rgba(12, 31, 27, 0.08), 0 1px 4px -1px rgba(12, 31, 27, 0.04);
+  --shadow-md: 0 4px 14px -2px rgba(12, 31, 27, 0.09), 0 2px 6px -1px rgba(12, 31, 27, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(12, 31, 27, 0.10), 0 4px 10px -2px rgba(12, 31, 27, 0.05);
+  --shadow-xl: 0 20px 40px -6px rgba(12, 31, 27, 0.14), 0 8px 16px -4px rgba(12, 31, 27, 0.06);
+  --shadow-card: 0 1px 3px rgba(12, 31, 27, 0.05), 0 1px 2px rgba(12, 31, 27, 0.03);
+  --shadow-soft: 0 4px 20px -2px rgba(12, 31, 27, 0.07), 0 2px 6px -1px rgba(12, 31, 27, 0.03);
+  --shadow-lift: 0 12px 30px -4px rgba(12, 31, 27, 0.11), 0 6px 12px -2px rgba(12, 31, 27, 0.04);
+  --shadow-deep: 0 24px 50px -12px rgba(12, 31, 27, 0.16);
+  --shadow-brand-cta: 0 4px 14px rgba(14, 59, 46, 0.18);
+  --shadow-ai: 0 4px 14px rgba(99, 102, 241, 0.15);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* ── Legacy :root ────────────────────────────────────────── */
-:root {
-  --background:     #FAFAFA;
-  --surface:        #FFFFFF;
-  --white:          #FFFFFF;
-  --text-primary:   #09090B;
-  --text-secondary: #71717A;
-  --text-muted:     #71717A;
-  --border:         #E4E4E7;
-  --border-light:   #F4F4F5;
-  --green-900:      #0E4028;
-  --green-700:      #176B45;
-  --green-500:      #5F9475;
-  --lime-400:       #238653;
-  --lime-200:       #E8F2EC;
-  --font-family:    "Inter", sans-serif;
+/* ---------------------------------------------------------------------------
+   Reference-derived tokens — "AptusHire Flow" prototype.
+
+   This block used to be a SECOND `@theme` that redeclared `--color-brand-*`,
+   `--color-slate-*` and `--color-canvas` in a desaturated sage ramp (#214740,
+   #5A7B71, #ECF3EB). Tailwind resolves duplicate custom properties by source
+   order, so it silently won against the official brand tokens declared above
+   it and the whole product rendered in a palette nobody had chosen. The brand
+   block was correct the entire time; it was simply never the one that shipped.
+   It is not re-declared here — anything this file wants from the brand comes
+   from the block above, which is now the single source of truth.
+
+   What IS declared here is the layer the brand block never had: the surface,
+   semantic and numeric decisions the reference makes.
+   -------------------------------------------------------------------------- */
+@theme {
+  /* ---- Surfaces ----------------------------------------------------------
+     Four values carry the entire chrome of the reference. `hairline` bounds a
+     card; `rule` divides the inside of one. They are deliberately different:
+     one #E3EBE4 border reads as an edge, and an #F0F4EF line inside it reads
+     as a fold. Using the same value for both is what makes a dense list look
+     like a spreadsheet. */
+  /* canvas / canvas-deep are already declared in the brand block above and are
+     deliberately NOT repeated here — a second declaration of the same property
+     is exactly the shape of the bug this file's header describes. */
+  --color-hairline: #E3EBE4;
+  --color-rule: #F0F4EF;
+
+  /* ---- Type scale --------------------------------------------------------
+     The reference is dense on purpose: a recruiter scanning forty candidates
+     is reading a ledger, not an article. Body text is 12.5px and the card
+     title above it is 13.5px — a one-point step, where the shipped scale used
+     two. Hierarchy is carried by weight and colour instead, which is what
+     lets a screen hold five levels without any of them being large. */
+  --text-xs: 0.71875rem;   /* 11.5px — captions, chips, meta */
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.78125rem;   /* 12.5px — body, the default */
+  --text-sm--line-height: 1.5;
+  --text-base: 0.84375rem; /* 13.5px — card titles, row labels */
+  --text-base--line-height: 1.45;
+
+  /* ---- Numerals ----------------------------------------------------------
+     DESIGN.md's Two-Face Rule banned a mono face. The reference breaks it
+     everywhere a figure appears, and it is right to: these numbers sit in
+     columns — counts, days-open, pay bands, percentages — and a proportional
+     face makes a column of them ragged. This is a system-level decision, which
+     is the exact escape hatch that rule specified. It is a NUMERIC face, not
+     a third text face: no prose is ever set in it. See the `.num` utility. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* ── Base ────────────────────────────────────────────────── */
+/* ---------------------------------------------------------------------------
+   The Inherited Palette Rule, applied to Tailwind's own ramps.
+
+   737 call sites across the two apps reach for raw `emerald-*`, `amber-*` and
+   `red-*` rather than the verdict tokens. Rewriting them all was one option;
+   redefining what those names MEAN was the other, and it is the one that
+   cannot drift. Tailwind's emerald is a blue-green (#10b981) that fights the
+   brand's yellow-green (#2FBE62) whenever the two appear in one card, and
+   every one of those 737 sites was picking the wrong one for free.
+
+   The three ramps below are the reference's own semantics, widened to a full
+   scale. The pairings the reference actually uses land on the steps you would
+   expect: `bg-emerald-100 text-emerald-700` is its #EAF8E4 on #147A40,
+   `bg-amber-100 text-amber-600` its #FFF6E0 on #A8730B, `bg-red-100
+   text-red-600` its #FDECEC on #B23B33. Every such pairing clears AA at the
+   11.5px these badges ship at.
+
+   This keeps the Reserved Verdict Rule intact rather than weakening it: green,
+   amber and red still mean advanced / awaiting-a-human / rejected. They now
+   simply mean it in the brand's voice.
+   -------------------------------------------------------------------------- */
+@theme {
+  --color-emerald-50: #F3FBF7;
+  --color-emerald-100: #EAF8E4;
+  --color-emerald-200: #C9EEBC;
+  --color-emerald-300: #9FE28A;
+  --color-emerald-400: #7CDE4A;
+  --color-emerald-500: #2FBE62;
+  --color-emerald-600: #1A9A4F;
+  --color-emerald-700: #147A40;
+  --color-emerald-800: #0E3B2E;
+  --color-emerald-900: #0C1F1B;
+  --color-emerald-950: #081210;
+
+  --color-amber-50: #FFFBF0;
+  --color-amber-100: #FFF6E0;
+  --color-amber-200: #FCE7B4;
+  --color-amber-300: #F5CE73;
+  --color-amber-400: #E8A317;
+  --color-amber-500: #C98C0F;
+  --color-amber-600: #A8730B;
+  --color-amber-700: #8A5E09;
+  --color-amber-800: #6B4907;
+  --color-amber-900: #4A3205;
+  --color-amber-950: #2A1D03;
+
+  --color-red-50: #FFF8F7;
+  --color-red-100: #FDECEC;
+  --color-red-200: #F5C9C5;
+  --color-red-300: #E89A93;
+  --color-red-400: #D4534A;
+  --color-red-500: #C2453C;
+  --color-red-600: #B23B33;
+  --color-red-700: #96302A;
+  --color-red-800: #7A2722;
+  --color-red-900: #5C1D19;
+  --color-red-950: #3A1210;
+
+  /* Teal reads as the intelligence/system voice in the reference — the "this
+     was computed" colour, distinct from the "this was decided" green. Aliased
+     onto the accent ramp so the handful of `teal-*` sites stop being a fourth
+     hue nobody chose. */
+  --color-teal-50: #E8FBF5;
+  --color-teal-100: #C7F4E6;
+  --color-teal-200: #8BE8CB;
+  --color-teal-300: #4DD6B0;
+  --color-teal-400: #12B98A;
+  --color-teal-500: #0E9A74;
+  --color-teal-600: #0C7D5F;
+  --color-teal-700: #0A624B;
+  --color-teal-800: #084538;
+  --color-teal-900: #062E26;
+  --color-teal-950: #041F1A;
+
+  /* ---- Chart marks -------------------------------------------------------
+     THESE WERE MISSING AND THE ABSENCE WAS INVISIBLE. Ten call sites across
+     Reports.jsx and InterviewReport.jsx already painted bars with
+     `bg-chart-positive` / `-negative` / `-brand` / `-neutral`, but no such
+     token was ever declared — Tailwind emits no rule for a utility whose
+     variable does not exist, so every one of those bars rendered with NO FILL
+     at all. `grep -c chart-positive dist/assets/*.css` returned 0. The charts
+     had been empty outlines for as long as the classes had been there, and
+     nothing failed: the build is clean, the markup is correct, and a bar with
+     `width: 64%` and no background is simply not visible.
+
+     The values are the semantic set the system already owns, promoted to
+     chart-mark names rather than a new palette:
+
+       positive  #2FBE62  brand green   — the "this was decided well" voice
+       negative  #D4534A  verdict red   — declines, contradictions
+       pending   #E8A317  verdict amber — awaiting a human
+       brand     #12B98A  accent teal   — the "this was computed" voice
+       neutral   #8FA396  slate-400     — unscored, inconclusive, remainder
+
+     Hue-separated on purpose: `positive` and `brand` used to both be greens,
+     which is unreadable in a stacked bar. Green→teal→amber→red→grey survives
+     deuteranopia by lightness ordering as well as hue.
+
+     These are SOLID and saturated. DESIGN.md's Pastel-Needs-An-Edge Rule
+     called for tinted fills with a ring, and that rule is what produced a
+     near-white #FFF6E0 "amber" bar on an #F0F4EF track — a mark whose fill was
+     lighter than some of the surfaces it had to be read against. A chart mark
+     has to be visible before it can be tasteful. The ring stays as an edge for
+     definition, one step darker than the fill. */
+  --color-chart-positive: #2FBE62;
+  --color-chart-negative: #D4534A;
+  --color-chart-pending: #E8A317;
+  --color-chart-brand: #12B98A;
+  --color-chart-neutral: #8FA396;
+}
+
+/* ---------------------------------------------------------------------------
+   Shape and elevation, retuned to the reference — by token, not by call site.
+
+   RADIUS. DESIGN.md's 12/16 Rule set 12px on controls and 16px on containers.
+   The reference is one notch tighter throughout: 8px controls, 12px containers,
+   16px reserved for the one modal. The rule was worth keeping as a *rule* — two
+   radii, consistently applied — but its two values were simply larger than the
+   density the rest of the system now works at, and a 16px corner on a 12.5px
+   card title reads soft in a way a ledger should not.
+
+   Shifting the scale rather than editing 121 `rounded-2xl` call sites means the
+   ratio between steps is preserved and nothing can be missed. `rounded-lg` is
+   already 8px and stays put — it was correct all along.
+
+   ELEVATION. The reference has NO shadow on a card. Depth comes entirely from
+   the #E3EBE4 border against the #FAFCF8 ground, which is why its dense screens
+   stay legible: forty shadowed rows is forty competing light sources. So
+   `--shadow-card` goes to nothing, and the 27 places that ask for it flatten
+   together. DESIGN.md's Two-Shadow Rule survives intact — `soft` and `lift` are
+   still the only two, and they are now spent where elevation is real: menus,
+   drawers, toasts, and the modal, all of which genuinely float over content.
+   -------------------------------------------------------------------------- */
+@theme {
+  --radius-xl: 0.625rem;  /* 10px — inputs, nav rows */
+  --radius-2xl: 0.75rem;  /* 12px — the container radius */
+  --radius-3xl: 1rem;     /* 16px — modals and full-bleed panels only */
+
+  --shadow-card: 0 1px 3px rgba(12, 31, 27, 0.05), 0 1px 2px rgba(12, 31, 27, 0.03);
+}
+
 @layer base {
   html {
-    font-size: 100%;
     font-family: var(--font-sans);
     overflow-x: clip;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   body {
-    min-width: 320px;
-    font-size: 1rem;
-    zoom: 1.1;
-    background-color: #FAFAFA;
-    color: #09090B;
-    line-height: 1.6;
+    background-color: var(--color-canvas);
+    color: var(--color-slate-900);
+    @apply antialiased;
     overflow-x: clip;
-    color-scheme: light;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
-    color: #09090B;
-    letter-spacing: -0.02em;
-    line-height: 1.25;
+    @apply tracking-tight;
   }
 
+  /* Form controls */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -238,65 +378,270 @@
   input[type="date"],
   select,
   textarea {
-    min-height: var(--input-height);
-    border-radius: var(--radius-control);
-    border: 1px solid #E4E4E7;
-    background: #FFFFFF;
-    padding: 0.625rem 0.875rem;
-    font-size: 0.875rem;
-    color: #09090B;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-xs transition-colors;
   }
 
   input:focus,
   select:focus,
   textarea:focus {
-    border-color: #176B45;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(23, 107, 69, 0.15);
-  }
-
-  ::selection {
-    background: #E8F2EC;
-    color: #125638;
+    @apply border-brand-800 ring-2 ring-brand-700/20 outline-none;
   }
 }
 
-/* ── Utilities ───────────────────────────────────────────── */
 @layer utilities {
-  .tap-target {
-    @media (pointer: coarse) {
-      min-height: 44px;
-      min-width: 44px;
-    }
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(14, 59, 46, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(14, 59, 46, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
-  .ring-brand { box-shadow: var(--shadow-glow); }
+
+  .bg-aurora {
+    background-image:
+      radial-gradient(58rem 32rem at 12% -10%, rgba(124, 222, 74, 0.14), transparent 62%),
+      radial-gradient(46rem 28rem at 92% 6%, rgba(18, 185, 138, 0.12), transparent 64%),
+      radial-gradient(52rem 34rem at 50% 108%, rgba(227, 235, 228, 0.5), transparent 66%);
+  }
+
+  /* Flat tints, not gradients. Every tinted surface in the reference is one
+     value; a 160deg wash from tint to white means a card's own background
+     changes underneath its text, so a caption that clears AA at the top of the
+     panel is measured against a different ground at the bottom. It also reads
+     as a light source, and this system has none. */
+  .surface-brand {
+    background-color: #F3FBF7;
+  }
+
+  .surface-ember {
+    background-color: #FFF6E0;
+  }
+
+  .fill-brand {
+    background-image: linear-gradient(150deg, #0E3B2E 0%, #081210 100%);
+  }
+
+  .fill-ember {
+    background-image: linear-gradient(150deg, #D4F056 0%, #7CDE4A 100%);
+  }
+
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* ---- The numeral treatment ---------------------------------------------
+     The reference's most recognisable move: every figure — a count, a score, a
+     pay band, a day-count, a percentage — is set in the mono face with tabular
+     figures and pulled tight. It is one class rather than three utilities
+     because the three only work together. `tabular-nums` alone still ragged,
+     because Inter's digits are already tabular; what actually aligned the
+     columns was the mono face. And the mono face alone looked loose at 27px,
+     which the negative tracking corrects.
+
+     Prose never takes this class. See the Two-Face note in the theme block. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+
+  /* The divider inside a card, as opposed to the border around one. Written as
+     a utility so a list of forty rows emits one rule and not forty inline
+     borders, and so the two values can never be confused at a call site. */
+  .rule-b {
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  .rule-t {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  /* Descriptive copy in the reference is uniformly `text-wrap: pretty`, which
+     is what stops a two-line card subtitle ending on a single orphaned word.
+     Applied by class rather than to every <p>, because a table cell or a chip
+     wants the cheaper algorithm. */
+  .prose-wrap {
+    text-wrap: pretty;
+  }
+
+  /* Hidden scrollbar for horizontal kanban */
+  .kanban-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .kanban-scroll::-webkit-scrollbar {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  /* Microinteractions & elevated surfaces */
+  .card-interactive {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
+  }
+  .card-interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .card-interactive:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+  }
 }
 
-/* Translate legacy page utilities into the shared shadcn-style neutrals. */
-.bg-\[\#F8FAF9\] { background-color: #FAFAFA; }
-.bg-\[\#F1F7F3\],
-.bg-\[\#DDECE3\] { background-color: #F4F4F5; }
-.border-\[\#E5EBE7\] { border-color: #E4E4E7; }
-.border-\[\#C7DDD1\],
-.border-\[\#C7D4CC\] { border-color: #D4D4D8; }
-.text-\[\#17221C\] { color: #09090B; }
-.text-\[\#64736A\] { color: #71717A; }
-.text-\[\#9BAAA1\] { color: #A1A1AA; }
 
-/* Restrained shadcn geometry; full pills and avatars remain unchanged. */
-.rounded-xl { border-radius: 0.5rem; }
-.rounded-2xl { border-radius: 0.625rem; }
-.rounded-3xl { border-radius: 0.75rem; }
-
-button,
-[role="button"],
-a {
-  -webkit-tap-highlight-color: transparent;
+/* Authenticated recruiting surfaces only. Public pages keep the brand theme. */
+.admin-workspace {
+  --color-canvas: #F5F7F6;
+  --color-canvas-deep: #EDF2EF;
+  --color-hairline: #DEE5E1;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --radius-card: 0.625rem;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.admin-workspace .num { font-family: var(--font-sans); font-variant-numeric: tabular-nums; letter-spacing: normal; }
+.admin-workspace :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid #0E3B2E;
+  outline-offset: 3px;
+}
+.admin-workspace :where(input:not([type='checkbox']):not([type='radio']):not([type='color']), select, textarea) { border-radius: 8px; box-shadow: none; }
+.admin-workspace .workspace-nav-item.is-active:focus-visible { outline-color: #0E3B2E; }
+.admin-workspace .workspace-page-header h1 { font-size: 24px; line-height: 1.3; font-family: var(--font-display); font-weight: 600; }
+.admin-workspace .workspace-panel { border-radius: 12px; box-shadow: 0 1px 3px rgba(12, 31, 27, 0.05); }
+.admin-workspace.command-palette { padding: 0; border-radius: 12px; }
+.admin-workspace .workspace-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--color-hairline); border-radius: 10px; background: white; }
+.admin-workspace .workspace-table { font-size: 13px; }
+.admin-workspace .workspace-table thead { position: sticky; top: 0; z-index: 1; background: #EDF2EF; }
+.admin-workspace .workspace-table th { white-space: nowrap; background: #EDF2EF; }
+.admin-workspace .workspace-table td { vertical-align: middle; }
+.admin-workspace .workspace-table tr:focus-within { background: #F5F7F6; }
+.admin-workspace .workspace-table[data-density='compact'] td { padding-top: 8px; padding-bottom: 8px; }
+.admin-workspace .workspace-settings-nav a[aria-current='page'] { background: #EDF2EF; color: #0E3B2E; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-workspace *, .admin-workspace *::before, .admin-workspace *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-button:focus-visible,
-[role="button"]:focus-visible,
-a:focus-visible {
-  outline-color: #176B45;
+/* ==========================================================================
+   Tactile 3D Pipeline & Kanban Canvas Styles
+   ========================================================================== */
+.bg-mesh-canvas {
+  background-color: #f8f9ff;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(133, 248, 196, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(226, 223, 255, 0.25) 0px, transparent 70%),
+    radial-gradient(at 80% 100%, rgba(75, 65, 225, 0.07) 0px, transparent 50%);
 }
+
+.card-tactile-3d {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px -2px rgba(15, 23, 42, 0.06),
+    0 10px 24px -4px rgba(75, 65, 225, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 0 rgba(203, 213, 225, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+}
+
+.card-tactile-3d:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow:
+    0 3px 6px rgba(15, 23, 42, 0.04),
+    0 12px 28px -4px rgba(15, 23, 42, 0.12),
+    0 20px 32px -8px rgba(75, 65, 225, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -2px 0 rgba(199, 210, 254, 0.6);
+}
+
+.card-tactile-3d:active {
+  transform: translateY(-1px) scale(0.998);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.06),
+    0 6px 14px -2px rgba(75, 65, 225, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(203, 213, 225, 0.6);
+}
+
+.column-tray-3d {
+  background: linear-gradient(180deg, rgba(239, 244, 255, 0.85) 0%, rgba(244, 246, 252, 0.65) 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(15, 23, 42, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 3px rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(198, 198, 205, 0.35);
+}
+
+.btn-3d-advance {
+  box-shadow:
+    0 2px 4px rgba(75, 65, 225, 0.25),
+    0 4px 10px rgba(75, 65, 225, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 0 rgba(15, 0, 105, 0.3);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-3d-advance:hover {
+  transform: translateY(-1.5px);
+  box-shadow:
+    0 4px 8px rgba(75, 65, 225, 0.32),
+    0 8px 16px rgba(75, 65, 225, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(15, 0, 105, 0.35);
+}
+
+.btn-3d-advance:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px rgba(75, 65, 225, 0.2),
+    inset 0 1px 2px rgba(15, 0, 105, 0.4);
+}
+
+.btn-3d-secondary {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1.5px 0 rgba(203, 213, 225, 0.5);
+  transition: all 0.15s ease;
+}
+
+.btn-3d-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 3px 6px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1.5px 0 rgba(203, 213, 225, 0.6);
+}
+
+.btn-3d-secondary:active {
+  transform: translateY(1px);
+}
+
+.stage-glow-inbox { border-top: 3px solid #64748b; }
+.stage-glow-screened { border-top: 3px solid #4b41e1; box-shadow: inset 0 2px 8px -2px rgba(75, 65, 225, 0.25); }
+.stage-glow-interviewing { border-top: 3px solid #645efb; box-shadow: inset 0 2px 8px -2px rgba(100, 94, 251, 0.25); }
+.stage-glow-offer { border-top: 3px solid #059669; box-shadow: inset 0 2px 8px -2px rgba(5, 150, 105, 0.25); }
+.stage-glow-archived { border-top: 3px solid #94a3b8; }
+
+@keyframes advanceSlideOut {
+  0% { transform: scale(1) translateX(0); opacity: 1; }
+  50% { transform: scale(0.96) translateX(24px); opacity: 0.5; }
+  100% { transform: scale(0.92) translateX(60px); opacity: 0; }
+}
+
+@keyframes advanceSlideIn {
+  0% { transform: translateY(-12px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.anim-advancing {
+  animation: advanceSlideOut 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.anim-arrived {
+  animation: advanceSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

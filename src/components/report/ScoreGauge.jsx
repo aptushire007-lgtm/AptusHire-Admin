@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { VISUALIZATION_COLORS } from "../../lib/visualizationColors.js";
 
 const CHIP_TONE = {
-  positive: "bg-[#E8F2EC] text-[#176B45]",
-  pending: "bg-[#E8F2EC] text-[#176B45]",
-  negative: "bg-[#F8EAEA] text-[#C95C5C]",
-  neutral: "border border-dashed border-[#E5EBE7] bg-[#F8FAF9] text-[#64736A]",
+  positive: "bg-[#EAF8E4] text-[#0E3B2E]",
+  pending: "bg-[#EAF8E4] text-[#0E3B2E]",
+  negative: "bg-[#FDECEC] text-[#B23B33]",
+  neutral: "border border-dashed border-[#E3EBE4] bg-[#FAFCF8] text-[#5B6B63]",
 };
 
 const CX = 120;
@@ -83,7 +83,7 @@ function useAnimatedScore(target, enabled) {
 
 export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, label }) {
   const numericValue = Number(value);
-  const hasScore = value != null && Number.isFinite(numericValue) && Number(max) > 0;
+  const hasScore = value != null && value !== "" && Number.isFinite(numericValue) && Number.isFinite(Number(max)) && Number(max) > 0;
   const score = hasScore ? clamp((numericValue / Number(max)) * 100, 0, 100) : 0;
   const animatedScore = useAnimatedScore(score, hasScore);
   const needleAngle = scoreAngle(animatedScore);
@@ -115,7 +115,9 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
     []
   );
 
-  const accessibleScore = hasScore ? `${Math.round(score)} out of 100, ${finalZone.label} zone` : "no reading";
+  // Only the supplied instrument verdict may interpret the score. Generic
+  // display zones otherwise invent a second, conflicting hiring policy.
+  const accessibleScore = hasScore ? `${numericValue} out of ${Number(max)}` : "no reading";
 
   return (
     <figure
@@ -128,7 +130,7 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
         <path
           d={arcPath(ARC_RADIUS, START_ANGLE, END_ANGLE)}
           fill="none"
-          stroke="#E4E4E7"
+          stroke="#E3EBE4"
           strokeWidth="18"
           strokeLinecap="round"
         />
@@ -140,7 +142,7 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
               key={zone.label}
               d={arcPath(ARC_RADIUS, scoreAngle(zone.from) + gap, scoreAngle(zone.to) - gap)}
               fill="none"
-              stroke={zone.color}
+              stroke="#5B6B63"
               strokeWidth="13"
               strokeLinecap="butt"
             />
@@ -155,7 +157,7 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
               y1={tick.inner.y}
               x2={tick.outer.x}
               y2={tick.outer.y}
-              stroke={tick.major ? "#3F3F46" : "#A1A1AA"}
+              stroke={tick.major ? "#24332E" : "#5B6B63"}
               strokeWidth={tick.major ? 1.7 : 0.8}
               strokeLinecap="round"
             />
@@ -169,7 +171,7 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
             y={position.y + 2}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="#71717A"
+            fill="#5B6B63"
             fontSize="7"
             fontWeight="600"
           >
@@ -181,19 +183,19 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
           <g transform={`rotate(${needleAngle} ${CX} ${CY})`}>
             <path
               d={`M ${CX - 9} ${CY + 2.8} L ${CX + 72} ${CY} L ${CX - 9} ${CY - 2.8} Z`}
-              fill={finalZone.color}
+              fill="#0C1F1B"
             />
           </g>
         )}
 
-        <circle cx={CX} cy={CY} r="9" fill="#18181B" stroke="#FFFFFF" strokeWidth="2.5" />
-        <circle cx={CX} cy={CY} r="3.2" fill={hasScore ? finalZone.color : "#A1A1AA"} />
+        <circle cx={CX} cy={CY} r="9" fill="#162420" stroke="#FFFFFF" strokeWidth="2.5" />
+        <circle cx={CX} cy={CY} r="3.2" fill={hasScore ? "#0C1F1B" : "#5B6B63"} />
 
         <text
           x={CX}
           y="143"
           textAnchor="middle"
-          fill="#09090B"
+          fill="#0C1F1B"
           fontSize="28"
           fontWeight="800"
           style={{ fontVariantNumeric: "tabular-nums" }}
@@ -203,12 +205,14 @@ export function ScoreSpeedometer({ value, max = 100, display, verdict, caption, 
       </svg>
 
       {verdict && (
-        <span className={`-mt-0.5 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${CHIP_TONE[verdict.tone] || CHIP_TONE.neutral}`}>
+        <span className={`-mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${
+            CHIP_TONE[verdict.tone] || CHIP_TONE.neutral
+          }`}>
           {verdict.label}
         </span>
       )}
 
-      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-[#64736A]">{caption}</figcaption>}
+      {caption && <figcaption className="mt-2 text-center text-[11px] leading-snug text-slate-500">{caption}</figcaption>}
     </figure>
   );
 }

@@ -61,7 +61,7 @@ export function targetFor(notification) {
   // route by whichever identifying field is actually present, most specific first.
   if (type === "system_alert") {
     if (meta.candidateId) return { to: `/candidates/${meta.candidateId}` };
-    if (meta.jobId) return { to: `/jobs/${meta.jobId}/candidates` };
+    if (meta.jobId) return { to: `/jobs?jobId=${meta.jobId}&tab=candidates` };
     return null;
   }
   if (STATIC_TARGETS[type]) return { to: STATIC_TARGETS[type] };

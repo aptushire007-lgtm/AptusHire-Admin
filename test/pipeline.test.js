@@ -17,7 +17,7 @@ import { createRequire } from "node:module";
 import * as ui from "../src/lib/pipeline.js";
 
 const require = createRequire(import.meta.url);
-const server = require("../../backend/utils/pipeline.js");
+const server = require("../../AptusHire-Backend/utils/pipeline.js");
 
 // Every stage either side can name, plus the legacy aliases still stored on old
 // Candidate documents. The legacy keys matter: they are the inputs most likely

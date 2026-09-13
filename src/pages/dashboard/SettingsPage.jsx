@@ -1,5 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Building2, User, Mail, Phone, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import PageHeader from "../../components/ui/PageHeader.jsx";
 import api from "../../api/client.js";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
@@ -9,11 +11,12 @@ import Button from "../../components/ui/Button.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
 
 // A small inline switch — the UI kit has no toggle, and a checkbox reads poorly for on/off policy.
-function Toggle({ checked, onChange, disabled }) {
+function Toggle({ checked, onChange, disabled, label }) {
   return (
     <button
       type="button"
       role="switch"
+      aria-label={label}
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
@@ -30,10 +33,10 @@ function ToggleRow({ label, description, checked, onChange, tone }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2.5">
       <div>
-        <p className={`text-sm font-medium ${tone === "warn" ? "text-amber-800" : "text-[#17221C]"}`}>{label}</p>
-        {description && <p className="mt-0.5 text-xs text-[#64736A]">{description}</p>}
+        <p className={`text-sm font-medium ${tone === "warn" ? "text-amber-800" : "text-slate-800"}`}>{label}</p>
+        {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
       </div>
-      <Toggle checked={checked} onChange={onChange} />
+      <Toggle label={label} checked={checked} onChange={onChange} />
     </div>
   );
 }
@@ -127,6 +130,8 @@ function IntegrationsSection() {
   const [boards, setBoards] = useState([]);
   const [drafts, setDrafts] = useState({}); // board → { field: value }
   const [busyBoard, setBusyBoard] = useState(null);
+  const [boardsError, setBoardsError] = useState("");
+  const [boardsLoading, setBoardsLoading] = useState(false);
 
   useEffect(() => {
     api.get("/company-settings/careers-info").then((res) => setCareers(res.data)).catch(() => {});
@@ -135,11 +140,15 @@ function IntegrationsSection() {
   }, []);
 
   async function loadBoards() {
+    setBoardsLoading(true);
     try {
       const res = await api.get("/company-settings/board-credentials");
       setBoards(res.data.boards || []);
+      setBoardsError("");
     } catch {
-      // section stays empty — not fatal for the rest of settings
+      setBoardsError("Could not load integration status. Existing connections may still be active.");
+    } finally {
+      setBoardsLoading(false);
     }
   }
 
@@ -202,33 +211,38 @@ function IntegrationsSection() {
 
   return (
     <Card>
-      <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+      <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
         <Globe2 className="h-4.5 w-4.5 text-brand-600" /> Integrations & Distribution
       </h2>
-      <p className="mb-4 text-sm text-[#64736A]">
+      <p className="mb-4 text-sm text-slate-500">
         Your public careers page and feeds need nobody's permission — Google for Jobs and the aggregator network index
         them for free. Board accounts you already pay for connect below.
       </p>
 
+      {boardsLoading && <p role="status" className="mb-3 text-sm text-[#5B6B63]">Loading integration status…</p>}
+      {boardsError && <div role="alert" className="mb-4 rounded-lg border border-amber-200 p-3 text-sm text-amber-900">
+        <p>{boardsError}</p>
+        <button type="button" disabled={boardsLoading} onClick={loadBoards} className="mt-2 rounded border border-amber-300 px-3 py-2 font-semibold">Retry integration status</button>
+      </div>}
       {careers && (
-        <div className="mb-5 space-y-2 rounded-xl bg-[#E8F2EC] p-4 text-sm">
+        <div className="mb-5 space-y-2 rounded-xl bg-slate-50 p-4 text-sm">
           {[
             { label: "Careers page", value: careers.careersUrl },
             { label: "Jobs feed (XML)", value: careers.feedUrl },
             { label: "Jobs sitemap", value: careers.sitemapUrl },
           ].map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-3">
-              <span className="shrink-0 text-[#64736A]">{row.label}</span>
+              <span className="shrink-0 text-slate-500">{row.label}</span>
               {/* `min-w-0`: a flex item's default `min-width: auto` holds it at
                   its content size, so `truncate` never engaged — a real feed/
                   sitemap URL just pushed the row past the card edge. */}
-              <span className="min-w-0 truncate font-mono text-xs text-[#64736A]">{row.value}</span>
-              <button onClick={() => copyText(row.value, row.label)} className="shrink-0 text-[#64736A] hover:text-brand-700" title="Copy">
+              <span className="min-w-0 truncate font-mono text-xs text-slate-600">{row.value}</span>
+              <button onClick={() => copyText(row.value, row.label)} className="shrink-0 text-slate-500 hover:text-brand-700" title="Copy">
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
-          <p className="pt-1 text-xs text-[#64736A]">
+          <p className="pt-1 text-xs text-slate-500">
             Submit the feed once to Adzuna, Jooble, Talent.com and Careerjet — no contract needed; they crawl it from
             then on.
           </p>
@@ -237,9 +251,9 @@ function IntegrationsSection() {
 
       <div className="space-y-4">
         {boards.map((b) => (
-          <div key={b.board} className="rounded-xl border border-[#E5EBE7] p-4">
+          <div key={b.board} className="rounded-xl border border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-[#17221C]">
+              <p className="text-sm font-semibold text-slate-800">
                 {b.name} <Badge tone="slate">Tier {b.tier}</Badge>
               </p>
               <div className="flex items-center gap-2">
@@ -291,7 +305,18 @@ function IntegrationsSection() {
   );
 }
 
+const SETTINGS_SECTIONS = [
+  { id: "organization", label: "Organization", icon: Building2 },
+  { id: "screening", label: "Screening & interviews", icon: Microscope },
+  { id: "privacy", label: "Data & privacy", icon: ShieldCheck },
+  { id: "notifications", label: "Email notifications", icon: BellRing },
+  { id: "branding", label: "Branding", icon: Palette },
+  { id: "integrations", label: "Integrations", icon: Globe2 },
+];
+
 export default function SettingsPage() {
+  const [params] = useSearchParams();
+  const section = SETTINGS_SECTIONS.some(item => item.id === params.get("section")) ? params.get("section") : "organization";
   const { user } = useAdminAuth();
   const { me, loading: companyLoading } = useCompanyData();
   const company = me?.company;
@@ -300,21 +325,27 @@ export default function SettingsPage() {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savedForm, setSavedForm] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const dirty = savedForm != null && JSON.stringify(savedForm) !== JSON.stringify(form);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setLoadError(false);
     api
       .get("/company-settings")
       .then((res) => {
-        if (active) setForm(fromSettings(res.data));
+        if (active) { const value = fromSettings(res.data); setForm(value); setSavedForm(value); }
       })
-      .catch(() => toast.error("Could not load company settings."))
+      .catch(() => { if (active) setLoadError(true); })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [attempt]);
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const onInput = (key) => (e) => set(key)(e.target.value);
@@ -331,7 +362,9 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       const res = await api.put("/company-settings", toPayload(form));
-      setForm(fromSettings(res.data));
+      const value = fromSettings(res.data);
+      setForm(value);
+      setSavedForm(value);
       toast.success("Settings saved.");
     } catch (err) {
       toast.error(err.response?.data?.error || "Could not save settings.");
@@ -342,43 +375,47 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Settings</h1>
-        <p className="mt-1 text-sm text-[#64736A]">Your account, company details, and how the platform runs for your team.</p>
-      </div>
-
+      <PageHeader title="Settings" description="Manage your organization and recruiting preferences." />
+      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+        <nav aria-label="Settings sections" className="workspace-settings-nav flex flex-wrap gap-1 lg:sticky lg:top-20 lg:flex-col">
+          {SETTINGS_SECTIONS.map(item => <Link key={item.id} to={`/settings?section=${item.id}`} aria-current={section === item.id ? "page" : undefined} className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-white"><item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />{item.label}</Link>)}
+          <Link to="/subscription" className="mt-2 rounded-lg border-t border-hairline px-3 py-3 text-sm text-slate-500 hover:text-brand-800">Plan and billing</Link>
+        </nav>
+        <div className="min-w-0 space-y-4">
+        {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">Company settings could not be loaded.<Button variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry settings</Button></div>}
+        <fieldset disabled={saving} className="min-w-0 space-y-4">
       {/* Read-only account + company */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <section hidden={section !== "organization"} aria-label="Organization settings"><div className="grid gap-4 xl:grid-cols-2">
         <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
             <User className="h-4.5 w-4.5 text-brand-600" /> Account
           </h2>
           <dl className="space-y-3 text-sm">
             <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-[#64736A]">Name</dt>
-              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.name || "—"}</dd>
+              <dt className="shrink-0 text-slate-500">Name</dt>
+              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.name || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-[#64736A]">
+              <dt className="flex shrink-0 items-center gap-1.5 text-slate-500">
                 <Mail className="h-3.5 w-3.5" /> Email
               </dt>
-              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.email || "—"}</dd>
+              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.email || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-[#64736A]">
+              <dt className="flex shrink-0 items-center gap-1.5 text-slate-500">
                 <Phone className="h-3.5 w-3.5" /> Phone
               </dt>
-              <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{user?.phone || "—"}</dd>
+              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.phone || "—"}</dd>
             </div>
             <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-[#64736A]">Role</dt>
+              <dt className="shrink-0 text-slate-500">Role</dt>
               <dd><Badge tone="brand">{user?.role}</Badge></dd>
             </div>
           </dl>
         </Card>
 
         <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
             <Building2 className="h-4.5 w-4.5 text-brand-600" /> Company
           </h2>
           {companyLoading ? (
@@ -386,15 +423,15 @@ export default function SettingsPage() {
           ) : (
             <dl className="space-y-3 text-sm">
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#64736A]">Company Name</dt>
-                <dd className="min-w-0 text-right font-medium text-[#17221C] [overflow-wrap:anywhere]">{company?.name || "—"}</dd>
+                <dt className="shrink-0 text-slate-500">Company Name</dt>
+                <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{company?.name || "—"}</dd>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#64736A]">Company Code</dt>
-                <dd className="min-w-0 text-right font-mono text-xs font-medium text-[#17221C] [overflow-wrap:anywhere]">{company?.companyCode || "—"}</dd>
+                <dt className="shrink-0 text-slate-500">Company Code</dt>
+                <dd className="min-w-0 text-right font-mono text-xs font-medium text-slate-800 [overflow-wrap:anywhere]">{company?.companyCode || "—"}</dd>
               </div>
               <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-[#64736A]">Status</dt>
+                <dt className="shrink-0 text-slate-500">Status</dt>
                 <dd><Badge tone={company?.status === "active" ? "green" : "amber"}>{company?.status || "—"}</Badge></dd>
               </div>
             </dl>
@@ -402,18 +439,21 @@ export default function SettingsPage() {
         </Card>
       </div>
 
+      </section>
+
       {loading ? (
         <Card><Skeleton className="h-64 w-full" /></Card>
-      ) : (
+      ) : loadError ? null : (
         <>
+          <section hidden={section !== "screening"} aria-label="Screening and interview settings" className="space-y-4">
           {/* Screening engine — the switch that decides whether the evidence
               engine (rubric × claim-graph × deterministic scorer) actually
               scores candidates, or only the legacy keyword matcher runs. */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Microscope className="h-4.5 w-4.5 text-brand-600" /> Screening Engine
             </h2>
-            <p className="mb-4 text-sm text-[#64736A]">
+            <p className="mb-4 text-sm text-slate-500">
               How applicants are scored. The evidence engine scores each candidate against your approved rubric with
               cited proof for every point — jobs without an approved rubric always use the keyword engine.
             </p>
@@ -425,7 +465,7 @@ export default function SettingsPage() {
                 <option value="shadow">Shadow — evidence engine runs silently for comparison</option>
                 <option value="live">Live — evidence engine scores candidates</option>
               </Select>
-              <p className="mt-2 text-xs text-[#64736A]">
+              <p className="mt-2 text-xs text-slate-500">
                 {form.atsEngine === "shadow" &&
                   "Shadow mode: candidates are still scored and decided by the keyword engine, while the evidence engine runs in parallel and records what it would have scored. Use this to compare the two before going live — nothing changes for candidates."}
                 {form.atsEngine === "live" &&
@@ -440,10 +480,10 @@ export default function SettingsPage() {
 
           {/* AI interview */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Bot className="h-4.5 w-4.5 text-brand-600" /> AI Interview
             </h2>
-            <p className="mb-4 text-sm text-[#64736A]">How the AI conducts and pays for interviews. Leave the model blank to use the platform default.</p>
+            <p className="mb-4 text-sm text-slate-500">How the AI conducts and pays for interviews. Leave the model blank to use the platform default.</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormGroup className="mb-0">
                 <Label>Model override</Label>
@@ -456,7 +496,7 @@ export default function SettingsPage() {
               <FormGroup className="mb-0">
                 <Label>Monthly AI budget (USD)</Label>
                 <Input type="number" min="0" step="0.01" value={form.aiBudgetUsd} onChange={onInput("aiBudgetUsd")} />
-                <p className="mt-1 text-xs text-[#64736A]">0 = uncapped. Interview LLM spend is metered against this each month.</p>
+                <p className="mt-1 text-xs text-slate-500">0 = uncapped. Interview LLM spend is metered against this each month.</p>
               </FormGroup>
               <div className="flex items-center">
                 <ToggleRow
@@ -469,13 +509,15 @@ export default function SettingsPage() {
             </div>
           </Card>
 
+          </section>
+          <section hidden={section !== "privacy"} aria-label="Data and privacy settings" className="space-y-4">
           {/* Compliance & DPDP */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <ShieldCheck className="h-4.5 w-4.5 text-brand-600" /> Compliance & Data Protection
             </h2>
-            <p className="mb-3 text-sm text-[#64736A]">Controls that govern candidate PII and fair-hiring safeguards (India DPDP).</p>
-            <div className="divide-y divide-[#E5EBE7]">
+            <p className="mb-3 text-sm text-slate-500">Controls that govern candidate PII and fair-hiring safeguards (India DPDP).</p>
+            <div className="divide-y divide-slate-100">
               <ToggleRow
                 label="Require AI consent"
                 description="Ask candidates to consent before any resume/answer text is sent to the external AI. Without consent the interview runs fully offline."
@@ -499,16 +541,16 @@ export default function SettingsPage() {
             <FormGroup className="mb-0 mt-4 max-w-xs">
               <Label>Data retention (days)</Label>
               <Input type="number" min="1" max="3650" step="1" value={form.retentionDays} onChange={onInput("retentionDays")} />
-              <p className="mt-1 text-xs text-[#64736A]">Interview & resume data untouched for longer than this is permanently deleted by the nightly job.</p>
+              <p className="mt-1 text-xs text-slate-500">Interview & resume data untouched for longer than this is permanently deleted by the nightly job.</p>
             </FormGroup>
           </Card>
 
           {/* DPO contact */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <ShieldCheck className="h-4.5 w-4.5 text-brand-600" /> Data Protection Officer
             </h2>
-            <p className="mb-4 text-sm text-[#64736A]">Shown to candidates on the application form for data-rights requests (DPDP §5.2).</p>
+            <p className="mb-4 text-sm text-slate-500">Shown to candidates on the application form for data-rights requests (DPDP §5.2).</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <FormGroup className="mb-0">
                 <Label>Name</Label>
@@ -525,25 +567,29 @@ export default function SettingsPage() {
             </div>
           </Card>
 
+          </section>
+          <section hidden={section !== "notifications"} aria-label="Email notification settings">
           {/* Notifications */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <BellRing className="h-4.5 w-4.5 text-brand-600" /> Email Notifications
             </h2>
-            <p className="mb-3 text-sm text-[#64736A]">Which recruiter emails your team receives.</p>
-            <div className="divide-y divide-[#E5EBE7]">
+            <p className="mb-3 text-sm text-slate-500">Which recruiter emails your team receives.</p>
+            <div className="divide-y divide-slate-100">
               <ToggleRow label="New application" description="Email when a candidate applies to one of your jobs." checked={form.notifNewApp} onChange={set("notifNewApp")} />
               <ToggleRow label="ATS result" description="Email when a candidate passes or fails ATS screening." checked={form.notifAts} onChange={set("notifAts")} />
               <ToggleRow label="Interview completed" description="Email when an AI interview finishes and a report is ready." checked={form.notifInterview} onChange={set("notifInterview")} />
             </div>
           </Card>
 
+          </section>
+          <section hidden={section !== "branding"} aria-label="Branding settings">
           {/* Branding */}
           <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-[#17221C]">
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Palette className="h-4.5 w-4.5 text-brand-600" /> Branding
             </h2>
-            <p className="mb-3 text-sm text-[#64736A]">Apply your brand colour to candidate-facing pages and emails.</p>
+            <p className="mb-3 text-sm text-slate-500">Apply your brand colour to candidate-facing pages and emails.</p>
             <ToggleRow label="Use custom branding" checked={form.brandingCustom} onChange={set("brandingCustom")} />
             <FormGroup className="mb-0 mt-3 max-w-xs">
               <Label>Primary colour</Label>
@@ -552,24 +598,27 @@ export default function SettingsPage() {
                   type="color"
                   value={form.brandingColor}
                   onChange={onInput("brandingColor")}
-                  className="h-10 w-14 cursor-pointer rounded-lg border border-[#E5EBE7]-mid bg-white p-1"
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
                 />
                 <Input value={form.brandingColor} onChange={onInput("brandingColor")} className="font-mono" />
               </div>
             </FormGroup>
           </Card>
 
-          <IntegrationsSection />
-
-          <div className="sticky bottom-4 flex justify-end">
-            {/* shadow-soft, not shadow-lg: DESIGN.md defines four elevation
-                planes and a raw Tailwind shadow is none of them. */}
-            <Button onClick={save} loading={saving} className="shadow-soft">
-              <Save className="h-4 w-4" /> Save changes
-            </Button>
-          </div>
+          </section>
+          <section hidden={section !== "integrations"} aria-label="Integration settings"><IntegrationsSection /></section>
         </>
       )}
+      </fieldset>
+      {!loading && !loadError && <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-white px-4 py-3">
+        <p role="status" className="text-xs text-slate-500">{dirty ? "Unsaved changes across settings sections" : "All changes saved"}</p>
+        <div className="flex items-center gap-2">
+          {dirty && <Button variant="secondary" disabled={saving} onClick={() => setForm(savedForm)}>Discard changes</Button>}
+          <Button onClick={save} loading={saving} disabled={!dirty}><Save className="h-4 w-4" aria-hidden="true" />Save changes</Button>
+        </div>
+      </div>}
+      </div>
+      </div>
     </div>
   );
 }

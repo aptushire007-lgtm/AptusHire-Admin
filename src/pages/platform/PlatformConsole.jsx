@@ -56,7 +56,7 @@ function Pager({ page, total, limit, onPage }) {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#E5EBE7] pt-3 text-sm text-[#64736A]">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-sm text-slate-500">
       <span>
         {total} rows · page {page}/{pages}
       </span>
@@ -269,41 +269,41 @@ function TrustTab() {
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <p className="text-xs font-medium text-[#64736A]">LLM circuit breaker</p>
+          <p className="text-xs font-medium text-slate-500">LLM circuit breaker</p>
           <p className="mt-1"><Badge tone={breakerTone}>{data.breaker}</Badge></p>
         </Card>
         <Card>
-          <p className="text-xs font-medium text-[#64736A]">Assessments (30d)</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">{data.assessments.total}</p>
+          <p className="text-xs font-medium text-slate-500">Assessments (30d)</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">{data.assessments.total}</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium text-[#64736A]">Review rate</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">
+          <p className="text-xs font-medium text-slate-500">Review rate</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
             {data.assessments.reviewRate != null ? `${Math.round(data.assessments.reviewRate * 100)}%` : "—"}
           </p>
-          <p className="text-[11px] text-[#64736A]">0% would mean overconfidence</p>
+          <p className="text-[11px] text-slate-500">0% would mean overconfidence</p>
         </Card>
         <Card>
-          <p className="text-xs font-medium text-[#64736A]">Ensemble agreement</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">{data.assessments.meanEnsembleAgreement ?? "—"}</p>
+          <p className="text-xs font-medium text-slate-500">Ensemble agreement</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">{data.assessments.meanEnsembleAgreement ?? "—"}</p>
         </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-3 text-base font-semibold text-[#17221C]">Counterfactual bias probes (30d)</h3>
-          <p className="text-sm text-[#64736A]">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Counterfactual bias probes (30d)</h3>
+          <p className="text-sm text-slate-600">
             Ran on {data.assessments.counterfactuals.ran} assessment(s) · identical result{" "}
             {data.assessments.counterfactuals.identical} · <span className="font-semibold text-red-600">{data.assessments.counterfactuals.leaks} leak(s)</span>
           </p>
-          <p className="mt-2 text-xs text-[#64736A]">
+          <p className="mt-2 text-xs text-slate-500">
             A leak = swapping demographic proxies changed the outcome. Anything above zero is an incident, not a statistic.
           </p>
         </Card>
         <Card>
-          <h3 className="mb-3 text-base font-semibold text-[#17221C]">Scoring engine mix (30d)</h3>
-          <div className="space-y-1.5 text-sm text-[#64736A]">
-            {Object.entries(data.engineMix).length === 0 && <p className="text-[#64736A]">No scored candidates in range.</p>}
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Scoring engine mix (30d)</h3>
+          <div className="space-y-1.5 text-sm text-slate-600">
+            {Object.entries(data.engineMix).length === 0 && <p className="text-slate-500">No scored candidates in range.</p>}
             {Object.entries(data.engineMix).map(([engine, n]) => (
               <p key={engine}>
                 <Badge tone={engine === "evidence" ? "green" : engine === "fallback-legacy" ? "amber" : "slate"}>{engine}</Badge>{" "}
@@ -311,12 +311,12 @@ function TrustTab() {
               </p>
             ))}
           </div>
-          <p className="mt-2 text-xs text-[#64736A]">fallback-legacy = the labelled no-AI path carried the decision — uncertainty stays visible.</p>
+          <p className="mt-2 text-xs text-slate-500">fallback-legacy = the labelled no-AI path carried the decision — uncertainty stays visible.</p>
         </Card>
       </div>
 
       <Card>
-        <h3 className="mb-3 text-base font-semibold text-[#17221C]">LLM spend by kind (30d)</h3>
+        <h3 className="mb-3 text-base font-semibold text-slate-900">LLM spend by kind (30d)</h3>
         <RecordGrid>
           {data.spendByKind.map((r) => (
             <RecordCard
@@ -330,22 +330,22 @@ function TrustTab() {
               metaColumns={2}
             />
           ))}
-          {data.spendByKind.length === 0 && <p className="text-sm text-[#64736A]">No LLM spend in range.</p>}
+          {data.spendByKind.length === 0 && <p className="text-sm text-slate-500">No LLM spend in range.</p>}
         </RecordGrid>
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-base font-semibold text-[#17221C]">Per-tenant assessment volume (30d)</h3>
+        <h3 className="mb-3 text-base font-semibold text-slate-900">Per-tenant assessment volume (30d)</h3>
         <div className="space-y-1.5 text-sm">
           {data.tenants.map((t) => (
-            <div key={t.company} className="flex items-center justify-between gap-3 rounded-lg bg-[#F8FAF9] px-3 py-2">
-              <span className="min-w-0 truncate text-[#17221C]">{t.companyName}</span>
-              <span className="shrink-0 text-xs text-[#64736A]">
+            <div key={t.company} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+              <span className="min-w-0 truncate text-slate-700">{t.companyName}</span>
+              <span className="shrink-0 text-xs text-slate-500">
                 {t.assessments} assessed · review {t.reviewRate != null ? `${Math.round(t.reviewRate * 100)}%` : "—"}
               </span>
             </div>
           ))}
-          {data.tenants.length === 0 && <p className="text-[#64736A]">No evidence-engine assessments in range.</p>}
+          {data.tenants.length === 0 && <p className="text-slate-500">No evidence-engine assessments in range.</p>}
         </div>
       </Card>
     </div>
@@ -412,7 +412,7 @@ function LogTab({ endpoint, columns, filters }) {
       {!data ? (
         <Skeleton className="h-40 w-full" />
       ) : (data.items || data.rows || []).length === 0 ? (
-        <p className="py-8 text-center text-sm text-[#64736A]">No rows in range.</p>
+        <p className="py-8 text-center text-sm text-slate-500">No rows in range.</p>
       ) : (
         <>
           <RecordGrid columns={2}>
@@ -507,7 +507,7 @@ function DemoInterviewsTab() {
   return (
     <div className="space-y-6">
       <Card>
-        <h3 className="mb-3 text-base font-semibold text-[#17221C]">Generate a demo interview link</h3>
+        <h3 className="mb-3 text-base font-semibold text-slate-900">Generate a demo interview link</h3>
         <FormGroup>
           <Label required>Reason / who is this for</Label>
           <Input
@@ -536,7 +536,7 @@ function DemoInterviewsTab() {
             />
           </FormGroup>
         </div>
-        <p className="-mt-2 mb-3 text-xs text-[#64736A]">
+        <p className="-mt-2 mb-3 text-xs text-slate-500">
           Leave blank to use this server's own configured candidate URL — set this when generating from a local/dev
           admin session so the link points at the real public candidate site instead.
         </p>
@@ -572,10 +572,10 @@ function DemoInterviewsTab() {
         </Button>
 
         {justCreated && (
-          <div className="mt-4 rounded-xl border border-[#C7DDD1] bg-[#E8F2EC] p-4">
+          <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 p-4">
             <p className="text-sm font-semibold text-brand-800">Link generated — copy it now, it won't be shown again</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded-lg bg-white px-3 py-2 text-xs text-[#64736A]">{justCreated.link}</code>
+              <code className="min-w-0 flex-1 truncate rounded-lg bg-white px-3 py-2 text-xs text-slate-700">{justCreated.link}</code>
               <Button variant="outline" size="sm" onClick={() => copy(justCreated.link)}>
                 Copy
               </Button>
@@ -588,7 +588,7 @@ function DemoInterviewsTab() {
       </Card>
 
       <Card>
-        <h3 className="mb-3 text-base font-semibold text-[#17221C]">Generated demo interviews</h3>
+        <h3 className="mb-3 text-base font-semibold text-slate-900">Generated demo interviews</h3>
         {!data ? (
           <Skeleton className="h-40 w-full" />
         ) : data.items.length === 0 ? (
@@ -652,7 +652,7 @@ function DemoInterviewsTab() {
 
       <Modal open={Boolean(actionResult)} onClose={() => setActionResult(null)} size="md" title="New link generated" description="Copy it now — it won't be shown again.">
         <div className="flex flex-wrap items-center gap-2">
-          <code className="min-w-0 flex-1 truncate rounded-lg bg-[#F8FAF9] px-3 py-2 text-xs text-[#17221C]">{actionResult?.link}</code>
+          <code className="min-w-0 flex-1 truncate rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{actionResult?.link}</code>
           <Button variant="outline" size="sm" onClick={() => copy(actionResult?.link)}>
             Copy
           </Button>
@@ -672,18 +672,18 @@ export default function PlatformConsole() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9]">
-      <header className="sticky top-0 z-30 border-b border-[#E5EBE7] bg-white px-5 py-3 shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
+    <div className="min-h-screen bg-canvas">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-slate-900 px-5 py-3 text-white">
         {/* `min-w-0`/`truncate` on the wordmark, `shrink-0` on Log out: at 360px
             "AptusHire — Platform Console" plus the icon and the button don't
             both fit one row, and this header has no shared drawer/hamburger to
             fall back to the way DashboardShell's does. */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <p className="flex min-w-0 items-center gap-2 font-display text-base font-bold">
-            <Cpu className="h-4.5 w-4.5 shrink-0 text-[#176B45]" aria-hidden="true" />
-            <span className="truncate text-[#17221C]">AptusHire — Platform Console</span>
+            <Cpu className="h-4.5 w-4.5 shrink-0 text-brand-300" aria-hidden="true" />
+            <span className="truncate">AptusHire — Platform Console</span>
           </p>
-          <button onClick={logout} className="flex shrink-0 items-center gap-1.5 text-sm text-[#64736A] hover:text-[#17221C]">
+          <button onClick={logout} className="flex shrink-0 items-center gap-1.5 text-sm text-slate-300 hover:text-white">
             <LogOut className="h-4 w-4" /> Log out
           </button>
         </div>
@@ -696,7 +696,7 @@ export default function PlatformConsole() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold transition ${
-                tab === t.key ? "border-brand-500 bg-[#E8F2EC] text-brand-700" : "border-[#E5EBE7] bg-white text-[#64736A] hover:bg-[#DDECE3] hover:text-[#17221C]"
+                tab === t.key ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
               }`}
             >
               <t.icon className="h-4 w-4" /> {t.label}

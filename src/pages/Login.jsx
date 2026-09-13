@@ -7,7 +7,6 @@ import { Card } from "../components/ui/Card.jsx";
 import { Input, Label, FormGroup } from "../components/ui/Field.jsx";
 import Button from "../components/ui/Button.jsx";
 import BrandLogo from "../components/ui/BrandLogo.jsx";
-import ThemeToggle from "../components/ui/ThemeToggle.jsx";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -64,25 +63,21 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#F8FAF9] px-5 py-12 transition-colors">
-      <div className="absolute right-6 top-6">
-        <ThemeToggle />
-      </div>
-
+    <div className="relative flex min-h-screen items-center justify-center bg-[#FAFCF8] px-5 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo to="/welcome" size="lg" className="mb-4" />
-          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Welcome back</h1>
-          <p className="mt-1 text-sm text-[#64736A]">Log in to your admin workspace</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">Welcome back</h1>
+          <p className="mt-1 text-sm text-slate-500">Log in to your admin workspace</p>
         </div>
 
-        <Card className="rounded-3xl border border-[#E5EBE7] bg-white p-6 shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-soft sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <p className="rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</p>
             )}
             {needsVerification && (
-              <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800 ">
+              <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
                 {resendSent ? (
                   "A new verification link has been sent if that account exists."
                 ) : (
@@ -104,15 +99,17 @@ export default function Login() {
               <LogIn className="h-4 w-4" /> Log In
             </Button>
           </form>
-          <p className="mt-5 text-center text-xs text-[#64736A]">
-            <Link to="/forgot-password" className="font-semibold text-[#176B45] hover:underline">Forgot your password?
+          <p className="mt-5 text-center text-xs text-slate-500">
+            <Link to="/forgot-password" className="font-semibold text-brand-700 hover:underline">
+              Forgot your password?
             </Link>
           </p>
         </Card>
 
-        <p className="mt-6 text-center text-sm text-[#64736A]">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Don't have a workspace?{" "}
-          <Link to="/register-company" className="font-semibold text-[#176B45] hover:underline">Register your company
+          <Link to="/register-company" className="font-semibold text-brand-700 hover:underline">
+            Register your company
           </Link>
         </p>
       </div>

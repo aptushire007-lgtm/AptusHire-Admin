@@ -1,49 +1,44 @@
-﻿/**
- * AptusHire DataTable primitives — light theme.
- * White surface, charcoal text, subtle green hover rows.
- */
+/** Shared operational tables: semantic columns, bounded overflow and density. */
 
-export function TableWrap({ children }) {
-  return (
-    <div className="max-w-full overflow-x-auto rounded-card border border-[#E4E4E7] bg-white shadow-sm">{children}</div>
-  );
+export function TableWrap({ children, label = "Records" }) {
+  // Horizontal overflow is owned here so no page has to remember it, and so a
+  // wide table scrolls inside its own container rather than the document.
+  return <div className="workspace-table-scroll overflow-x-auto" role="region" aria-label={label} tabIndex={0}>{children}</div>;
 }
 
-export function Table({ children, className = "" }) {
-  return (
-    <table className={`w-full min-w-[640px] text-left text-sm ${className}`}>
-      {children}
-    </table>
-  );
+export function Table({ children, className = "", density = "comfortable", ...props }) {
+  return <table data-density={density} className={`workspace-table w-full text-left text-sm ${className}`} {...props}>{children}</table>;
 }
 
 export function THead({ children }) {
   return (
-    <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-xs font-medium text-[#71717A]">
+    <thead className="border-b border-slate-200 text-xs font-semibold text-slate-600">
       {children}
     </thead>
   );
 }
 
-const thPadding = {
-  default: "px-5 py-3",
-  compact: "px-3 py-2.5",
-  tight:   "px-2 py-2.5",
-  none:    "px-0 py-2.5",
-};
-const tdPadding = {
-  default: "px-5 py-3.5",
-  compact: "px-3 py-3",
-  tight:   "px-2 py-3",
-  none:    "px-0 py-3",
-};
+/**
+ * Cell padding is a PROP, not a `className` override — the third time this trap
+ * has been paid for in this codebase, after `<Card>`'s padding and its surface.
+ * Tailwind resolves two competing `px-*` utilities by its own stylesheet order,
+ * which sorts the spacing scale ascending, so `px-6` from the component beats
+ * `px-3` from a call site no matter which appears later in the string.
+ *
+ * It earns its keep here rather than being theoretical: `default` is right for a
+ * four-column list, and a seven-column matrix like the role map spends 84px per
+ * row on gutters alone at that setting. See DESIGN.md § The Bring-Your-Own-
+ * Surface Rule for the general form.
+ */
+const thPadding = { default: "px-6 py-3", compact: "px-3 py-2.5", tight: "px-2 py-2.5", none: "px-0 py-2.5" };
+const tdPadding = { default: "px-6 py-4", compact: "px-3 py-3", tight: "px-2 py-3", none: "px-0 py-3" };
 const cellAlign = { left: "", right: "text-right", center: "text-center" };
 
 export function TH({ children, align = "left", padding = "default", className = "" }) {
   return (
     <th
       scope="col"
-      className={`font-semibold tracking-normal ${thPadding[padding] ?? thPadding.default} ${cellAlign[align] ?? ""} ${className}`}
+      className={`font-semibold ${thPadding[padding] ?? thPadding.default} ${cellAlign[align] ?? ""} ${className}`}
     >
       {children}
     </th>
@@ -51,45 +46,46 @@ export function TH({ children, align = "left", padding = "default", className = 
 }
 
 export function TBody({ children }) {
-  return <tbody className="divide-y divide-[#E4E4E7]">{children}</tbody>;
+  return <tbody className="divide-y divide-slate-100">{children}</tbody>;
 }
 
-export function TR({ children, className = "" }) {
+export function TR({ children, className = "", ...props }) {
+  // One hover signal — a background tint. Not a lift, not a shadow, not a
+  // scale: a row is a line in a list, and rows that jump make a queue hard to
+  // track with the eye.
+  //
+  // The explicit `bg-white` is what lets a sticky first column work: a sticky
+  // cell needs an opaque background or the scrolling columns slide visibly
+  // underneath it, and `bg-inherit` on that cell then picks up this row's
+  // background — including the hover tint, which a hardcoded white would have
+  // frozen out of the one column that stays on screen.
   return (
-    <tr className={`bg-white transition-colors duration-150 hover:bg-[#F4F4F5] ${className}`}>
-      {children}
-    </tr>
+    <tr className={`bg-white transition-colors duration-150 hover:bg-slate-50/80 ${className}`} {...props}>{children}</tr>
   );
 }
 
 export function TD({ children, align = "left", padding = "default", className = "" }) {
   return (
-    <td
-      className={`text-[#09090B] ${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`}
-    >
-      {children}
-    </td>
+    <td className={`${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`}>{children}</td>
   );
 }
 
-export function RowAction({
-  as: Component = "button",
-  label,
-  icon: Icon,
-  tone = "brand",
-  className = "",
-  ...props
-}) {
+/**
+ * Icon-only row action. The previous inline version had no accessible name, no
+ * focus ring, and a 16px hit target. 36px on a mouse keeps a row scannable;
+ * `tap-target` takes it to 44px wherever the pointer is coarse.
+ */
+export function RowAction({ as: Component = "button", label, icon: Icon, tone = "brand", className = "", ...props }) {
   const tones = {
-    brand:    "hover:text-[#176B45] hover:bg-[#DDECE3] focus-visible:outline-primary",
-    danger:   "hover:text-[#C95C5C] hover:bg-[#F8EAEA] focus-visible:outline-verdict-negative",
-    positive: "hover:text-[#176B45] hover:bg-[#DDECE3] focus-visible:outline-verdict-positive",
+    brand: "hover:text-brand-700 focus-visible:outline-brand-600",
+    danger: "hover:text-red-600 focus-visible:outline-red-600",
+    positive: "hover:text-emerald-600 focus-visible:outline-emerald-600",
   };
   return (
     <Component
       title={label}
       aria-label={label}
-      className={`tap-target inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#64736A] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${tones[tone] ?? tones.brand} ${className}`}
+      className={`tap-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors duration-150 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 ${tones[tone]} ${className}`}
       {...props}
     >
       <Icon className="h-4 w-4" aria-hidden="true" />

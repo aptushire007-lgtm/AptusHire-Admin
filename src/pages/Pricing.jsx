@@ -55,27 +55,27 @@ export default function Pricing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9]">
+    <div className="min-h-screen bg-white">
       <MarketingNavbar />
       <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
         {isOnboarding && <OnboardingSteps current={4} />}
 
         <div className="mx-auto max-w-xl text-center">
-          <h1 className="text-3xl font-bold text-[#17221C] sm:text-4xl">Choose Your Plan</h1>
-          <p className="mt-3 text-[#64736A]">Every plan includes AI resume screening, ATS scoring, and AI interviews.</p>
+          <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Choose Your Plan</h1>
+          <p className="mt-3 text-slate-600">Every plan includes AI resume screening, ATS scoring, and AI interviews.</p>
         </div>
 
         {error && <p className="mt-6 text-center text-sm font-medium text-red-600">{error}</p>}
 
         <div className="mt-8 flex justify-center">
-          <div className="inline-flex rounded-full border border-[#E5EBE7] bg-[#F8FAF9]-deep p-1">
+          <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 p-1">
             {["monthly", "yearly"].map((cycle) => (
               <button
                 key={cycle}
                 type="button"
                 onClick={() => setBillingCycle(cycle)}
                 className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                  billingCycle === cycle ? "bg-white text-[#176B45] shadow-sm" : "text-[#64736A]"
+                  billingCycle === cycle ? "bg-white text-brand-700 shadow-sm" : "text-slate-500"
                 }`}
               >
                 {cycle === "monthly" ? "Monthly" : "Yearly · save more"}
@@ -117,17 +117,17 @@ export default function Pricing() {
                       <Cpu className="h-3 w-3" /> Most Popular
                     </span>
                   )}
-                  <h3 className={`text-base font-bold ${popular ? "text-white" : "text-[#17221C]"}`}>{plan.name}</h3>
-                  <p className={`mt-1 text-xs ${popular ? "text-white/90" : "text-[#64736A]"}`}>{plan.description}</p>
-                  <div className={`font-display mt-5 text-3xl font-extrabold ${popular ? "text-white" : "text-[#17221C]"}`}>
+                  <h3 className={`text-base font-bold ${popular ?"text-white" :"text-slate-900"}`}>{plan.name}</h3>
+                  <p className={`mt-1 text-xs ${popular ?"text-white/90" :"text-slate-500"}`}>{plan.description}</p>
+                  <div className={`font-display mt-5 text-3xl font-extrabold ${popular ?"text-white" :"text-slate-900"}`}>
                     {formatPrice(plan.pricing[billingCycle])}
                     {plan.pricing[billingCycle] > 0 && (
-                      <span className={`text-sm font-medium ${popular ? "text-white/90" : "text-[#64736A]"}`}>
+                      <span className={`text-sm font-medium ${popular ?"text-white/90" :"text-slate-500"}`}>
                         {" "}/ {billingCycle === "monthly" ? "mo" : "yr"}
                       </span>
                     )}
                   </div>
-                  <ul className={`mt-5 flex-1 space-y-2.5 text-sm ${popular ? "text-white/90" : "text-[#64736A]"}`}>
+                  <ul className={`mt-5 flex-1 space-y-2.5 text-sm ${popular ?"text-white/90" :"text-slate-600"}`}>
                     {[
                       `${plan.limits.maxJobs.toLocaleString()} active jobs`,
                       `${plan.limits.maxRecruiters.toLocaleString()} recruiter seats`,
@@ -137,7 +137,7 @@ export default function Pricing() {
                     ].map((line) => (
                       <li key={line} className="flex items-start gap-2">
                         <Check
-                          className={`mt-0.5 h-4 w-4 shrink-0 ${popular ? "text-white" : "text-emerald-600 dark:text-emerald-400"}`}
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${popular ?"text-white" :"text-emerald-600"}`}
                           aria-hidden="true"
                         />{" "}
                         {line}

@@ -21,8 +21,8 @@ import { ArrowRight, CircleCheck, CircleAlert } from "lucide-react";
  */
 const TONE = {
   recommend: { icon: ArrowRight, glyph: "text-brand-600", chip: "bg-brand-600 text-white" },
-  positive: { icon: CircleCheck, glyph: "text-[#176B45]", chip: "bg-brand-600 text-white" },
-  negative: { icon: CircleAlert, glyph: "text-[#C95C5C]", chip: "bg-brand-600 text-white" },
+  positive: { icon: CircleCheck, glyph: "text-[#0E3B2E]", chip: "bg-brand-600 text-white" },
+  negative: { icon: CircleAlert, glyph: "text-[#B23B33]", chip: "bg-brand-600 text-white" },
 };
 
 export default function TabbedFindings({ tabs, emptyHint }) {
@@ -46,11 +46,11 @@ export default function TabbedFindings({ tabs, emptyHint }) {
               aria-selected={isActive}
               onClick={() => setActive(t.key)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
-                isActive ? "bg-[#176B45] text-white" : "bg-[#F8FAF9] text-[#64736A] hover:bg-[#DDECE3] hover:text-[#176B45]"
+                isActive ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-700"
               }`}
             >
               {t.label}
-              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-[#9BAAA1]"}`}>{t.items?.length ?? 0}</span>
+              <span className={`tabular-nums ${isActive ? "text-white/70" : "text-slate-400"}`}>{t.items?.length ?? 0}</span>
             </button>
           );
         })}
@@ -61,13 +61,13 @@ export default function TabbedFindings({ tabs, emptyHint }) {
           <ul className="space-y-2">
             {current.items.map((item, i) => (
               <li key={i} className="flex items-start gap-2">
-                <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone.glyph}`} aria-hidden="true" />
-                <span className="min-w-0 text-sm leading-relaxed text-[#17221C]">{item}</span>
+                <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${tone.glyph}`} aria-hidden="true" />
+                <span className="min-w-0 text-sm leading-relaxed text-slate-700">{item}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-[#64736A] italic">{current.empty || emptyHint || "None recorded."}</p>
+          <p className="text-sm text-slate-500 italic">{current.empty || emptyHint || "None recorded."}</p>
         )}
       </div>
     </div>

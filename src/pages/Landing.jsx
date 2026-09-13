@@ -128,7 +128,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] text-[#17221C] transition-colors">
+    <div className="min-h-screen bg-canvas text-slate-900 transition-colors">
       <MarketingNavbar />
 
       {/* Hero — H2 split diptych at 7/5. Never wrapped in Reveal: above-the-fold
@@ -145,21 +145,21 @@ export default function Landing() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-aurora" aria-hidden="true" />
       <section className="relative mx-auto grid max-w-7xl items-center gap-x-12 gap-y-16 px-5 pt-20 pb-28 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)] lg:pt-24 lg:pb-36">
         <div className="max-w-2xl">
-          <p className="flex items-center gap-2 text-sm font-semibold text-[#64736A]">
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-500">
             <Scale className="h-4 w-4 text-brand-600" aria-hidden="true" />
             Evidence-bound hiring intelligence
           </p>
           {/* Two-tone display: the second line carries the accent. Solid colour,
               never a gradient fill — gradient text is the most-recognised AI
               headline tell there is. */}
-          <h1 className="mt-5 text-4xl leading-[1.08] font-extrabold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-5xl lg:text-[3.4rem]">
+          <h1 className="mt-5 text-4xl leading-[1.08] font-extrabold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-5xl lg:text-[3.4rem]">
             Every score traces
             <span className="block text-brand-600">to a quoted line.</span>
           </h1>
-          <p className="mt-6 text-xl font-semibold text-[#17221C] sm:text-2xl">
+          <p className="mt-6 text-xl font-semibold text-slate-800 sm:text-2xl">
             The model never emits the score. Code computes it — from evidence it was required to cite.
           </p>
-          <p className="mt-5 max-w-prose text-lg text-[#64736A]">
+          <p className="mt-5 max-w-prose text-lg text-slate-600">
             AptusHire screens candidates against a frozen, recruiter-approved rubric for the role, then shows you
             the criterion, the quoted evidence, and the arithmetic behind every number it produces. The kind of
             record you can hand to a hiring manager, an auditor, or a candidate who asks why.
@@ -174,7 +174,7 @@ export default function Landing() {
             </Button>
           </div>
 
-          <p className="mt-6 text-sm text-[#64736A]">
+          <p className="mt-6 text-sm text-slate-500">
             No credit card for the trial. Automatic rejection is off by default.
           </p>
         </div>
@@ -192,17 +192,17 @@ export default function Landing() {
           Asymmetric tracks and hairline dividers, deliberately not three equal
           icon-tile cards. Tight vertical padding so it reads as a strip between
           two large sections rather than as a section of its own. */}
-      <section className="border-y border-[#E5EBE7] bg-[#F8FAF9]">
+      <section className="border-y border-slate-200 bg-canvas">
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:py-12">
-          <p className="max-w-2xl text-lg font-semibold text-[#17221C] [overflow-wrap:anywhere]">
+          <p className="max-w-2xl text-lg font-semibold text-slate-800 [overflow-wrap:anywhere]">
             What you hand to the people who ask how a decision was made.
           </p>
 
-          <div className="mt-8 grid gap-x-10 divide-y divide-[#E5EBE7] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.95fr)] lg:divide-x lg:divide-y-0">
+          <div className="mt-8 grid gap-x-10 divide-y divide-slate-200 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.95fr)] lg:divide-x lg:divide-y-0">
             {EVIDENCE.map((item) => (
               <div key={item.title} className="py-5 first:pt-0 lg:py-0 lg:pl-10 lg:first:pl-0">
-                <h2 className="font-semibold text-[#17221C] [overflow-wrap:anywhere]">{item.title}</h2>
-                <p className="mt-2 max-w-prose text-sm text-[#64736A]">{item.body}</p>
+                <h2 className="font-semibold text-slate-900 [overflow-wrap:anywhere]">{item.title}</h2>
+                <p className="mt-2 max-w-prose text-sm text-slate-600">{item.body}</p>
               </div>
             ))}
           </div>
@@ -216,14 +216,14 @@ export default function Landing() {
         {/* Single-column section head. Never tag-left/heading-right — that
             two-column head is the most reliable templated-editorial tell. */}
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-4xl">
             One loop, from job description to defensible decision
           </h2>
-          <p className="mt-4 text-lg text-[#64736A]">
+          <p className="mt-4 text-lg text-slate-600">
             Most platforms bolt a language model onto an applicant tracker and return a number. This is the sequence
             that replaces it — and the artifact each stage leaves behind.
           </p>
-          <p className="mt-4 text-sm text-[#64736A]">
+          <p className="mt-4 text-sm text-slate-500">
             The panels show the shape of each artifact. They illustrate the format; none of them is a candidate
             record, and no figure on this page is a measurement of a real person.
           </p>
@@ -238,11 +238,11 @@ export default function Landing() {
                   {/* Stage number stacks above its heading in the same column —
                       it is genuinely ordinal here, and it is the only numbering
                       on the page. */}
-                  <p className="text-sm font-semibold tabular-nums text-brand-700">{step.stage}</p>
-                  <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">
+                  <p className="text-sm font-semibold num tabular-nums text-brand-700">{step.stage}</p>
+                  <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
                     {step.title}
                   </h3>
-                  <p className="mt-4 max-w-prose text-[#64736A]">{step.body}</p>
+                  <p className="mt-4 max-w-prose text-slate-600">{step.body}</p>
                 </Reveal>
 
                 <Reveal delay={90} className={flip ? "lg:order-1" : undefined}>
@@ -256,23 +256,23 @@ export default function Landing() {
 
       {/* Capability index — F3 spec sheet. A dense tabular read, deliberately
           unlike the diptychs above it. */}
-      <section id="features" className="border-t border-[#E5EBE7] bg-[#F8FAF9]">
+      <section id="features" className="border-t border-slate-200 bg-canvas">
         <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
-          <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-4xl">
+          <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-4xl">
             What the platform does
           </h2>
-          <p className="mt-4 max-w-prose text-lg text-[#64736A]">
+          <p className="mt-4 max-w-prose text-lg text-slate-600">
             One workspace for jobs, candidates, interviews, and the record of how each decision was reached.
           </p>
 
-          <dl className="mt-12 border-t border-[#E5EBE7]">
+          <dl className="mt-12 border-t border-slate-200">
             {CAPABILITIES.map(([name, behaviour]) => (
               <div
                 key={name}
-                className="grid gap-x-10 gap-y-1.5 border-b border-[#E5EBE7] py-5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
+                className="grid gap-x-10 gap-y-1.5 border-b border-slate-200 py-5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
               >
-                <dt className="font-semibold text-[#17221C] [overflow-wrap:anywhere]">{name}</dt>
-                <dd className="max-w-prose text-[#64736A]">{behaviour}</dd>
+                <dt className="font-semibold text-slate-900 [overflow-wrap:anywhere]">{name}</dt>
+                <dd className="max-w-prose text-slate-600">{behaviour}</dd>
               </div>
             ))}
           </dl>
@@ -281,10 +281,10 @@ export default function Landing() {
 
       {/* The refusals — the position, stated plainly. */}
       <section id="why-us" className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
-        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-4xl">
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-4xl">
           What this platform will not do
         </h2>
-        <p className="mt-4 max-w-prose text-lg text-[#64736A]">
+        <p className="mt-4 max-w-prose text-lg text-slate-600">
           These are constraints in the code, not promises in a brochure. They are also the reason the output holds up
           when someone asks how a decision was made.
         </p>
@@ -292,31 +292,31 @@ export default function Landing() {
         <div className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
           {REFUSALS.map(([title, body]) => (
             <div key={title}>
-              <h3 className="text-lg font-semibold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">{title}</h3>
-              <p className="mt-2 max-w-prose text-[#64736A]">{body}</p>
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900 [overflow-wrap:anywhere]">{title}</h3>
+              <p className="mt-2 max-w-prose text-slate-600">{body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Pricing — real plan data from the API. */}
-      <section className="border-t border-[#E5EBE7] bg-[#F8FAF9]">
+      <section className="border-t border-slate-200 bg-canvas">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-4xl">
+          <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-4xl">
             Pricing
           </h2>
-          <p className="mt-4 max-w-prose text-lg text-[#64736A]">Start free. Move up as your hiring volume grows.</p>
+          <p className="mt-4 max-w-prose text-lg text-slate-600">Start free. Move up as your hiring volume grows.</p>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {plans.map((plan) => (
-              <Tilt key={plan.key} className="flex flex-col rounded-2xl border border-[#E5EBE7] bg-white p-6 shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
-                <h3 className="font-semibold text-[#17221C] [overflow-wrap:anywhere]">{plan.name}</h3>
-                <p className="mt-1 text-sm text-[#64736A]">{plan.description}</p>
-                <p className="mt-5 text-2xl font-extrabold tabular-nums text-[#17221C]">
+              <Tilt key={plan.key} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+                <h3 className="font-semibold text-slate-900 [overflow-wrap:anywhere]">{plan.name}</h3>
+                <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
+                <p className="mt-5 text-2xl font-extrabold num tabular-nums text-slate-900">
                   {formatPrice(plan.pricing.monthly)}
-                  {plan.pricing.monthly > 0 && <span className="text-sm font-medium text-[#64736A]"> /mo</span>}
+                  {plan.pricing.monthly > 0 && <span className="text-sm font-medium text-slate-500"> /mo</span>}
                 </p>
-                <ul className="mt-5 flex-1 space-y-2 border-t border-[#E5EBE7] pt-5 text-sm tabular-nums text-[#64736A]">
+                <ul className="mt-5 flex-1 space-y-2 border-t border-slate-100 pt-5 text-sm num tabular-nums text-slate-600">
                   <li>{plan.limits.maxJobs.toLocaleString()} active jobs</li>
                   <li>{plan.limits.maxAiInterviews.toLocaleString()} AI interviews / month</li>
                   <li>{plan.limits.maxRecruiters.toLocaleString()} recruiter seats</li>
@@ -326,17 +326,17 @@ export default function Landing() {
                 </Button>
               </Tilt>
             ))}
-            {plans.length === 0 && <p className="col-span-full text-sm text-[#64736A]">Loading plans…</p>}
+            {plans.length === 0 && <p className="col-span-full text-sm text-slate-500">Loading plans…</p>}
           </div>
         </div>
       </section>
 
       {/* Closing CTA — one button. The repetition is the call to action. */}
       <section className="mx-auto max-w-5xl px-5 py-20 sm:px-8">
-        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-4xl">
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-4xl">
           Run one role through it and read the record.
         </h2>
-        <p className="mt-4 max-w-prose text-lg text-[#64736A]">
+        <p className="mt-4 max-w-prose text-lg text-slate-600">
           Register your company, publish a job, and look at what comes back — the criteria, the quoted evidence, and
           the points behind the number.
         </p>
@@ -346,24 +346,24 @@ export default function Landing() {
       </section>
 
       {/* Ft5 Statement — a closing line, not a sitemap. */}
-      <footer id="contact" className="border-t border-[#E5EBE7] bg-white">
+      <footer id="contact" className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-5 py-16 sm:px-8">
-          <p className="max-w-[38ch] text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-3xl">
+          <p className="max-w-[38ch] text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-3xl">
             Hiring decisions are about people. They should be defensible in writing.
           </p>
 
-          <div className="mt-12 flex flex-col justify-between gap-6 border-t border-[#E5EBE7] pt-6 text-sm sm:flex-row sm:items-end">
+          <div className="mt-12 flex flex-col justify-between gap-6 border-t border-slate-200 pt-6 text-sm sm:flex-row sm:items-end">
             <div>
-              <span className="flex items-center gap-2 font-display font-bold text-[#17221C]">
+              <span className="flex items-center gap-2 font-display font-bold text-slate-900">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-xs text-white">
                   H
                 </span>
                 AptusHire
               </span>
-              <p className="mt-3 text-[#64736A]">© {new Date().getFullYear()} AptusHire. All rights reserved.</p>
+              <p className="mt-3 text-slate-500">© {new Date().getFullYear()} AptusHire. All rights reserved.</p>
             </div>
 
-            <div className="flex flex-col gap-1.5 text-[#64736A] sm:items-end">
+            <div className="flex flex-col gap-1.5 text-slate-600 sm:items-end">
               <a
                 href="mailto:sales@AptusHire.ai"
                 className="rounded-lg whitespace-nowrap hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
@@ -372,7 +372,7 @@ export default function Landing() {
               </a>
               <a
                 href="tel:+911140001234"
-                className="rounded-lg whitespace-nowrap tabular-nums hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                className="rounded-lg whitespace-nowrap num tabular-nums hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
                 +91 11 4000 1234
               </a>

@@ -1,5 +1,5 @@
-﻿import { lazy, Suspense } from "react";
-import { Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Routes, Route, Outlet, useLocation, useParams, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import DashboardShell from "./components/dashboard/DashboardShell.jsx";
@@ -26,10 +26,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword.jsx"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword.jsx"));
 
 const JobList = lazy(() => import("./pages/JobList.jsx"));
-const JobForm = lazy(() => import("./pages/JobForm.jsx"));
-const CandidateList = lazy(() => import("./pages/CandidateList.jsx"));
-const CandidateDetail = lazy(() => import("./pages/CandidateDetail.jsx"));
-const InterviewReport = lazy(() => import("./pages/InterviewReport.jsx"));
+const CandidateInterviewModal = lazy(() => import("./components/candidate/CandidateInterviewModal.jsx"));
+const AssessmentReport = lazy(() => import("./pages/AssessmentReport.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome.jsx"));
@@ -40,10 +38,7 @@ const Reports = lazy(() => import("./pages/dashboard/Reports.jsx"));
 const SubscriptionPage = lazy(() => import("./pages/dashboard/SubscriptionPage.jsx"));
 const Notifications = lazy(() => import("./pages/dashboard/Notifications.jsx"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage.jsx"));
-const RubricEditor = lazy(() => import("./pages/dashboard/RubricEditor.jsx"));
-const QuestionSetEditor = lazy(() => import("./pages/dashboard/QuestionSetEditor.jsx"));
-const PaperEditor = lazy(() => import("./pages/dashboard/PaperEditor.jsx"));
-const AssessmentTracker = lazy(() => import("./pages/dashboard/AssessmentTracker.jsx"));
+const AssessmentsHub = lazy(() => import("./pages/dashboard/AssessmentsHub.jsx"));
 const ScoreExplanation = lazy(() => import("./pages/dashboard/ScoreExplanation.jsx"));
 const ReviewQueue = lazy(() => import("./pages/dashboard/ReviewQueue.jsx"));
 const Recordings = lazy(() => import("./pages/dashboard/Recordings.jsx"));
@@ -57,9 +52,9 @@ function RouteFallback() {
   return (
     <div role="status" aria-label="Loading page" className="mx-auto w-full max-w-5xl px-4 py-10">
       <div aria-hidden="true">
-        <div className="h-7 w-56 animate-pulse rounded-lg bg-[#F8FAF9]-deep" />
-        <div className="mt-3 h-4 w-80 animate-pulse rounded bg-[#F8FAF9]-deep/70" />
-        <div className="mt-8 h-64 w-full animate-pulse rounded-2xl bg-[#F8FAF9]-deep/60" />
+        <div className="h-7 w-56 animate-pulse rounded-lg bg-slate-200" />
+        <div className="mt-3 h-4 w-80 animate-pulse rounded bg-slate-200/70" />
+        <div className="mt-8 h-64 w-full animate-pulse rounded-2xl bg-slate-200/60" />
       </div>
     </div>
   );
@@ -87,6 +82,37 @@ function ShellLayout() {
       </DashboardShell>
     </RequireAdmin>
   );
+}
+
+function JobRouteRedirect({ tab, edit }) {
+  const { id } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  if (id) searchParams.set("jobId", id);
+  if (tab) searchParams.set("tab", tab);
+  if (edit) searchParams.set("edit", "1");
+  return <Navigate to={`/jobs?${searchParams.toString()}`} replace />;
+}
+
+function CandidateRouteRedirect() {
+  const { id } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const section = searchParams.get("section");
+
+  let tab = "summary";
+  if (section === "resume" || section === "profile-cv") tab = "profile-cv";
+  else if (section === "skill-assessment" || section === "assessments") tab = "assessments";
+  else if (section === "ai-interview") tab = "ai-interview";
+  else if (section === "timeline" || section === "activity") tab = "activity";
+  else if (section === "overview") tab = "summary";
+  else if (searchParams.get("tab")) tab = searchParams.get("tab");
+
+  const nextParams = new URLSearchParams();
+  if (id) nextParams.set("candidateId", id);
+  if (tab && tab !== "summary") nextParams.set("tab", tab);
+
+  return <Navigate to={`/candidates?${nextParams.toString()}`} replace />;
 }
 
 export default function App() {
@@ -123,21 +149,28 @@ export default function App() {
           <Route path="/" element={<ShellLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="jobs" element={<JobList />} />
-            <Route path="jobs/new" element={<JobForm />} />
-            <Route path="jobs/:id/edit" element={<JobForm />} />
-            <Route path="jobs/:id/rubric" element={<RubricEditor />} />
-            <Route path="jobs/:id/questions" element={<QuestionSetEditor />} />
-            <Route path="jobs/:id/assessment" element={<PaperEditor />} />
-            <Route path="jobs/:id/assessments" element={<AssessmentTracker />} />
-            <Route path="jobs/:id/candidates" element={<CandidateList />} />
+            <Route path="jobs/new" element={<Navigate to="/jobs?create=1" replace />} />
+            <Route path="jobs/setup/:draftId" element={<Navigate to="/jobs?create=1" replace />} />
+            <Route path="jobs/:id" element={<JobRouteRedirect tab="overview" />} />
+            <Route path="jobs/:id/candidates" element={<JobRouteRedirect tab="candidates" />} />
+            <Route path="jobs/:id/evaluation" element={<JobRouteRedirect tab="rubric" />} />
+            <Route path="jobs/:id/post" element={<JobRouteRedirect tab="overview" />} />
+            <Route path="jobs/:id/journey" element={<JobRouteRedirect tab="overview" />} />
+            <Route path="jobs/:id/rubric" element={<JobRouteRedirect tab="rubric" />} />
+            <Route path="jobs/:id/questions" element={<JobRouteRedirect tab="questions" />} />
+            <Route path="jobs/:id/assessment" element={<JobRouteRedirect tab="assessment" />} />
+            <Route path="jobs/:id/assessments" element={<JobRouteRedirect tab="assessment" />} />
+            <Route path="jobs/:id/edit" element={<JobRouteRedirect edit={true} />} />
             <Route path="candidates" element={<CandidatesAll />} />
             <Route path="pipeline" element={<HiringPipeline />} />
-            <Route path="candidates/:id" element={<CandidateDetail />} />
+            <Route path="candidates/:id" element={<CandidateRouteRedirect />} />
             <Route path="candidates/:id/score" element={<ScoreExplanation />} />
-            <Route path="candidates/:id/interview-report" element={<InterviewReport />} />
+            <Route path="candidates/:id/interview-report" element={<CandidateInterviewModal />} />
+            <Route path="candidates/:id/assessment-report" element={<AssessmentReport />} />
             <Route path="review-queue" element={<ReviewQueue />} />
             <Route path="recordings" element={<Recordings />} />
             <Route path="ai-interviews" element={<AIInterviews />} />
+            <Route path="assessments" element={<AssessmentsHub />} />
             <Route path="reports" element={<Reports />} />
             <Route path="subscription" element={<SubscriptionPage />} />
             <Route path="notifications" element={<Notifications />} />

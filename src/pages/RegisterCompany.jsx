@@ -73,18 +73,18 @@ export default function RegisterCompany() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] transition-colors">
+    <div className="min-h-screen bg-canvas transition-colors">
       <MarketingNavbar />
       <div className="mx-auto max-w-2xl px-5 py-14 sm:px-8">
         <OnboardingSteps current={step} />
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere] sm:text-3xl">Register Your Company</h1>
-          <p className="mt-2 text-sm text-[#64736A]">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] sm:text-3xl">Register Your Company</h1>
+          <p className="mt-2 text-sm text-slate-500">
             {step === 1 ? "Tell us about your organization." : "Now create the admin account for your workspace."}
           </p>
         </div>
 
-        <Card className="rounded-3xl border border-[#E5EBE7] bg-white p-6 shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-soft sm:p-8">
           {error && (
             <p className="mb-4 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</p>
           )}
@@ -190,7 +190,7 @@ export default function RegisterCompany() {
                     />
                   </FormGroup>
                 </div>
-                <p className="mb-5 text-xs text-[#64736A]">
+                <p className="mb-5 text-xs text-slate-500">
                   At least 8 characters, with an uppercase letter, a lowercase letter, a number, and a special
                   character.
                 </p>
@@ -207,9 +207,9 @@ export default function RegisterCompany() {
           </AnimatePresence>
         </Card>
 
-        <p className="mt-6 text-center text-sm text-[#64736A]">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Already registered?{" "}
-          <Link to="/login" className="font-semibold text-[#176B45] hover:underline">
+          <Link to="/login" className="font-semibold text-brand-700 hover:underline">
             Log in
           </Link>
         </p>

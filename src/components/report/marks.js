@@ -7,61 +7,74 @@
  * with two copies of the same colour map is precisely how a "proven" cell ends
  * up a different green from the legend that explains it.
  *
- * Chart palette, run through the dataviz validator (light, surface #ffffff):
- *   proven #047857 · untested #9c9384 · failed #b91c1c
+ * Chart palette — the system's own chart marks (index.css § Chart marks):
+ *   proven #2FBE62 · untested #8FA396 · failed #D4534A
+ * The values quoted here previously were #047857 / #9c9384 / #b91c1c, which are
+ * from no palette this product owns and were not what these classes resolved to
+ * either — the `--color-chart-*` tokens they name did not exist at all, so every
+ * `mark` below painted a transparent box behind its ring. Both halves of that
+ * are fixed: the tokens are declared, and the numbers above are the real ones.
+ *
  * This is a DIVERGING scale, so the grey midpoint is correct rather than a
  * chroma failure: "too little evidence" is genuinely the middle — the absence of
- * a finding, not a middling one. The green↔red pair separates at ΔE 8.4 under
- * deuteranopia, which clears the floor of 8 but only on the condition that
- * colour is never the sole encoding. So every segment and every legend row
- * carries a glyph AND a word AND its number. Do not "simplify" those away.
+ * a finding, not a middling one. Colour is never the sole encoding, so every
+ * segment and every legend row carries a glyph AND a word AND its number. Do
+ * not "simplify" those away.
  */
 
 export const pctOf = (w) => Math.round((w || 0) * 100);
 
-// `mark` is the pastel chart fill plus its 1px verdict-hue ring — see the
-// --color-chart-* note in index.css for why both halves are required. `chip` is
-// the saturated key: small, carries a glyph, and must hold white at 9px, which a
-// pastel cannot. Same hue, three weights — chip, ring, fill.
+// `mark` is the chart fill plus a one-step-darker edge ring; `chip` is the
+// legend key, which carries a glyph and must hold white at 9px.
+//
+// `mark` and `chip` are now the SAME colour, and that is a fix rather than a
+// simplification. The split existed because `mark` was meant to be a pastel
+// that could not hold a white glyph — but the pastel never rendered (the
+// `chart-*` tokens were undeclared), so in practice the segment was empty and
+// the legend swatch beside it was solid. A legend whose key is a different
+// colour from the thing it explains is the one failure this file's own header
+// warns about.
 export const BUCKET_MARK = {
   proven: {
     label: "Proven",
     glyph: "✓",
-    mark: "bg-data-green",
-    chip: "bg-data-green",
-    text: "text-[#176B45]",
+    mark: "bg-chart-positive ring-1 ring-inset ring-emerald-700/50",
+    chip: "bg-chart-positive",
+    text: "text-verdict-positive",
   },
   failed: {
     label: "Failed",
     glyph: "✗",
-    mark: "bg-data-red",
-    chip: "bg-data-red",
-    text: "text-[#C95C5C]",
+    mark: "bg-chart-negative ring-1 ring-inset ring-red-600/50",
+    chip: "bg-chart-negative",
+    text: "text-verdict-negative",
   },
   insufficient: {
     label: "Not tested",
     glyph: "?",
-    mark: "bg-data-amber",
-    chip: "bg-data-amber",
-    text: "text-[#64736A]",
+    mark: "bg-chart-neutral ring-1 ring-inset ring-slate-500/50",
+    chip: "bg-chart-neutral",
+    text: "text-slate-500",
   },
 };
 
 // The single-series magnitude mark: competency bars, the answer run, the score
-// movement. Pastel sky over a petrol ring, so it reads as the same brand family
-// as the buttons without being their weight.
-export const BRAND_MARK = "bg-data-blue";
+// movement. The accent teal — the system's "this was computed" voice — so a
+// magnitude bar is never mistaken for a verdict. Deliberately NOT a green: it
+// sits in the same charts as `proven`, and two greens in one figure is
+// unreadable.
+export const BRAND_MARK = "bg-chart-brand ring-1 ring-inset ring-teal-600/50";
 
 // The three evidence legs, in the order the loop runs them. `absent` and
 // `untested` render as an empty outline rather than a filled neutral: an unfilled
 // cell reads as "we have no reading here", which is exactly what it means, and it
 // keeps the row's ink proportional to the evidence actually on record.
 export const LEG_MARK = {
-  verified: { glyph: "✓", cls: "bg-data-green text-white", says: "supports" },
-  contradicted: { glyph: "✗", cls: "bg-data-red text-white", says: "contradicts" },
-  partial: { glyph: "~", cls: "bg-data-amber text-white", says: "partial" },
-  absent: { glyph: "", cls: "border border-[#E5EBE7]-mid", says: "nothing on record" },
-  untested: { glyph: "", cls: "border border-[#E5EBE7]-mid", says: "not tested" },
+  verified: { glyph: "✓", cls: "bg-verdict-positive text-white", says: "supports" },
+  contradicted: { glyph: "✗", cls: "bg-verdict-negative text-white", says: "contradicts" },
+  partial: { glyph: "~", cls: "bg-slate-400 text-white", says: "partial" },
+  absent: { glyph: "", cls: "border border-slate-300", says: "nothing on record" },
+  untested: { glyph: "", cls: "border border-slate-300", says: "not tested" },
 };
 
 export const LEG_ORDER = [
@@ -93,10 +106,10 @@ export const UNTESTED_CAUSE_COPY = {
  * unremarkable row into an achievement.
  */
 export const MOVEMENT_MARK = {
-  stronger: { arrow: "↑", label: "Stronger than the CV claimed", text: "text-[#176B45]" },
-  weaker: { arrow: "↓", label: "Weaker than the CV claimed", text: "text-[#C95C5C]" },
-  held: { arrow: "=", label: "Matched the CV", text: "text-[#64736A]" },
-  undemonstrated: { arrow: "·", label: "Not demonstrated in the interview", text: "text-[#9BAAA1]" },
+  stronger: { arrow: "↑", label: "Stronger than the CV claimed", text: "text-verdict-positive" },
+  weaker: { arrow: "↓", label: "Weaker than the CV claimed", text: "text-verdict-negative" },
+  held: { arrow: "=", label: "Matched the CV", text: "text-slate-500" },
+  undemonstrated: { arrow: "·", label: "Not demonstrated in the interview", text: "text-slate-400" },
 };
 
 // Order the rubric reads in. Weight already encodes importance and the rows
@@ -106,7 +119,7 @@ export const MOVEMENT_MARK = {
 export const KIND_ORDER = { disqualifier: 0, must_have: 1, nice_to_have: 2 };
 
 export const KIND_MARK = {
-  disqualifier: { label: "Disqualifier", bar: "bg-data-red", badge: "red" },
-  must_have: { label: "Must have", bar: "bg-data-purple", badge: "brand" },
-  nice_to_have: { label: "Nice to have", bar: "bg-data-blue", badge: null },
+  disqualifier: { label: "Disqualifier", bar: "bg-verdict-negative", badge: "red" },
+  must_have: { label: "Must have", bar: "bg-brand-600", badge: "brand" },
+  nice_to_have: { label: "Nice to have", bar: "bg-slate-300", badge: null },
 };
