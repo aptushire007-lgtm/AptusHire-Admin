@@ -31,6 +31,7 @@ import {
   Eye,
   BarChart3,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import api from "../../api/client.js";
 import { downloadFile } from "../../lib/download.js";
@@ -159,6 +160,7 @@ export default function CandidateDrawer({
   // record to wherever the record is actually opened rather than being
   // deleted along with the page that happened to host them.
   const [rescoring, setRescoring] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [erasing, setErasing] = useState(false);
   const [eraseConfirm, setEraseConfirm] = useState("");
   const [eraseArmed, setEraseArmed] = useState(false);
@@ -373,6 +375,30 @@ export default function CandidateDrawer({
       await downloadFile(`/candidates/${candidateId}/export`, `${safeName}_record.json`);
     } catch {
       toast.error("Could not export this candidate's record");
+    }
+  };
+
+  // Removes only this application from this job's pipeline, leaving the
+  // candidate and their other applications untouched — unlike erasure below,
+  // which takes the whole record.
+  const handleRemoveFromJob = async () => {
+    const jobId = candidate?.job?._id || (typeof candidate?.job === "string" ? candidate.job : null);
+    if (!candidateId || !jobId) {
+      toast.error("This application is not linked to a job");
+      return;
+    }
+    if (!window.confirm("Remove this application from this job's Hiring Pipeline? The candidate and other applications will remain.")) {
+      return;
+    }
+    setRemoving(true);
+    try {
+      await api.delete(`/candidates/${candidateId}/applications/${jobId}`);
+      toast.success("Application removed from this job");
+      onCandidateUpdated?.(null);
+      onClose?.();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Could not remove this application");
+      setRemoving(false);
     }
   };
 
@@ -2046,6 +2072,16 @@ export default function CandidateDrawer({
                       title="Download everything stored about this candidate as JSON (DPDP data portability)"
                     >
                       <Download className="h-4 w-4" aria-hidden="true" /> Export record
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveFromJob}
+                      disabled={removing || erasing}
+                      className="flex items-center gap-1.5"
+                      title="Remove only this application from this job's Hiring Pipeline"
+                    >
+                      <XCircle className="h-4 w-4" aria-hidden="true" /> {removing ? "Removing…" : "Remove from job"}
                     </Button>
                   </div>
 

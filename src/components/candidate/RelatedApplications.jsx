@@ -9,6 +9,7 @@ const PIPELINE_EXIT_LABELS = {
   job_filled: "Role filled",
   job_closed: "Role closed",
   job_deleted: "Role deleted",
+  application_removed: "Removed from role",
 };
 
 function formatDay(date) {
