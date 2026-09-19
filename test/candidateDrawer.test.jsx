@@ -90,6 +90,28 @@ beforeEach(() => {
   });
 });
 
+it("loads the review workspace in one request when the composite endpoint is available", async () => {
+  get.mockResolvedValueOnce({
+    data: {
+      candidate: mockCandidateA,
+      interviewSession: null,
+      assessmentSession: null,
+      interviewReport: null,
+      profileAssessment: null,
+    },
+  });
+
+  render(
+    <MemoryRouter>
+      <CandidateDrawer candidateId="cand-1" reviewIds={["cand-1"]} onClose={vi.fn()} onSelectCandidate={vi.fn()} />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText("Jane Doe")).toBeTruthy();
+  expect(get).toHaveBeenCalledTimes(1);
+  expect(get).toHaveBeenCalledWith("/candidates/cand-1/workspace", expect.objectContaining({ signal: expect.anything() }));
+});
+
 it("renders candidate profile, score, and identity in drawer overlay", async () => {
   render(
     <MemoryRouter>

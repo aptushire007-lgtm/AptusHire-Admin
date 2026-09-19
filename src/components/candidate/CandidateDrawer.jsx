@@ -186,6 +186,25 @@ export default function CandidateDrawer({
     setLoading(true);
     setError("");
     try {
+      // The workspace read model replaces five overlapping browser requests.
+      // Fall back during a rolling deployment where the frontend may reach an
+      // older API instance for a few seconds.
+      try {
+        const workspace = await api.get(`/candidates/${id}/workspace`, { signal });
+        if (workspace.data?.candidate) {
+          setCandidate(workspace.data.candidate);
+          setInterviewSession(workspace.data.interviewSession || null);
+          setAssessmentSession(workspace.data.assessmentSession || null);
+          setInterviewReport(workspace.data.interviewReport || null);
+          setProfileAssessment(workspace.data.profileAssessment || null);
+          return;
+        }
+      } catch (workspaceError) {
+        if (workspaceError?.name === "CanceledError" || workspaceError?.name === "AbortError") throw workspaceError;
+        const status = workspaceError?.response?.status;
+        if (status !== 404 && status !== 405) throw workspaceError;
+      }
+
       const [candRes, sessRes, assessRes, reportRes, cvAssessRes] = await Promise.allSettled([
         api.get(`/candidates/${id}`, { signal }),
         api.get(`/interview-sessions/candidate/${id}`, { signal }),
