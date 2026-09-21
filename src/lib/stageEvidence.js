@@ -84,7 +84,10 @@ function assessmentRow(candidate) {
     return { ...base, state: "recorded", note: "Completed" };
   }
   if (decision?.action === "sent" || hasReached(candidate, "assessment_scheduled")) {
-    return { ...base, state: "pending", note: "Sent — awaiting the candidate" };
+    // Short on purpose: the chip sits beside a label in a 320px card column,
+    // and a long note pushes the label into an ellipsis ("Skills a…"), which
+    // costs more meaning than the extra words buy.
+    return { ...base, state: "pending", note: "Sent" };
   }
   return { ...base, state: "absent", note: "Not run" };
 }

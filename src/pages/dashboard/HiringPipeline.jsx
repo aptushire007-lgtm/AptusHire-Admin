@@ -154,7 +154,7 @@ function getStageGlowClass(stage) {
 function getStageDotColor(stage) {
   const s = normalizeStage(stage);
   if (s === "applied") return "bg-slate-500";
-  if (s === "ats_passed") return "bg-[#4b41e1] shadow-sm shadow-[#4b41e1]/40";
+  if (s === "ats_passed") return "bg-teal-400 shadow-sm shadow-teal-400/40";
   if (
     [
       "interview_scheduled",
@@ -168,10 +168,10 @@ function getStageDotColor(stage) {
       "assessment_completed",
     ].includes(s)
   ) {
-    return "bg-[#645efb] shadow-sm shadow-[#645efb]/40";
+    return "bg-brand-400 shadow-sm shadow-brand-400/40";
   }
   if (["selected", "offer_sent", "offer_accepted", "joined"].includes(s)) {
-    return "bg-[#059669] shadow-sm shadow-[#059669]/40";
+    return "bg-brand-800 shadow-sm shadow-brand-800/40";
   }
   return "bg-slate-400";
 }
@@ -192,7 +192,7 @@ function getContextualStatusTag(candidate) {
     case "ats_passed":
       return { text: "Ready for review", color: "text-cyan-700 bg-cyan-50 border border-cyan-200/60" };
     case "under_review":
-      return { text: "Ready for Panel", color: "text-[#4b41e1] bg-[#4b41e1]/10 border border-[#4b41e1]/20 font-bold" };
+      return { text: "Ready for Panel", color: "text-brand-800 bg-brand-50 border border-brand-200 font-bold" };
     case "shortlisted":
       return { text: "High Intent", color: "text-emerald-700 bg-emerald-50 border border-emerald-200 font-semibold" };
     case "offer_sent":
@@ -423,13 +423,19 @@ function CandidateCard({
             type="button"
             onClick={handleAdvanceClick}
             disabled={busy || isAdvancing}
-            className={`btn-advance-action btn-3d-advance flex-1 h-8 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1 tracking-wide transition-all ${
+            title={advanceAction.label}
+            // `min-w-0` + truncate: without them a long stage name ("Advance to
+            // Assessment Completed") made this flex-1 button grow past its
+            // track, wrap to three lines and overlap the icon buttons beside
+            // it — a flex item's automatic minimum size is its content, so
+            // flex-1 alone cannot shrink it. Same trap Card.jsx documents.
+            className={`btn-advance-action btn-3d-advance min-w-0 flex-1 h-8 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1 tracking-wide transition-all ${
               advanceAction.isHired
                 ? "bg-brand-700"
                 : "bg-brand-800 hover:bg-brand-700"
             }`}
           >
-            <span>{advanceAction.label}</span>
+            <span className="truncate">{advanceAction.label}</span>
             {advanceAction.isHired ? (
               <CheckCheck className="w-3.5 h-3.5" />
             ) : (
@@ -602,9 +608,9 @@ const StageColumn = forwardRef(function StageColumn(
         {isOfferStage && (
           <div
             id="offer-drop-slot"
-            className="border-2 border-dashed border-[#c6c6cd]/40 hover:border-[#4b41e1]/60 rounded-2xl p-4 flex flex-col items-center justify-center text-center text-slate-500 min-h-[105px] bg-white/40 hover:bg-[#4b41e1]/5 transition-all cursor-pointer group shrink-0 mt-1"
+            className="border-2 border-dashed border-[#c6c6cd]/40 hover:border-brand-700/60 rounded-2xl p-4 flex flex-col items-center justify-center text-center text-slate-500 min-h-[105px] bg-white/40 hover:bg-brand-50 transition-all cursor-pointer group shrink-0 mt-1"
           >
-            <div className="w-8 h-8 rounded-full bg-white border border-[#c6c6cd]/40 flex items-center justify-center text-[#4b41e1] mb-1 shadow-xs group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 rounded-full bg-white border border-[#c6c6cd]/40 flex items-center justify-center text-brand-700 mb-1 shadow-xs group-hover:scale-110 transition-transform">
               <ArrowRight className="w-4 h-4 rotate-90" />
             </div>
             <span className="text-xs font-semibold text-slate-800 group-hover:text-brand-800 transition-colors">
@@ -1071,7 +1077,7 @@ export default function HiringPipeline() {
       {historicalCount > 0 && (
         <p className="sr-only">
           {historicalCount} historical applications are outside the active pipeline.{" "}
-          <Link to="/candidates" className="font-semibold text-[#4b41e1] underline underline-offset-4">
+          <Link to="/candidates" className="font-semibold text-brand-800 underline underline-offset-4">
             View candidate history
           </Link>
         </p>
@@ -1551,7 +1557,7 @@ export default function HiringPipeline() {
                     type="button"
                     title={`Jump to ${stageLabel(stage)}`}
                     onClick={() => jumpToStage(stage)}
-                    className="h-2 w-2 rounded-full bg-slate-300 hover:bg-[#4b41e1] transition-colors cursor-pointer"
+                    className="h-2 w-2 rounded-full bg-slate-300 hover:bg-brand-700 transition-colors cursor-pointer"
                   >
                     <span className="sr-only">Jump to {stageLabel(stage)}</span>
                   </button>
@@ -1633,7 +1639,7 @@ export default function HiringPipeline() {
                         <tr
                           key={c._id}
                           className={`hover:bg-slate-50/80 transition-colors ${
-                            isSelected ? "bg-[#4b41e1]/5" : ""
+                            isSelected ? "bg-brand-50" : ""
                           }`}
                         >
                           <td className="p-3">
@@ -1790,7 +1796,7 @@ export default function HiringPipeline() {
             type="button"
             onClick={handleBulkAdvance}
             disabled={bulkBusy || !selectedIds.size}
-            className="btn-3d-advance text-xs bg-[#4b41e1] hover:bg-[#4338ca] text-white font-semibold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap shadow-xs"
+            className="btn-3d-advance text-xs bg-brand-800 hover:bg-brand-700 text-white font-semibold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap shadow-xs"
           >
             Advance Selected →
           </button>

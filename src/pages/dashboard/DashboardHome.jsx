@@ -111,7 +111,12 @@ export default function DashboardHome() {
             <p className="text-sm font-medium text-white/70">
               {greeting()}{me?.name ? `, ${me.name.split(" ")[0]}` : ""}
             </p>
-            <p className="mt-3 flex items-baseline gap-3">
+            {/* A <div>, not a <p>: the loading branch renders a <Skeleton>, which
+                is a block, and a block inside a <p> is invalid HTML that React
+                warns about and the browser silently reparents — which moves the
+                placeholder out of this row. Card.jsx § StatCard hit the same
+                trap and documents it. */}
+            <div className="mt-3 flex items-baseline gap-3">
               <span className="num text-[44px] leading-none font-semibold text-white">
                 {loading ? (
                   <Skeleton className="h-10 w-20 bg-white/20 inline-block align-middle" />
@@ -124,7 +129,7 @@ export default function DashboardHome() {
               <span className="text-base font-semibold text-white/90">
                 {taskTotal === 1 ? "item waiting on you" : "items waiting on you"}
               </span>
-            </p>
+            </div>
             <p className="prose-wrap mt-2 max-w-md text-sm text-white/70">
               Recorded workflow states that need a recruiter decision. Nothing here is actioned automatically.
             </p>
