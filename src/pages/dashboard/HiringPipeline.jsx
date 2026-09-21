@@ -328,7 +328,7 @@ function CandidateCard({
         {/* AI Match Score 3D Badge */}
         <div className="flex flex-col items-end shrink-0">
           {score == null ? (
-            <span className="text-[10.5px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
               Not scored
             </span>
           ) : (
@@ -413,7 +413,7 @@ function CandidateCard({
             <span>{inStage != null ? `In stage ${inStage}d` : "Stage age unknown"}</span>
           )}
         </span>
-        <span className={`px-2 py-0.5 rounded text-[10.5px] ${statusTag.color}`}>{statusTag.text}</span>
+        <span className={`px-2 py-0.5 rounded text-[11px] ${statusTag.color}`}>{statusTag.text}</span>
       </div>
 
       {/* 1-Click Stage Progression Action & Controls */}
@@ -1140,7 +1140,7 @@ export default function HiringPipeline() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/60 group-hover:bg-emerald-100 transition">
                         <Briefcase className="h-5 w-5 text-emerald-700" />
                       </div>
-                      <Badge tone="green" className="text-[10.5px] font-semibold">
+                      <Badge tone="green" className="text-[11px] font-semibold">
                         • Published
                       </Badge>
                     </div>

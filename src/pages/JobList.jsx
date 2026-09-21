@@ -1142,13 +1142,13 @@ export default function JobList() {
                           {shownSkills.map((s) => (
                             <span
                               key={s}
-                              className="rounded-md bg-slate-100 px-2 py-0.5 text-[10.5px] font-medium text-slate-600 border border-slate-200/50"
+                              className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/50"
                             >
                               {s}
                             </span>
                           ))}
                           {restSkills > 0 && (
-                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[10.5px] font-medium text-slate-500">
+                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
                               +{restSkills}
                             </span>
                           )}
@@ -1164,18 +1164,18 @@ export default function JobList() {
                             {applicantsCount === 1 ? "applicant" : "applicants"}
                           </span>
                           {applicantsCount > 0 ? (
-                            <span className="text-[10.5px] text-slate-500 truncate mt-0.5">
+                            <span className="text-[11px] text-slate-500 truncate mt-0.5">
                               {inReviewCount} review · {interviewingCount} interview
                               {offersCount > 0 && ` · ${offersCount} offer`}
                             </span>
                           ) : (
-                            <span className="text-[10.5px] text-slate-400 mt-0.5">
+                            <span className="text-[11px] text-slate-400 mt-0.5">
                               Awaiting first applicant
                             </span>
                           )}
                         </div>
 
-                        <span className="text-[10.5px] font-medium text-slate-400 shrink-0">
+                        <span className="text-[11px] font-medium text-slate-400 shrink-0">
                           {timeAgo(job.createdAt)}
                         </span>
                       </div>
@@ -1353,7 +1353,7 @@ export default function JobList() {
                                 <span className="h-8 w-1 rounded-full bg-[#0E3B2E] shrink-0" />
                               )}
                               <div className="min-w-0">
-                                <span className="block font-mono text-[10.5px] font-semibold text-slate-400">
+                                <span className="block font-mono text-[11px] font-semibold text-slate-400">
                                   {reqCode}
                                 </span>
                                 <button

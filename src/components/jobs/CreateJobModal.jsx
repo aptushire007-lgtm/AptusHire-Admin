@@ -2525,7 +2525,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               starting point the recruiter edits and a calibration they trust. */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 p-2.5 px-3.5 text-xs">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-200/80 text-slate-700 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-200/80 text-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">
                 Suggested for {title || "this role"}
               </span>
               <span className="text-[11px] text-slate-600">
@@ -3135,7 +3135,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         <Globe className="h-4 w-4" />
                         <span>{publishingImmediately ? "Publishing Job..." : "Publish Job to Careers Portal Now"}</span>
                       </div>
-                      <span className="text-[10.5px] bg-emerald-700/80 px-2 py-0.5 rounded text-emerald-100">Make Live</span>
+                      <span className="text-[11px] bg-emerald-700/80 px-2 py-0.5 rounded text-emerald-100">Make Live</span>
                     </button>
                   ) : (
                     <div className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 px-4 text-xs font-bold text-emerald-800">

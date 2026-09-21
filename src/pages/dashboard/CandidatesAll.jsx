@@ -895,7 +895,7 @@ export default function CandidatesAll() {
                             <span className="text-slate-400 italic">No job on record</span>
                           )}
                           {applications.length > 1 && (
-                            <span className="block text-[10.5px] text-slate-400 mt-0.5">
+                            <span className="block text-[11px] text-slate-400 mt-0.5">
                               {applications.length} applications
                             </span>
                           )}
@@ -958,7 +958,7 @@ export default function CandidatesAll() {
                             </span>
                           )}
                           {caveat && (
-                            <p className="mt-0.5 text-[10.5px] text-amber-700 font-medium">{caveat}</p>
+                            <p className="mt-0.5 text-[11px] text-amber-700 font-medium">{caveat}</p>
                           )}
                         </TD>
 

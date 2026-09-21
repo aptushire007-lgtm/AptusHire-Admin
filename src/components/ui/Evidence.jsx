@@ -35,7 +35,7 @@ export function EvidenceChip({ state = "absent", children, className = "" }) {
   const style = STATE_STYLES[state] ?? STATE_STYLES.absent;
   return (
     <span
-      className={`inline-flex items-center rounded-[5px] border px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap ${style} ${className}`}
+      className={`inline-flex items-center rounded-[5px] border px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap ${style} ${className}`}
     >
       {children}
     </span>
@@ -58,7 +58,7 @@ export function EvidenceRow({ label, state = "absent", value, note, action, clas
   const isQuiet = state === "absent";
   return (
     <div className={`flex items-center gap-2 py-1 ${className}`}>
-      <span className={`min-w-0 flex-1 truncate text-[11.5px] ${isQuiet ? "text-slate-400" : "text-slate-600"}`}>
+      <span className={`min-w-0 flex-1 truncate text-xs ${isQuiet ? "text-slate-400" : "text-slate-600"}`}>
         {label}
       </span>
       {action ? (

@@ -98,7 +98,7 @@ export default function SetupDraftList({ onResumeDraft }) {
           >
             YOUR SAVED SETUPS
           </h2>
-          <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10.5px] font-semibold text-violet-700 shadow-2xs">
+          <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700 shadow-2xs">
             <Sparkles className="h-3 w-3 text-violet-600" />
             AI In-Progress
           </span>
@@ -198,7 +198,7 @@ export default function SetupDraftList({ onResumeDraft }) {
                   {/* Progress bar + action buttons */}
                   <div className="flex items-center gap-3 sm:shrink-0">
                     <div className="hidden sm:block w-24 sm:w-28">
-                      <div className="mb-1 flex justify-between text-[10.5px] font-semibold text-slate-500">
+                      <div className="mb-1 flex justify-between text-[11px] font-semibold text-slate-500">
                         <span>Progress</span>
                         <span className="num font-bold text-slate-700">{progressPct}%</span>
                       </div>

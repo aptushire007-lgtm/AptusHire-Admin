@@ -50,8 +50,8 @@ variants.gold = variants.accent;
 variants.link = "bg-transparent text-brand-700 underline-offset-4 hover:underline focus-visible:ring-brand-500 disabled:opacity-50";
 
 const sizes = {
-  xs: "h-7 px-2.5 text-[11.5px]",
-  sm: "h-7 px-2.5 text-[11.5px]",
+  xs: "h-7 px-2.5 text-xs",
+  sm: "h-7 px-2.5 text-xs",
   md: "h-8 px-3.5 text-sm",
   lg: "h-9 px-4 text-sm",
 };

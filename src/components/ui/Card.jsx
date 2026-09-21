@@ -270,7 +270,7 @@ export function Badge({ children, tone = "slate", dot = false, className = "" })
   };
   return (
     <span
-      className={`inline-flex items-center rounded-[5px] px-1.5 py-0.5 text-[10.5px] font-bold whitespace-nowrap ${tones[tone] ?? tones.slate} ${className}`}
+      className={`inline-flex items-center rounded-[5px] px-1.5 py-0.5 text-[11px] font-bold whitespace-nowrap ${tones[tone] ?? tones.slate} ${className}`}
     >
       {dot && <span className="mr-1 h-1.5 w-1.5 rounded-full bg-current opacity-80 shrink-0" aria-hidden="true" />}
       {children}
@@ -481,7 +481,7 @@ export function PriorityRow({ n, bar = "border-l-slate-300", title, detail, acti
         </span>
       )}
       <div className="min-w-[11rem] flex-1">
-        <p className="prose-wrap text-[13.5px] leading-snug font-semibold text-slate-900">{title}</p>
+        <p className="prose-wrap text-sm leading-snug font-semibold text-slate-900">{title}</p>
         {detail && <p className="prose-wrap pt-1 text-xs leading-relaxed text-slate-500">{detail}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -509,7 +509,7 @@ export function MeterRow({ label, value, pct, bar = "bg-brand-500", className = 
       <div className="flex items-baseline gap-2 pb-1.5">
         <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{label}</span>
         <span className="num text-xs font-semibold text-slate-900">{value}</span>
-        <span className="num w-8 text-right text-[10.5px] text-slate-400">{Math.round(width)}%</span>
+        <span className="num w-8 text-right text-[11px] text-slate-400">{Math.round(width)}%</span>
       </div>
       <div className="h-[5px] overflow-hidden rounded-[3px] bg-rule">
         <div className={`h-full rounded-[3px] ${bar}`} style={{ width: `${width}%` }} />
@@ -541,7 +541,7 @@ export function MiniBars({ data = [], marks = [], label, className = "" }) {
       <div className="flex h-32 items-end gap-1.5 pt-4" role="img" aria-label={label}>
         {data.map((d, i) => (
           <div key={d.key ?? i} className="flex h-full min-w-0 flex-1 flex-col justify-end" title={d.label}>
-            <span aria-hidden="true" className="num pb-1 text-center text-[9.5px] text-slate-400">
+            <span aria-hidden="true" className="num pb-1 text-center text-[10px] text-slate-400">
               {d.value}
             </span>
             <div
@@ -556,7 +556,7 @@ export function MiniBars({ data = [], marks = [], label, className = "" }) {
       {marks.length > 0 && (
         <figcaption className="rule-t flex justify-between pt-1.5">
           {marks.map((m, i) => (
-            <span key={i} className="shrink-0 text-[9.5px] whitespace-nowrap text-slate-400">
+            <span key={i} className="shrink-0 text-[10px] whitespace-nowrap text-slate-400">
               {m}
             </span>
           ))}

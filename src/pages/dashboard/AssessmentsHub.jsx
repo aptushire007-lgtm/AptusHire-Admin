@@ -420,7 +420,7 @@ export default function AssessmentsHub() {
                         <FileCode className="h-3.5 w-3.5 text-slate-500 shrink-0" />
                         {policyMeta.label}
                       </span>
-                      <span className="text-[10.5px] text-slate-500 truncate mt-0.5">
+                      <span className="text-[11px] text-slate-500 truncate mt-0.5">
                         {isPolicyOn ? "Candidate must clear test before offer" : "No assessment step for this role"}
                       </span>
                     </div>

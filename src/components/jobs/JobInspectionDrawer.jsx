@@ -904,7 +904,7 @@ export default function JobInspectionDrawer({
                           key={idx}
                           className="rounded-xl border border-slate-200/70 bg-[#F9FBFA] p-3 transition-colors hover:bg-emerald-50/20"
                         >
-                          <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
                             <span
                               className={`font-bold tracking-wider ${
                                 c.tag === "MUST HAVE"
@@ -1273,7 +1273,7 @@ export default function JobInspectionDrawer({
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <span
-                                className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider border ${
+                                className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                                   TIER_COLORS[c.importance] || "bg-slate-100 text-slate-700"
                                 }`}
                               >
@@ -1564,7 +1564,7 @@ export default function JobInspectionDrawer({
                           </span>
                           <Badge
                             tone={job.assessmentPolicy === "manual" ? "brand" : "slate"}
-                            className="text-[10.5px] font-semibold"
+                            className="text-[11px] font-semibold"
                           >
                             {job.assessmentPolicy === "manual" ? "Required for Candidates" : "Assessment Off"}
                           </Badge>
@@ -1679,17 +1679,17 @@ export default function JobInspectionDrawer({
                       {/* Specs Grid */}
                       <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Sections</span>
+                          <span className="text-slate-400 block text-[11px]">Sections</span>
                           <span className="font-bold text-slate-800">{assessmentPaper.sections?.length || 0} Sections</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Questions Served</span>
+                          <span className="text-slate-400 block text-[11px]">Questions Served</span>
                           <span className="font-bold text-slate-800">
                             {assessmentPaper.sections?.reduce((sum, s) => sum + (s.servedItemCount || 0), 0) || 0} items
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Item Pool</span>
+                          <span className="text-slate-400 block text-[11px]">Item Pool</span>
                           <span className="font-bold text-slate-800">{assessmentPaper.items?.length || 0} generated</span>
                         </div>
                       </div>
