@@ -22,6 +22,7 @@ import {
   Eye,
 } from "lucide-react";
 import api from "../../api/client.js";
+import { StepStrip } from "../../components/ui/PageHeader.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
 import { Card, Badge, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
 import Button from "../../components/ui/Button.jsx";
@@ -224,6 +225,13 @@ export default function AssessmentsHub() {
           <p className="mt-1 text-sm text-slate-600">
             Create, calibrate, and manage role-specific assessment tests, question pools, and proctoring policies.
           </p>
+          <StepStrip
+            steps={[
+              "Compile a paper from the role’s approved rubric",
+              "Send it to a candidate, or skip with a reason",
+              "Their scored result lands on their profile",
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">

@@ -48,6 +48,7 @@ import {
   allowedNextStages,
 } from "../../lib/pipeline.js";
 import { scoreOf, scoreCaveat, isScored } from "../../lib/pipelineMetrics.js";
+import { EvidenceChip } from "../ui/Evidence.jsx";
 
 // A criterion the engine judged but did not score. Shown in place of a
 // percentage, so a judgement is never dressed up as a measurement.
@@ -772,6 +773,15 @@ export default function CandidateDrawer({
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
+            // Everything these three read is fetched when the drawer opens, so
+            // we can say up front that a panel is empty rather than making the
+            // reader click to find out. Only a POSITIVE "we loaded this and
+            // there is nothing" is marked: a failed fetch leaves the tab
+            // unmarked, because "we could not load it" is not "there is none".
+            const emptyTab =
+              (tab.id === "ats-breakdown" && candidate && !isScored(candidate)) ||
+              (tab.id === "assessments" && candidate && !assessmentSession && !profileAssessment) ||
+              (tab.id === "ai-interview" && candidate && !interviewReport && !interviewSession);
             return (
               <button
                 key={tab.id}
@@ -788,6 +798,7 @@ export default function CandidateDrawer({
               >
                 <Icon className={`h-3.5 w-3.5 ${active ? "text-emerald-700" : "text-slate-400"}`} />
                 <span>{tab.label}</span>
+                {emptyTab && <EvidenceChip state="absent">None</EvidenceChip>}
               </button>
             );
           })}
@@ -1800,23 +1811,45 @@ export default function CandidateDrawer({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                  {/* "—" left a reader guessing whether the candidate gave us
+                      nothing or the field failed to load. These come from the
+                      application the candidate filled in themselves, so the
+                      honest reading is "they did not provide it".
+
+                      Deliberately NOT an "+ Add" affordance like some ATSs
+                      offer: there is no admin endpoint to write a candidate's
+                      own contact details, and adding one would create an
+                      unaudited write path into a record whose provenance this
+                      product otherwise tracks field by field. */}
                   <div>
                     <span className="text-slate-400 block mb-0.5">Full Name</span>
-                    <strong className="text-slate-900 text-sm font-semibold">
-                      {candidate.basicDetails?.name || "—"}
-                    </strong>
+                    {candidate.basicDetails?.name ? (
+                      <strong className="text-slate-900 text-sm font-semibold">
+                        {candidate.basicDetails.name}
+                      </strong>
+                    ) : (
+                      <EvidenceChip state="absent">Not provided</EvidenceChip>
+                    )}
                   </div>
                   <div>
                     <span className="text-slate-400 block mb-0.5">Email Address</span>
-                    <strong className="text-slate-900 text-sm font-semibold break-all">
-                      {candidate.basicDetails?.email || "—"}
-                    </strong>
+                    {candidate.basicDetails?.email ? (
+                      <strong className="text-slate-900 text-sm font-semibold break-all">
+                        {candidate.basicDetails.email}
+                      </strong>
+                    ) : (
+                      <EvidenceChip state="absent">Not provided</EvidenceChip>
+                    )}
                   </div>
                   <div>
                     <span className="text-slate-400 block mb-0.5">Phone Number</span>
-                    <strong className="text-slate-900 text-sm font-semibold">
-                      {candidate.basicDetails?.phone || "—"}
-                    </strong>
+                    {candidate.basicDetails?.phone ? (
+                      <strong className="text-slate-900 text-sm font-semibold">
+                        {candidate.basicDetails.phone}
+                      </strong>
+                    ) : (
+                      <EvidenceChip state="absent">Not provided</EvidenceChip>
+                    )}
                   </div>
                   {candidate.basicDetails?.location && (
                     <div>

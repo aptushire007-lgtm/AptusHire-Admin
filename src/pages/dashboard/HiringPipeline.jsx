@@ -62,6 +62,8 @@ import {
   scoreOf,
 } from "../../lib/pipelineMetrics.js";
 import { downloadFile } from "../../lib/download.js";
+import { stageEvidence } from "../../lib/stageEvidence.js";
+import { EvidenceRow } from "../../components/ui/Evidence.jsx";
 
 const SORTS = {
   score_desc: { label: "Match Score (High → Low)", compare: (a, b) => byScore(b) - byScore(a) },
@@ -109,35 +111,12 @@ function figure(value, suffix = "") {
   return value == null ? "—" : `${value}${suffix}`;
 }
 
-const AVATAR_GRADIENTS = [
-  "from-indigo-500 to-purple-600",
-  "from-blue-600 to-cyan-600",
-  "from-emerald-500 to-teal-700",
-  "from-violet-600 to-purple-800",
-  "from-amber-500 to-rose-600",
-  "from-teal-600 to-blue-700",
-  "from-emerald-600 to-green-700",
-  "from-slate-500 to-slate-700",
-];
-
-const EX_COMPANIES = [
-  "Ex-Kakao",
-  "Ex-Retool",
-  "Ex-Alan",
-  "Ex-Nubank",
-  "Ex-Miro",
-  "Ex-Personio",
-  "Ex-Gusto",
-  "Ex-Stripe",
-  "Ex-Figma",
-];
-
-function getExCompany(candidate, idx = 0) {
-  if (candidate.company) return `Ex-${candidate.company}`;
-  if (candidate.basicDetails?.company) return `Ex-${candidate.basicDetails.company}`;
-  const charCode = (candidate.basicDetails?.name || "A").charCodeAt(0) + idx;
-  return EX_COMPANIES[charCode % EX_COMPANIES.length];
-}
+// REMOVED: EX_COMPANIES / getExCompany().
+// It displayed a PREVIOUS EMPLOYER the candidate never gave us — when
+// `candidate.company` was empty it picked one from a hardcoded list of real
+// companies by `name.charCodeAt(0) + idx`. Every card without a company field
+// asserted "Ex-Stripe" or "Ex-Figma" about a real applicant. There is no
+// honest fallback for this field, so the chip is gone rather than reworded.
 
 function getAvatarInitials(name) {
   if (!name) return "C";
@@ -197,24 +176,13 @@ function getStageDotColor(stage) {
   return "bg-slate-400";
 }
 
-function getCandidateHighlight(candidate, score) {
-  if (score != null && score >= 94) {
-    return { text: "Top 5% Technical Architecture", target: "$195k Target" };
-  }
-  if (score != null && score >= 90) {
-    return { text: "Top 8% Product Operations", target: "$175k Target" };
-  }
-  if (score != null && score >= 80) {
-    return { text: "Automated 40+ RevOps flows", target: "$180k Target" };
-  }
-  if (candidate.status === "under_review" || candidate.status === "shortlisted") {
-    return { text: "Final Exec Panel Ready", target: "$170k Target" };
-  }
-  if (candidate.status === "offer_sent" || candidate.status === "selected") {
-    return { text: "Offer: $185k + Equity", target: "Final Step" };
-  }
-  return { text: "Resume & Portfolio Scored", target: "$165k Target" };
-}
+// REMOVED: getCandidateHighlight().
+// It returned invented strings keyed off the ATS score — "Top 5% Technical
+// Architecture", "Automated 40+ RevOps flows", "$195k Target", "Offer: $185k +
+// Equity" — and rendered them as candidate intelligence. None of it came from
+// any stored field; a candidate scoring 94 was told to have a $195k target
+// because 94 >= 94. Replaced by stageEvidence(), which reports only what the
+// application record actually holds.
 
 function getContextualStatusTag(candidate) {
   const status = normalizeStage(candidate.status);
@@ -283,17 +251,14 @@ function CandidateCard({
   const skills = [...new Set((candidate.skills || []).filter(Boolean).map((skill) => skill.trim()))];
   const shownSkills = skills.slice(0, 3);
   const overflowCount = skills.length - shownSkills.length;
-  const isTopPick = score != null && score >= 90;
   const isUnderReview = candidate.status === "under_review";
   const isOfferSent = candidate.status === "offer_sent";
   const isOverdue =
     !["joined", REJECTED].includes(normalizeStage(candidate.status)) && inStage != null && inStage >= 14;
 
   const advanceAction = getAdvanceAction(candidate);
-  const exCompany = getExCompany(candidate, idx);
   const initials = getAvatarInitials(candidate.basicDetails?.name);
-  const avatarGradient = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-  const highlight = getCandidateHighlight(candidate, score);
+  const evidence = stageEvidence(candidate);
   const statusTag = getContextualStatusTag(candidate);
 
   const handleAdvanceClick = async (e) => {
@@ -312,23 +277,17 @@ function CandidateCard({
         isAdvancing ? "anim-advancing" : ""
       } ${
         isSelected
-          ? "ring-2 ring-[#4b41e1] border-[#4b41e1] shadow-md bg-indigo-50/20"
-          : isTopPick
-          ? "border-2 border-[#4b41e1]/30 ring-1 ring-[#4b41e1]/20 shadow-md"
+          ? "ring-2 ring-brand-800 border-brand-800 bg-brand-50/40"
           : isUnderReview
-          ? "border-amber-300/80 ring-1 ring-amber-200/50 shadow-xs"
+          ? "border-amber-300/80 ring-1 ring-amber-200/50"
           : "border-slate-200/80 hover:border-slate-300"
       }`}
       data-candidate-id={candidate._id}
       data-name={candidate.basicDetails?.name || ""}
-      data-score={score ?? 0}
+      // Absent when unscored. It was `score ?? 0`, which wrote an unmeasured
+      // candidate into the DOM as a measured zero for anything reading it.
+      data-score={score ?? undefined}
     >
-      {/* Glow ribbon for Top Pick */}
-      {isTopPick && candidate.status !== REJECTED && (
-        <div className="absolute -right-8 top-2 bg-gradient-to-r from-[#4b41e1] to-[#645efb] text-[9px] font-extrabold text-white uppercase tracking-wider py-0.5 px-8 rotate-45 shadow-sm pointer-events-none">
-          Top Pick
-        </div>
-      )}
 
       {/* 3D Card Header */}
       <div className="flex items-start justify-between gap-2">
@@ -338,28 +297,30 @@ function CandidateCard({
             checked={isSelected}
             onChange={onToggleSelect}
             aria-label={`Select candidate ${candidate.basicDetails?.name}`}
-            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer candidate-checkbox shrink-0"
+            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-brand-800 focus:ring-0 cursor-pointer candidate-checkbox shrink-0"
           />
-          <div
-            className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient} text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 shrink-0`}
-          >
+          {/* Flat brand tint, not a per-index gradient. Colour derived from a
+              row's position is decoration that reads as meaning — and eight
+              gradients across a board is eight competing light sources. */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-800">
             {initials}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <CandidateLink
                 candidateId={candidate._id}
-                className="candidate-name font-bold text-[15px] text-slate-900 group-hover:text-[#4b41e1] transition-colors truncate block"
+                className="candidate-name font-bold text-[15px] text-slate-900 group-hover:text-brand-800 transition-colors truncate block"
                 title={candidate.basicDetails?.name}
               >
                 {candidate.basicDetails?.name || "Unnamed applicant"}
               </CandidateLink>
-              <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded shrink-0">
-                {exCompany}
-              </span>
             </div>
+            {/* "Product & Ops Lead" used to stand in for a role that failed to
+                populate, so a card could name a job this person never applied
+                to. An unknown role says so. */}
             <p className="text-[12px] text-slate-500 font-medium truncate" title={candidate.job?.title}>
-              {candidate.job?.title || "Product & Ops Lead"} • {inStage != null ? `${inStage}d stage` : "Active"}
+              {candidate.job?.title || "Role unavailable"}
+              {inStage != null ? ` • ${inStage}d stage` : ""}
             </p>
           </div>
         </div>
@@ -371,10 +332,10 @@ function CandidateCard({
               Not scored
             </span>
           ) : (
-            <span className="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5 shrink-0">
-              <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
-              {score}%
-              {score >= 60 && <span className="sr-only"> Match</span>}
+            <span className="flex shrink-0 flex-col items-end leading-none">
+              <span className="text-[9px] font-semibold tracking-wide text-slate-400 uppercase">Fit</span>
+              <span className="num pt-0.5 text-[19px] font-semibold text-emerald-700">{score}</span>
+              <span className="sr-only">out of 100</span>
             </span>
           )}
         </div>
@@ -386,14 +347,22 @@ function CandidateCard({
         </p>
       )}
 
-      {/* High-Signal Candidate Intelligence Box */}
-      <div className="bg-[#eff4ff]/70 rounded-xl p-2.5 border border-[#c6c6cd]/20 flex flex-col gap-1.5 text-xs">
-        <div className="flex items-center justify-between text-slate-600 text-[11px]">
-          <span className="flex items-center gap-1 font-medium text-slate-700 truncate mr-2">
-            <Sparkles className="w-3 h-3 text-[#4b41e1] shrink-0" />
-            <span className="truncate">{highlight.text}</span>
-          </span>
-          <span className="font-semibold text-slate-900 shrink-0">{highlight.target}</span>
+      {/* What has actually happened to this application, stage by stage.
+          This slot used to hold getCandidateHighlight()'s invented achievement
+          and salary line. Now it holds the three stages and their real state,
+          so "we have not screened this person" and "we screened them and they
+          scored 0" stop looking identical. */}
+      <div className="flex flex-col gap-1.5 rounded-xl border border-hairline bg-canvas/60 p-2.5 text-xs">
+        <div className="divide-y divide-rule">
+          {evidence.map((row) => (
+            <EvidenceRow
+              key={row.key}
+              label={row.label}
+              state={row.state}
+              value={row.value}
+              note={row.note}
+            />
+          ))}
         </div>
 
         {/* Skills Chips */}
@@ -420,12 +389,10 @@ function CandidateCard({
         )}
       </div>
 
-      {/* Score Caveat / Legacy Note */}
-      {caveat && (
-        <div className="text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md">
-          {caveat}
-        </div>
-      )}
+      {/* The caveat used to be its own amber strip here. It now rides on the CV
+          screening row beside the figure it qualifies, which is the only place
+          it means anything — a "legacy fallback" banner floating under a card
+          does not say WHICH of the card's readings is degraded. */}
 
       {resumeSignals > 0 && (
         <div className="text-[10px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
@@ -443,7 +410,7 @@ function CandidateCard({
               {inStage}d (Overdue)
             </span>
           ) : (
-            <span>In stage {inStage != null ? `${inStage}d` : "0d"}</span>
+            <span>{inStage != null ? `In stage ${inStage}d` : "Stage age unknown"}</span>
           )}
         </span>
         <span className={`px-2 py-0.5 rounded text-[10.5px] ${statusTag.color}`}>{statusTag.text}</span>
@@ -458,8 +425,8 @@ function CandidateCard({
             disabled={busy || isAdvancing}
             className={`btn-advance-action btn-3d-advance flex-1 h-8 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1 tracking-wide transition-all ${
               advanceAction.isHired
-                ? "bg-gradient-to-r from-emerald-600 to-teal-700"
-                : "bg-[#4b41e1] hover:bg-[#4338ca]"
+                ? "bg-brand-700"
+                : "bg-brand-800 hover:bg-brand-700"
             }`}
           >
             <span>{advanceAction.label}</span>
@@ -478,7 +445,7 @@ function CandidateCard({
           <button
             type="button"
             onClick={() => onInspect(candidate._id)}
-            className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-500 hover:text-[#4b41e1] flex items-center justify-center transition-colors"
+            className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-500 hover:text-brand-800 flex items-center justify-center transition-colors"
             title="Inspect candidate drawer"
             aria-label={`Inspect candidate ${candidate.basicDetails?.name}`}
           >
@@ -573,7 +540,7 @@ const StageColumn = forwardRef(function StageColumn(
       aria-label={`${stageLabel(stage)} — ${candidates.length} candidate${candidates.length === 1 ? "" : "s"}`}
       className={`stage-column flex flex-col column-tray-3d p-3.5 rounded-2xl min-h-[680px] shrink-0 ${glowClass} transition-all ${
         columnDensity === "compact" ? "w-64" : "w-80"
-      } ${isHighlighted ? "ring-2 ring-[#4b41e1] shadow-lg" : ""}`}
+      } ${isHighlighted ? "ring-2 ring-brand-700 shadow-lg" : ""}`}
       data-stage={stage}
       data-stage-name={stageLabel(stage)}
     >
@@ -607,8 +574,11 @@ const StageColumn = forwardRef(function StageColumn(
       {/* Cards Container */}
       <div className="candidate-cards-container flex flex-col gap-3.5 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
         {candidates.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400 font-medium">
-            No candidates in this stage
+          <div className="rounded-xl border border-dashed border-hairline px-3 py-10 text-center">
+            <p className="text-xs font-medium text-slate-500">
+              No candidates in {stageLabel(stage)}
+            </p>
+            <p className="pt-1 text-[11px] text-slate-400">Drag a card here to move a candidate.</p>
           </div>
         ) : (
           candidates.map((c, idx) => (
@@ -637,7 +607,7 @@ const StageColumn = forwardRef(function StageColumn(
             <div className="w-8 h-8 rounded-full bg-white border border-[#c6c6cd]/40 flex items-center justify-center text-[#4b41e1] mb-1 shadow-xs group-hover:scale-110 transition-transform">
               <ArrowRight className="w-4 h-4 rotate-90" />
             </div>
-            <span className="text-xs font-semibold text-slate-800 group-hover:text-[#4b41e1] transition-colors">
+            <span className="text-xs font-semibold text-slate-800 group-hover:text-brand-800 transition-colors">
               Drop candidate here to prepare offer
             </span>
             <span className="text-[10px] text-slate-400 mt-0.5">
@@ -1644,7 +1614,7 @@ export default function HiringPipeline() {
                             if (e.target.checked) setSelectedIds(new Set(sortedFlat.map((c) => c._id)));
                             else setSelectedIds(new Set());
                           }}
-                          className="h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer"
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-brand-800 focus:ring-0 cursor-pointer"
                         />
                       </th>
                       <th className="p-3">Candidate</th>
@@ -1672,19 +1642,16 @@ export default function HiringPipeline() {
                               checked={isSelected}
                               onChange={() => toggleSelect(c._id)}
                               aria-label={`Select candidate ${c.basicDetails?.name}`}
-                              className="h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer"
+                              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-800 focus:ring-0 cursor-pointer"
                             />
                           </td>
                           <td className="p-3">
                             <CandidateLink
                               candidateId={c._id}
-                              className="font-bold text-slate-900 hover:text-[#4b41e1] transition-colors"
+                              className="font-bold text-slate-900 hover:text-brand-800 transition-colors"
                             >
                               {c.basicDetails?.name || "Unnamed applicant"}
                             </CandidateLink>
-                            <span className="ml-2 text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
-                              {getExCompany(c, idx)}
-                            </span>
                           </td>
                           <td className="p-3 text-slate-600">{c.job?.title || "No job assigned"}</td>
                           <td className="p-3">
@@ -1755,7 +1722,7 @@ export default function HiringPipeline() {
               type="button"
               onClick={() => handleScroll("left")}
               aria-label="Scroll pipeline left"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#4b41e1] hover:scale-105 active:scale-95 transition-all"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-800 hover:scale-105 active:scale-95 transition-all"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -1766,7 +1733,7 @@ export default function HiringPipeline() {
               type="button"
               onClick={() => handleScroll("right")}
               aria-label="Scroll pipeline right"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#4b41e1] hover:scale-105 active:scale-95 transition-all"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-800 hover:scale-105 active:scale-95 transition-all"
             >
               <ChevronRight className="h-5 w-5" />
             </button>

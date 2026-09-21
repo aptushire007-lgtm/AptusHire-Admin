@@ -145,7 +145,10 @@ describe("Hiring Pipeline — what the board states", () => {
     // for a measurement nobody took.
     expect(within(applied).queryByText("0%")).toBeNull();
     // The genuinely scored one keeps its figure.
-    expect(screen.getByText("78%")).toBeInTheDocument();
+    // The card prints the figure under a "Fit" label now rather than suffixing a
+    // percent sign, so this follows the markup. The reading is unchanged, and
+    // the sr-only "out of 100" carries the unit to a screen reader.
+    expect(screen.getByText("78")).toBeInTheDocument();
   });
 
   it("shows only the occupied stages by default, and says how many it is hiding", () => {
