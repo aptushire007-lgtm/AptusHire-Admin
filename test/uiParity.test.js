@@ -52,12 +52,49 @@ function extractComponent(source, name) {
   return null;
 }
 
-// Components that exist in both kits and must not drift.
-const SHARED = ["Chip", "ChipRow"];
+// Components that exist in both kits and must not drift at all.
+//
+// <Chip> is deliberately NOT here any more. Its visual treatment diverged when
+// the candidate portal was rebranded to orange + navy (see tokens.test.js
+// § BRAND): the portal's chip carries a shadow and a hover fill the admin's
+// does not. That is a design decision about one app's chrome, not the
+// copy-paste drift this file was written to catch — and pretending otherwise
+// would mean either deleting the portal's hover state to satisfy a test, or
+// loosening the comparison until it stopped catching anything.
+//
+// What <Chip> still owes is checked below and is the part that actually broke:
+// the same props, and the `shrink-0` / `whitespace-nowrap` pair in both copies.
+const SHARED = ["ChipRow"];
+
+/**
+ * Blank out palette choices before comparing.
+ *
+ * The two apps no longer share a brand: the candidate portal was deliberately
+ * rebranded to orange + navy (see tokens.test.js § BRAND). Its <Chip> therefore
+ * reaches for `brand-500` where the admin reaches for `brand-800`, and a
+ * byte-identical comparison called that drift when it is a design decision.
+ *
+ * What this test is actually for is STRUCTURAL parity — the props, the markup,
+ * and the `shrink-0` whose absence caused the bug this file exists for. So the
+ * colour step is normalised away and everything else still has to match
+ * exactly. A lost prop, a renamed component, a dropped `shrink-0` or a changed
+ * `text-sm` all still fail, which is the whole point.
+ *
+ * Only genuine colour names are matched, so sizing utilities that share a
+ * prefix (`text-sm`, `border-2`, `ring-1`) are deliberately left alone.
+ */
+const COLOR_NAMES =
+  "brand|accent|slate|hairline|rule|canvas|emerald|amber|red|teal|indigo|violet|white|black|transparent|current";
+const PALETTE = new RegExp(
+  String.raw`\b((?:[a-z-]+:)*(?:border|bg|text|ring|shadow|outline|from|via|to|divide|placeholder|caret|fill|stroke))` +
+    String.raw`-(?:\[[^\]]*\]|(?:${COLOR_NAMES})(?:-\d{1,3})?)(?:\/\d{1,3})?`,
+  "g"
+);
+const ignorePalette = (source) => source.replace(PALETTE, "$1-<palette>");
 
 describe("UI kit parity — admin and user share these components", () => {
   for (const name of SHARED) {
-    it(`<${name}> is identical in both apps`, () => {
+    it(`<${name}> is structurally identical in both apps`, () => {
       const mine = extractComponent(ADMIN_PANELS, name);
       const theirs = extractComponent(USER_PANELS, name);
 
@@ -65,9 +102,23 @@ describe("UI kit parity — admin and user share these components", () => {
       // which is itself the drift this test is looking for.
       expect(mine, `${name} not found in admin/src/components/ui/Panels.jsx`).toBeTruthy();
       expect(theirs, `${name} not found in user/src/components/ui/Panels.jsx`).toBeTruthy();
-      expect(theirs).toBe(mine);
+      expect(ignorePalette(theirs)).toBe(ignorePalette(mine));
     });
   }
+
+  it("<Chip> keeps the same props in both apps, whatever each one paints them", () => {
+    // The signature is the contract every call site in either app is written
+    // against, so it has to match even though the styling no longer does. A
+    // prop added on one side and forgotten on the other is exactly the drift
+    // that used to hide behind the removed byte-identity check.
+    const signature = (source) => {
+      const block = extractComponent(source, "Chip");
+      return block?.slice(0, block.indexOf(")") + 1).replace(/\s+/g, " ");
+    };
+    const mine = signature(ADMIN_PANELS);
+    expect(mine, "admin Chip").toBeTruthy();
+    expect(signature(USER_PANELS)).toBe(mine);
+  });
 
   it("keeps the chip shrink fix in BOTH copies, not just the one that was reported", () => {
     // Belt and braces alongside the identity check above: this states the actual
