@@ -215,7 +215,7 @@ export default function CandidatesAll() {
             limit: 50,
             q: search,
             stage: stageFilter,
-            ...(jobFilter && jobFilter !== "all" ? { job: jobFilter } : {}),
+            ...(jobFilter && jobFilter !== "all" ? { jobId: jobFilter } : {}),
             ...(historical
               ? {
                   reached: reportCohort.reached,
@@ -299,16 +299,35 @@ export default function CandidatesAll() {
     return list;
   }, [rawGroups, sortBy]);
 
-  // Dynamic jobs list derived from candidates
-  const jobs = useMemo(() => {
-    const list = new Map();
-    groups.forEach(({ latest }) => {
-      if (latest?.job?._id && latest?.job?.title) {
-        list.set(latest.job._id, latest.job.title);
-      }
-    });
-    return Array.from(list.entries()).map(([_id, title]) => ({ _id, title }));
-  }, [groups]);
+  // The role filter lists the WORKSPACE's roles, not the roles that happen to
+  // appear on the loaded page. Deriving them from `groups` meant the options
+  // were a function of the current 50 rows, so a role whose candidates sat on
+  // page 3 could not be selected at all — and selecting a role then removed the
+  // option you had just picked, because the narrowed page no longer contained
+  // the others.
+  //
+  // Fetched here rather than read from <CompanyDataProvider>: this page is
+  // mounted on its own in tests and in the candidate deep-links, and reaching
+  // for the shell's context would make it un-mountable outside the shell (the
+  // hook throws by design) as well as pulling the notification socket into
+  // every page that imports it. One small GET keeps the page self-contained.
+  const [jobs, setJobs] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    api
+      .get("/jobs")
+      .then(({ data }) => {
+        if (!alive || !Array.isArray(data)) return;
+        setJobs(data.map((j) => ({ _id: j._id, title: j.title })));
+      })
+      .catch(() => {
+        // A missing role list degrades the filter to "All roles"; it must never
+        // take down the candidate list, which is the actual content here.
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Selected candidate record for bottom inspection card
   const selectedCandidate = useMemo(() => {
@@ -449,8 +468,8 @@ export default function CandidatesAll() {
     <div className="space-y-6 pb-12">
       {/* ── Page Header ───────────────────────────────────────────────────── */}
       <PageHeader
-        title="Candidates"
-        description="Review incoming applications, inspect autonomous AI screening evidence, and guide candidates through hiring pipelines."
+        title="Talent Pool"
+        description="Every person who has ever applied to this company — one row per person, not per application. To work a single role's board, open that job's pipeline."
         action={
           <div className="flex items-center gap-2.5 shrink-0">
             <Button
@@ -594,20 +613,30 @@ export default function CandidatesAll() {
 
           {/* Table / Kanban View Toggle */}
           <div className="flex items-center border border-slate-200/90 bg-white p-0.5 rounded-lg shadow-elevation-low shrink-0">
-            <button
-              type="button"
+            {/* The kanban button used to have no onClick — it rendered as a
+                live toggle and did nothing when pressed. A company-wide talent
+                pool has no single board to switch into (a person here may sit
+                in three different roles' pipelines at once), so the honest
+                affordance is a link to the pipeline, not a view toggle. */}
+            <span
               className="p-1.5 rounded bg-slate-100 text-slate-800"
-              title="Table View"
+              title="Table view"
+              aria-current="true"
             >
-              <Rows3 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="p-1.5 rounded text-slate-400 hover:text-slate-700 transition-colors"
-              title="Kanban Pipeline"
+              <Rows3 className="w-4 h-4" aria-hidden="true" />
+            </span>
+            <Link
+              to={jobFilter && jobFilter !== "all" ? `/jobs/${jobFilter}/pipeline` : "/pipeline"}
+              className="p-1.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+              title={
+                jobFilter && jobFilter !== "all"
+                  ? "Open this role's pipeline board"
+                  : "Open the pipeline board"
+              }
             >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
+              <LayoutGrid className="w-4 h-4" aria-hidden="true" />
+              <span className="sr-only">Open pipeline board</span>
+            </Link>
           </div>
         </div>
 

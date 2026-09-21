@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import CandidateLink from "../../components/candidate/CandidateLink.jsx";
 import CandidateDrawer from "../../components/candidate/CandidateDrawer.jsx";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowDownUp,
   ArrowRight,
@@ -682,9 +682,22 @@ export default function HiringPipeline() {
   const [columnDensity, setColumnDensity] = useState("comfortable");
   const query = params.get("q") || "";
   const setQuery = (value) => setFilter("q", value);
-  const jobId = params.get("job") || "all";
+  // Two entry points, one board. `/pipeline` is the company-wide board where
+  // the role is a filter you can change; `/jobs/:id/pipeline` is THAT role's
+  // board, where the role comes from the path and is therefore fixed — it
+  // survives a refresh, it can be pasted to a colleague, and it is the
+  // destination the Job detail's Pipeline tab points at.
+  const { id: routeJobId } = useParams();
+  const jobScoped = Boolean(routeJobId);
+  const jobId = routeJobId || params.get("job") || "all";
   const setJobId = (value) => {
     setSelectedIds(new Set());
+    // On the job-scoped route the role is the URL, so changing it means going
+    // to another URL rather than editing a query param this page ignores.
+    if (jobScoped) {
+      navigate(value && value !== "all" ? `/jobs/${value}/pipeline` : "/pipeline");
+      return;
+    }
     setFilter("job", value);
   };
   const sort = Object.hasOwn(SORTS, params.get("sort")) ? params.get("sort") : "score_desc";
@@ -744,6 +757,7 @@ export default function HiringPipeline() {
   const effectiveJob = selectedJob || (publishedJobs.length === 1 ? publishedJobs[0] : null);
   const viewConsolidated = params.get("consolidated") === "true";
   const showJobCardsDeck =
+    !jobScoped &&
     publishedJobs.length > 1 &&
     (!params.get("job") || params.get("job") === "all") &&
     !viewConsolidated;
@@ -1032,6 +1046,48 @@ export default function HiringPipeline() {
 
   return (
     <div className="flex flex-col min-w-0 bg-mesh-canvas -mx-4 sm:-mx-6 -mt-[22px] -mb-12 min-h-[calc(100vh-57px)]">
+      {/* On /jobs/:id/pipeline this board IS the job's Pipeline tab, so it
+          carries the job's own context strip: where you are, and the sibling
+          tabs of the same job. On /pipeline there is no single job to head, so
+          nothing is rendered and the board opens as before. */}
+      {jobScoped && (
+        <nav
+          aria-label="Job sections"
+          className="shrink-0 border-b border-hairline bg-white/90 px-4 sm:px-6 pt-3 backdrop-blur"
+        >
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <Link to="/jobs" className="font-medium hover:text-slate-900 hover:underline">
+              Jobs
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span className="truncate font-semibold text-slate-900">
+              {selectedJob?.title || "This role"}
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1">
+            {[
+              { key: "overview", label: "JD" },
+              { key: "rubric", label: "Process" },
+              { key: "questions", label: "Questions" },
+              { key: "assessment", label: "Assessment" },
+            ].map((tab) => (
+              <Link
+                key={tab.key}
+                to={`/jobs?jobId=${routeJobId}&tab=${tab.key}`}
+                className="rounded-t-lg border border-transparent px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-canvas hover:text-slate-900"
+              >
+                {tab.label}
+              </Link>
+            ))}
+            <span
+              aria-current="page"
+              className="-mb-px rounded-t-lg border border-hairline border-b-white bg-white px-3 py-2 text-[13px] font-semibold text-[#0E3B2E]"
+            >
+              Pipeline
+            </span>
+          </div>
+        </nav>
+      )}
       {loading && (
         <p role="status" className="shrink-0 bg-white px-6 py-2 text-sm text-slate-600 border-b border-slate-200">
           Updating pipeline… Previous results remain visible; stage actions are paused.

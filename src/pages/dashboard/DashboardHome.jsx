@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { Badge, Card, CardHeader, CardRow, EmptyState, StatCard, StatGrid, Skeleton } from "../../components/ui/Card.jsx";
-import PageHeader from "../../components/ui/PageHeader.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { stageLabel, stageTone } from "../../lib/pipeline.js";
 import { VISUALIZATION_PALETTE } from "../../lib/visualizationColors.js";
@@ -97,13 +96,61 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-[18px]">
-      <PageHeader title="Today" description={`${greeting()}${me?.name ? `, ${me.name.split(" ")[0]}` : ""}. Here is what needs your attention.`}
-        action={<Button as={Link} to="/jobs?create=1"><FilePlus2 className="h-4 w-4" aria-hidden="true" />Create job</Button>} />
+      {/* The screen used to open with eleven cards of identical weight — five
+          KPI tiles, two charts, three lists and a queue — so nothing told a
+          recruiter where to start. One focal block does, and the figure it
+          carries is the only one that implies an action: how much is waiting
+          on a human right now. Everything below it is supporting detail.
+
+          The figure obeys the same rule as every other number in this product:
+          a skeleton while it is unknown and an em dash when the request
+          failed — never a confident 0 standing in for "we could not count". */}
+      <section className="panel-hero workspace-panel rounded-2xl px-5 py-5 sm:px-6 sm:py-6">
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-white/70">
+              {greeting()}{me?.name ? `, ${me.name.split(" ")[0]}` : ""}
+            </p>
+            <p className="mt-3 flex items-baseline gap-3">
+              <span className="num text-[44px] leading-none font-semibold text-white">
+                {loading ? (
+                  <Skeleton className="h-10 w-20 bg-white/20 inline-block align-middle" />
+                ) : loadError ? (
+                  <span title="Could not load this figure">—</span>
+                ) : (
+                  taskTotal
+                )}
+              </span>
+              <span className="text-base font-semibold text-white/90">
+                {taskTotal === 1 ? "item waiting on you" : "items waiting on you"}
+              </span>
+            </p>
+            <p className="prose-wrap mt-2 max-w-md text-sm text-white/70">
+              Recorded workflow states that need a recruiter decision. Nothing here is actioned automatically.
+            </p>
+          </div>
+          {/* Deliberately NOT <Button variant="primary"> here: primary is
+              bg-brand-800, the same forest this panel is filled with, so the
+              button would be invisible on it. On a dark ground the white
+              `secondary` IS the emphatic one. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/review-queue"
+              className="inline-flex items-center gap-1.5 rounded-control border border-white/30 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Open review queue
+            </Link>
+            <Button as={Link} to="/jobs?create=1" variant="secondary">
+              <FilePlus2 className="h-4 w-4" aria-hidden="true" />Create job
+            </Button>
+          </div>
+        </div>
+      </section>
       {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
         <span>{loadError} Figures may be incomplete.</span><Button variant="secondary" size="sm" onClick={refresh}>Refresh</Button>
       </div>}
       <Card padding="none">
-        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Recorded workflow states requiring a recruiter action." aside="No action is taken automatically." />
+        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Ordered by what blocks a decision first." />
         {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
           visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
           <ul>{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
@@ -117,7 +164,8 @@ export default function DashboardHome() {
         </div>}
       </Card>
       <section aria-label="Key Performance Indicators">
-        <StatGrid min={170}>{stats.map(item => <StatCard key={item.label} as={Link} to={item.to} interactive
+        <StatGrid min={170}>{stats.map((item, index) => <StatCard key={item.label} as={Link} to={item.to} interactive
+          className={index === 0 ? "accent-edge" : ""}
           aria-label={loading ? item.label : `${item.value} ${item.label}`}
           label={item.label} value={loading ? <Skeleton className="h-7 w-16" /> : loadError ? "—" : item.value}
           note={item.sub} icon={item.icon}

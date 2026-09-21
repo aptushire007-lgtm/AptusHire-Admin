@@ -490,11 +490,38 @@
 }
 
 
+/* ── Accent surfaces ───────────────────────────────────────────────────────
+   The system had exactly two registers: white panel, and an 11px coloured
+   badge. Nothing in between, which is why a screen of it reads flat however
+   well-tuned the neutrals are. These three are the middle register, and they
+   are rationed on purpose — one hero per screen, at most.
+
+   `panel-hero` is the focal metric block. It is a fill, not a tint, because
+   the point is for one element per screen to be unmistakably the entry point.
+   `surface-accent` is the quiet brand wash for toolbars and grouping strips.
+   `accent-edge` marks the leading item of a row without adding a fourth hue. */
+.panel-hero {
+  background-image: linear-gradient(145deg, #0E3B2E 0%, #0C1F1B 62%, #081210 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(124, 222, 74, 0.20);
+  box-shadow: 0 10px 30px -12px rgba(12, 31, 27, 0.45);
+}
+.panel-hero .num { letter-spacing: -0.04em; }
+
+.surface-accent { background-color: #EAF5EF; }
+
+.accent-edge { box-shadow: inset 3px 0 0 var(--color-brand-400); }
+
 /* Authenticated recruiting surfaces only. Public pages keep the brand theme. */
+/* The canvas used to sit at #F5F7F6 against #FFFFFF cards — a 2% luminance
+   step, which is why dense screens read as one undifferentiated sheet rather
+   than as panels on a ground. Deepening the ground (not shadowing the cards)
+   is what buys separation without reintroducing forty light sources; the
+   flat-card decision above still stands. */
 .admin-workspace {
-  --color-canvas: #F5F7F6;
-  --color-canvas-deep: #EDF2EF;
-  --color-hairline: #DEE5E1;
+  --color-canvas: #EDF2EF;
+  --color-canvas-deep: #E2EAE5;
+  --color-hairline: #D5E0DA;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 0.9375rem;
@@ -510,7 +537,11 @@
 .admin-workspace :where(input:not([type='checkbox']):not([type='radio']):not([type='color']), select, textarea) { border-radius: 8px; box-shadow: none; }
 .admin-workspace .workspace-nav-item.is-active:focus-visible { outline-color: #0E3B2E; }
 .admin-workspace .workspace-page-header h1 { font-size: 24px; line-height: 1.3; font-family: var(--font-display); font-weight: 600; }
-.admin-workspace .workspace-panel { border-radius: 12px; box-shadow: 0 1px 3px rgba(12, 31, 27, 0.05); }
+/* Two layers, both gentle: a 1px contact shadow that seats the card on the
+   ground, and a wide -4px spread that gives it thickness. Total opacity is
+   still under 10%, so a forty-row list does not turn into forty light
+   sources — the objection that flattened this in the first place. */
+.admin-workspace .workspace-panel { border-radius: 12px; box-shadow: 0 1px 2px rgba(12, 31, 27, 0.05), 0 4px 12px -4px rgba(12, 31, 27, 0.08); }
 .admin-workspace.command-palette { padding: 0; border-radius: 12px; }
 .admin-workspace .workspace-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--color-hairline); border-radius: 10px; background: white; }
 .admin-workspace .workspace-table { font-size: 13px; }
@@ -527,20 +558,25 @@
 /* ==========================================================================
    Tactile 3D Pipeline & Kanban Canvas Styles
    ========================================================================== */
+/* This was an indigo/violet mesh (#f8f9ff + rgba(75,65,225,...)) — a second,
+   unrelated visual language that only the pipeline spoke. The gradient shape
+   is kept because a kanban ground genuinely benefits from it; the hues are now
+   the brand's lime/teal/forest, so the board belongs to the same product as
+   every other screen. */
 .bg-mesh-canvas {
-  background-color: #f8f9ff;
+  background-color: #EDF2EF;
   background-image:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(133, 248, 196, 0.08) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(226, 223, 255, 0.25) 0px, transparent 70%),
-    radial-gradient(at 80% 100%, rgba(75, 65, 225, 0.07) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(124, 222, 74, 0.10) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(18, 185, 138, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(227, 235, 228, 0.45) 0px, transparent 70%),
+    radial-gradient(at 80% 100%, rgba(14, 59, 46, 0.06) 0px, transparent 50%);
 }
 
 .card-tactile-3d {
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 4px 12px -2px rgba(15, 23, 42, 0.06),
-    0 10px 24px -4px rgba(75, 65, 225, 0.07),
+    0 10px 24px -4px rgba(14, 59, 46, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -2px 0 rgba(203, 213, 225, 0.4);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -548,56 +584,56 @@
 }
 
 .card-tactile-3d:hover {
-  transform: translateY(-4px) scale(1.008);
+  transform: translateY(-2px) scale(1.004);
   box-shadow:
     0 3px 6px rgba(15, 23, 42, 0.04),
     0 12px 28px -4px rgba(15, 23, 42, 0.12),
-    0 20px 32px -8px rgba(75, 65, 225, 0.14),
+    0 20px 32px -8px rgba(14, 59, 46, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -2px 0 rgba(199, 210, 254, 0.6);
+    inset 0 -2px 0 rgba(205, 229, 214, 0.7);
 }
 
 .card-tactile-3d:active {
   transform: translateY(-1px) scale(0.998);
   box-shadow:
     0 2px 4px rgba(15, 23, 42, 0.06),
-    0 6px 14px -2px rgba(75, 65, 225, 0.1),
+    0 6px 14px -2px rgba(14, 59, 46, 0.10),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     inset 0 -1px 0 rgba(203, 213, 225, 0.6);
 }
 
 .column-tray-3d {
-  background: linear-gradient(180deg, rgba(239, 244, 255, 0.85) 0%, rgba(244, 246, 252, 0.65) 100%);
+  background: linear-gradient(180deg, rgba(234, 245, 239, 0.85) 0%, rgba(240, 245, 242, 0.65) 100%);
   box-shadow:
     inset 0 2px 4px rgba(15, 23, 42, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     0 1px 3px rgba(15, 23, 42, 0.02);
-  border: 1px solid rgba(198, 198, 205, 0.35);
+  border: 1px solid rgba(213, 224, 218, 0.7);
 }
 
 .btn-3d-advance {
   box-shadow:
-    0 2px 4px rgba(75, 65, 225, 0.25),
-    0 4px 10px rgba(75, 65, 225, 0.2),
+    0 2px 4px rgba(14, 59, 46, 0.28),
+    0 4px 10px rgba(14, 59, 46, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -2px 0 rgba(15, 0, 105, 0.3);
+    inset 0 -2px 0 rgba(8, 18, 16, 0.34);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-3d-advance:hover {
   transform: translateY(-1.5px);
   box-shadow:
-    0 4px 8px rgba(75, 65, 225, 0.32),
-    0 8px 16px rgba(75, 65, 225, 0.24),
+    0 4px 8px rgba(14, 59, 46, 0.34),
+    0 8px 16px rgba(14, 59, 46, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -2px 0 rgba(15, 0, 105, 0.35);
+    inset 0 -2px 0 rgba(8, 18, 16, 0.38);
 }
 
 .btn-3d-advance:active {
   transform: translateY(1px);
   box-shadow:
-    0 1px 2px rgba(75, 65, 225, 0.2),
-    inset 0 1px 2px rgba(15, 0, 105, 0.4);
+    0 1px 2px rgba(14, 59, 46, 0.22),
+    inset 0 1px 2px rgba(8, 18, 16, 0.42);
 }
 
 .btn-3d-secondary {
@@ -621,7 +657,7 @@
 }
 
 .stage-glow-inbox { border-top: 3px solid #64748b; }
-.stage-glow-screened { border-top: 3px solid #4b41e1; box-shadow: inset 0 2px 8px -2px rgba(75, 65, 225, 0.25); }
+.stage-glow-screened { border-top: 3px solid #4b41e1; box-shadow: inset 0 2px 8px -2px rgba(14, 59, 46, 0.28); }
 .stage-glow-interviewing { border-top: 3px solid #645efb; box-shadow: inset 0 2px 8px -2px rgba(100, 94, 251, 0.25); }
 .stage-glow-offer { border-top: 3px solid #059669; box-shadow: inset 0 2px 8px -2px rgba(5, 150, 105, 0.25); }
 .stage-glow-archived { border-top: 3px solid #94a3b8; }

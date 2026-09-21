@@ -52,7 +52,7 @@ const NAV_GROUPS = [
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
       { to: "/jobs", label: "Jobs", icon: Briefcase },
-      { to: "/candidates", label: "Candidates", icon: Users },
+      { to: "/candidates", label: "Talent Pool", icon: Users },
       { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
       { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
     ],
@@ -118,10 +118,10 @@ function getBreadcrumbs(pathname) {
       { label: "Job post", current: true },
     ];
   }
-  if (pathname.startsWith("/jobs/") && pathname.includes("/candidates")) {
+  if (pathname.startsWith("/jobs/") && pathname.includes("/pipeline")) {
     return [
       { to: "/jobs", label: "Jobs" },
-      { label: "Candidates", current: true },
+      { label: "Pipeline", current: true },
     ];
   }
   return null;

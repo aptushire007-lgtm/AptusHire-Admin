@@ -18,7 +18,7 @@ export default function CommandPalette({ open, onClose, groups }) {
     const pages = groups.flatMap(group => group.items.map(item => ({ ...item, context: group.label })))
       .filter(item => `${item.label} ${item.context}`.toLowerCase().includes(q));
     const matchingJobs = q && !loading && !loadError ? jobs.filter(job => `${job.title} ${job.department || ""}`.toLowerCase().includes(q)).slice(0, 6)
-      .map(job => ({ to: `/jobs/${job._id}/candidates`, label: job.title, context: `Job · ${job.department || "Applicants"}`, icon: Briefcase })) : [];
+      .map(job => ({ to: `/jobs/${job._id}/pipeline`, label: job.title, context: `Job · ${job.department || "Applicants"}`, icon: Briefcase })) : [];
     const candidateSearch = q ? [{ to: `/candidates?q=${encodeURIComponent(query.trim())}`, label: `Search candidates for “${query.trim()}”`, context: "Name or email", icon: Users }] : [];
     return [...pages, ...matchingJobs, ...candidateSearch];
   }, [query, groups, jobs, loading, loadError]);

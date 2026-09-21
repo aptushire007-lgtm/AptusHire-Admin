@@ -25,7 +25,9 @@ it("opens workspace search with the keyboard and routes to a matching job", () =
   fireEvent.change(input, { target: { value: "Backend" } });
   expect(screen.getByRole("option", { name: /Backend engineer/ })).toHaveAttribute("aria-selected", "true");
   fireEvent.keyDown(input, { key: "Enter" });
-  expect(screen.getByTestId("location")).toHaveTextContent("/jobs/j1/candidates");
+  // A job's candidate board is now a page of its own (/jobs/:id/pipeline)
+  // rather than a drawer tab, so the palette lands on it directly.
+  expect(screen.getByTestId("location")).toHaveTextContent("/jobs/j1/pipeline");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 

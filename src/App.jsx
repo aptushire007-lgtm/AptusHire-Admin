@@ -94,6 +94,13 @@ function JobRouteRedirect({ tab, edit }) {
   return <Navigate to={`/jobs?${searchParams.toString()}`} replace />;
 }
 
+// The old drawer tab. Kept as a redirect so existing links, the command
+// palette's older entries and anything a recruiter bookmarked still resolve.
+function JobCandidatesRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/jobs/${id}/pipeline`} replace />;
+}
+
 function CandidateRouteRedirect() {
   const { id } = useParams();
   const location = useLocation();
@@ -152,7 +159,11 @@ export default function App() {
             <Route path="jobs/new" element={<Navigate to="/jobs?create=1" replace />} />
             <Route path="jobs/setup/:draftId" element={<Navigate to="/jobs?create=1" replace />} />
             <Route path="jobs/:id" element={<JobRouteRedirect tab="overview" />} />
-            <Route path="jobs/:id/candidates" element={<JobRouteRedirect tab="candidates" />} />
+            {/* A job's candidate board is a PAGE, not a drawer tab: it has
+                its own URL, so it can be refreshed, bookmarked and pasted to a
+                colleague. /jobs/:id/candidates keeps working and lands here. */}
+            <Route path="jobs/:id/pipeline" element={<HiringPipeline />} />
+            <Route path="jobs/:id/candidates" element={<JobCandidatesRedirect />} />
             <Route path="jobs/:id/evaluation" element={<JobRouteRedirect tab="rubric" />} />
             <Route path="jobs/:id/post" element={<JobRouteRedirect tab="overview" />} />
             <Route path="jobs/:id/journey" element={<JobRouteRedirect tab="overview" />} />
