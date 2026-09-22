@@ -93,6 +93,10 @@ export default function JobInspectionDrawer({
   const [job, setJob] = useState(initialJob);
   const [activeTab, setActiveTab] = useState(initialTab || "overview");
   const goTab = (tab) => (isPage && onNavigateTab ? onNavigateTab(tab) : setActiveTab(tab));
+  // The job's own actions (publish, delete, edit the job) belong to the job,
+  // so on a workspace page they appear on Job details only. In the dialog,
+  // which is one surface for the whole job, they stay where they were.
+  const showJobActions = !isPage || activeTab === "overview";
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [studioModalOpen, setStudioModalOpen] = useState(false);
   const [inspectingCandidateId, setInspectingCandidateId] = useState(null);
@@ -724,6 +728,15 @@ export default function JobInspectionDrawer({
     }
   }
 
+  // What "edit" means on each section. Criteria and questions are edited in
+  // place (the ✎ on each row); these start a new one. The assessment has its
+  // own full editor.
+  const sectionAction = {
+    rubric: { label: "Add criterion", icon: Plus, onClick: () => setShowAddCriterion(true) },
+    questions: { label: "Add question", icon: Plus, onClick: () => setShowAddQuestion(true) },
+    assessment: { label: "Open assessment editor", icon: Pencil, onClick: () => setStudioModalOpen(true) },
+  }[activeTab];
+
   return (
     <>
       <Shell
@@ -758,7 +771,23 @@ export default function JobInspectionDrawer({
               </div>
 
               <div className="flex items-center gap-1.5">
-                {job.status !== "published" && (
+                {/* On a workspace page, the header acts on the SECTION you are
+                    on. It used to show the job's own Edit and Delete on every
+                    section, so "Edit" on the AI interview page opened the whole
+                    job editor, and deleting the job was one click from the
+                    screening criteria. The job's actions now live on Job
+                    details; each other section offers its own. */}
+                {isPage && sectionAction && (
+                  <button
+                    type="button"
+                    onClick={sectionAction.onClick}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-800 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                  >
+                    <sectionAction.icon className="h-4 w-4" aria-hidden="true" />
+                    <span>{sectionAction.label}</span>
+                  </button>
+                )}
+                {showJobActions && job.status !== "published" && (
                   <button
                     type="button"
                     onClick={handlePublishJob}
@@ -769,7 +798,7 @@ export default function JobInspectionDrawer({
                     <span>{publishingJob ? "Publishing..." : "Publish Job"}</span>
                   </button>
                 )}
-                <button
+                {showJobActions && <button
                   type="button"
                   onClick={handleDeleteJob}
                   disabled={deletingJob}
@@ -778,15 +807,15 @@ export default function JobInspectionDrawer({
                 >
                   <Trash2 className="h-3.5 w-3.5 text-red-600" />
                   <span>{deletingJob ? "Deleting..." : "Delete"}</span>
-                </button>
-                <button
+                </button>}
+                {showJobActions && <button
                   type="button"
                   onClick={() => setEditModalOpen(true)}
                   className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
                 >
                   <Pencil className="h-3.5 w-3.5 text-slate-500" />
-                  <span>Edit</span>
-                </button>
+                  <span>{isPage ? "Edit job" : "Edit"}</span>
+                </button>}
                 {!isPage && <button
                   type="button"
                   onClick={onClose}

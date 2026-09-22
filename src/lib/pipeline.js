@@ -151,3 +151,74 @@ export function canTransition(fromStage, toStage) {
 export function allowedNextStages(fromStage) {
   return ALL_STAGES.filter((s) => canTransition(fromStage, s));
 }
+
+// ── Recruiter decisions ───────────────────────────────────────────────────────
+//
+// The stage list above has sixteen entries because the backend automates off
+// each one. But four of them are RECORDS of something that happened, not
+// decisions anyone makes: a candidate reaches "ATS passed" when the screen
+// scores them, "Assessment completed" when they submit the test, "AI interview
+// completed" when the interview ends. Offering those as manual moves let a
+// recruiter mark an interview as completed that never took place — which is
+// exactly what PRODUCT.md forbids ("a stage is only recorded when supported by
+// history").
+//
+// The move menu used to list EVERY later stage by its internal name — up to
+// fourteen entries from "ATS passed", including "Advance to AI Interview
+// Completed" — beside a board that groups the same stages into four phases.
+// These tables are what a recruiter actually decides, named as the action, and
+// grouped under the board's own phase names.
+export const EVENT_STAGES = new Set(["applied", "ats_passed", "assessment_completed", "ai_interview_completed"]);
+
+export const DECISIONS = {
+  assessment_scheduled: { label: "Send skills assessment", short: "Send test", phase: "Assessments" },
+  interview_scheduled: { label: "Invite to AI interview", short: "Invite to interview", phase: "Interviews" },
+  under_review: { label: "Hold for review", short: "Hold", phase: "Interviews" },
+  shortlisted: { label: "Shortlist", short: "Shortlist", phase: "Interviews" },
+  hr_interview: { label: "Schedule HR interview", short: "HR round", phase: "Interviews" },
+  technical_interview: { label: "Schedule technical interview", short: "Tech round", phase: "Interviews" },
+  manager_interview: { label: "Schedule manager interview", short: "Manager round", phase: "Interviews" },
+  selected: { label: "Select for offer", short: "Select", phase: "Offers & Hires" },
+  offer_sent: { label: "Send offer", short: "Send offer", phase: "Offers & Hires" },
+  offer_accepted: { label: "Mark offer accepted", short: "Offer accepted", phase: "Offers & Hires" },
+  joined: { label: "Mark as joined", short: "Joined", phase: "Offers & Hires" },
+};
+
+// The two to four decisions that make sense from here, most likely first. A
+// recruiter at "ATS passed" is choosing between a test, an interview and a
+// shortlist — not between those and "Offer accepted".
+const NEXT_DECISIONS = {
+  applied: ["assessment_scheduled", "interview_scheduled", "shortlisted"],
+  ats_passed: ["assessment_scheduled", "interview_scheduled", "shortlisted"],
+  assessment_scheduled: ["interview_scheduled", "shortlisted"],
+  assessment_completed: ["interview_scheduled", "shortlisted", "under_review"],
+  interview_scheduled: ["shortlisted", "under_review"],
+  ai_interview_completed: ["shortlisted", "under_review", "hr_interview"],
+  under_review: ["shortlisted", "hr_interview", "technical_interview"],
+  shortlisted: ["hr_interview", "technical_interview", "manager_interview", "selected"],
+  hr_interview: ["technical_interview", "manager_interview", "selected"],
+  technical_interview: ["hr_interview", "manager_interview", "selected"],
+  manager_interview: ["hr_interview", "technical_interview", "selected"],
+  selected: ["offer_sent"],
+  offer_sent: ["offer_accepted"],
+  offer_accepted: ["joined"],
+};
+
+/**
+ * What a recruiter can decide for a candidate at `stage`.
+ *
+ *   next   — the likely next decisions, most likely first (the button offers
+ *            the first one)
+ *   other  — every other decision the server would still accept, for the
+ *            unusual case, kept out of the way
+ *
+ * Both are filtered through canTransition, so the menu never offers a move the
+ * server would refuse, and neither ever contains an event stage.
+ */
+export function stageDecisions(stage) {
+  const from = normalizeStage(stage);
+  const legal = (to) => canTransition(from, to) && !EVENT_STAGES.has(to) && DECISIONS[to];
+  const next = (NEXT_DECISIONS[from] || []).filter(legal);
+  const other = ALL_STAGES.filter((to) => to !== REJECTED && legal(to) && !next.includes(to));
+  return { next, other, canReject: canTransition(from, REJECTED) };
+}

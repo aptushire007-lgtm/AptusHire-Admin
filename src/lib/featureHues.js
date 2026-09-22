@@ -14,7 +14,9 @@
  *   neutral     slate   — always-included items, which are not choices
  *
  * Kept deliberately OFF the status chips on the pipeline board, where green,
- * amber and red mean an outcome. Identity and verdict must not share a mark.
+ * amber and red mean an outcome. Identity and verdict must not share a mark: on
+ * a candidate card the step's hue is a small DOT beside its name, and the chip
+ * reporting what happened keeps the verdict colours.
  *
  * Every class is written out in full, because Tailwind only emits classes it
  * can see as literal strings in the source.
@@ -24,6 +26,7 @@
  */
 export const HUES = {
   violet: {
+    dot: "bg-violet-500",
     tile: "bg-violet-100 text-violet-700",
     text: "text-violet-700",
     icon: "text-violet-600",
@@ -36,6 +39,7 @@ export const HUES = {
     hoverRow: "hover:bg-violet-50/60",
   },
   sky: {
+    dot: "bg-sky-500",
     tile: "bg-sky-100 text-sky-700",
     text: "text-sky-700",
     icon: "text-sky-600",
@@ -48,6 +52,7 @@ export const HUES = {
     hoverRow: "hover:bg-sky-50/60",
   },
   rose: {
+    dot: "bg-rose-500",
     tile: "bg-rose-100 text-rose-700",
     text: "text-rose-700",
     icon: "text-rose-600",
@@ -60,6 +65,7 @@ export const HUES = {
     hoverRow: "hover:bg-rose-50/60",
   },
   amber: {
+    dot: "bg-amber-500",
     tile: "bg-amber-100 text-amber-800",
     text: "text-amber-800",
     icon: "text-amber-700",
@@ -72,6 +78,7 @@ export const HUES = {
     hoverRow: "hover:bg-amber-50/60",
   },
   slate: {
+    dot: "bg-slate-400",
     tile: "bg-slate-100 text-slate-600",
     text: "text-slate-600",
     icon: "text-slate-500",
