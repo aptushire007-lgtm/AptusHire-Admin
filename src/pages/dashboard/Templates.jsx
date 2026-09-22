@@ -89,6 +89,10 @@ export default function Templates() {
         </div>
       )}
 
+      {templates?.length > 0 && (
+        <StarterRow templates={templates} onPick={(t) => setEditing({ ...t })} />
+      )}
+
       {templates === null && !loadError ? (
         <div className="grid gap-3 md:grid-cols-2">
           {[0, 1].map((i) => (
@@ -163,6 +167,32 @@ export default function Templates() {
   );
 }
 
+/** Examples not yet saved, one click to open in the editor — so every kind of message has a starting point. */
+function StarterRow({ templates, onPick }) {
+  const saved = new Set(templates.map((t) => t.name.toLowerCase()));
+  const left = STARTERS.filter((s) => !saved.has(s.name.toLowerCase()));
+  if (!left.length) return null;
+  return (
+    <section aria-label="Examples">
+      <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Start from an example</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {left.map((s) => (
+          <button
+            key={s.name}
+            type="button"
+            onClick={() => onPick(s)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:border-brand-400 hover:text-brand-800"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+            {s.name}
+            <span className="text-xs text-slate-400">· {CATEGORY_LABEL[s.category]}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function IconButton({ label, icon: Icon, onClick }) {
   return (
     <button
@@ -224,6 +254,9 @@ function TemplateEditor({ initial, onClose, onSaved }) {
       onClose={onClose}
       title={initial._id ? "Edit template" : "New template"}
       size="4xl"
+      // Title and footer stay put; only the form scrolls between them, so fields
+      // never slide under the panel's top edge.
+      panelClassName="flex flex-col overflow-hidden"
       dirty={dirty}
       busy={saving}
       footer={
@@ -237,7 +270,7 @@ function TemplateEditor({ initial, onClose, onSaved }) {
         </div>
       }
     >
-      <form id="template-form" onSubmit={save} className="grid gap-6 md:grid-cols-2">
+      <form id="template-form" onSubmit={save} className="-mx-1 grid min-h-0 flex-1 gap-6 overflow-y-auto px-1 md:grid-cols-2">
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-[1fr_11rem]">
             <div>

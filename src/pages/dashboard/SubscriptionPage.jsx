@@ -73,7 +73,7 @@ export default function SubscriptionPage() {
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-xl bg-slate-50 p-4">
                     <p className="text-xs font-medium text-slate-500">{label}</p>
-                    <p className="mt-1 text-lg font-bold text-slate-900">{value?.toLocaleString?.() ?? value}</p>
+                    <p className="mt-1 text-lg font-bold text-slate-900">{typeof value === "number" && value >= 999999 ? "Unlimited" : value?.toLocaleString?.() ?? value}</p>
                   </div>
                 ))}
               </div>

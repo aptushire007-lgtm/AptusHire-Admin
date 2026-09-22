@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Building2, User, Mail, Phone, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope } from "lucide-react";
+import { Building2, User, Mail, Phone, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope, CreditCard, ChevronRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import api from "../../api/client.js";
@@ -306,19 +306,46 @@ function IntegrationsSection() {
 }
 
 const SETTINGS_SECTIONS = [
-  { id: "organization", label: "Organization", icon: Building2 },
-  { id: "screening", label: "Screening & interviews", icon: Microscope },
-  { id: "privacy", label: "Data & privacy", icon: ShieldCheck },
-  { id: "notifications", label: "Email notifications", icon: BellRing },
-  { id: "branding", label: "Branding", icon: Palette },
-  { id: "integrations", label: "Integrations", icon: Globe2 },
+  { id: "organization", label: "Profile & organization", hint: "You, your company, and an overview", icon: Building2, tile: "bg-brand-100 text-brand-800" },
+  { id: "screening", label: "Screening & interviews", hint: "Scoring engine and AI interviewer", icon: Microscope, tile: "bg-sky-100 text-sky-700" },
+  { id: "privacy", label: "Data & privacy", hint: "Consent, retention, data officer", icon: ShieldCheck, tile: "bg-teal-100 text-teal-800" },
+  { id: "notifications", label: "Email notifications", hint: "What your team is emailed about", icon: BellRing, tile: "bg-amber-100 text-amber-800" },
+  { id: "branding", label: "Branding", hint: "Colours on candidate pages", icon: Palette, tile: "bg-fuchsia-100 text-fuchsia-800" },
+  { id: "integrations", label: "Integrations", hint: "Job boards and careers page", icon: Globe2, tile: "bg-indigo-100 text-indigo-800" },
 ];
+
+const ENGINE_LABEL = { "": "Platform default", legacy: "Keyword matching", shadow: "Shadow (comparing)", live: "Evidence engine" };
+
+function initialsOf(name) {
+  return (String(name || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2) || "?").toUpperCase();
+}
+
+/** One settings fact, read from the saved form, that links to where it is changed. */
+function GlanceTile({ section, label, value, detail, tone = "text-slate-900" }) {
+  const meta = SETTINGS_SECTIONS.find((x) => x.id === section);
+  return (
+    <Link
+      to={`/settings?section=${section}`}
+      className="group flex items-start gap-3 rounded-xl border border-hairline bg-white p-3.5 transition-colors hover:border-slate-300 hover:bg-canvas"
+    >
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${meta.tile}`} aria-hidden="true">
+        <meta.icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs text-slate-500">{label}</span>
+        <span className={`block truncate text-sm font-semibold ${tone}`}>{value}</span>
+        {detail && <span className="block truncate text-[11px] text-slate-500">{detail}</span>}
+      </span>
+      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-300 group-hover:text-slate-500" aria-hidden="true" />
+    </Link>
+  );
+}
 
 export default function SettingsPage() {
   const [params] = useSearchParams();
   const section = SETTINGS_SECTIONS.some(item => item.id === params.get("section")) ? params.get("section") : "organization";
   const { user } = useAdminAuth();
-  const { me, loading: companyLoading } = useCompanyData();
+  const { me, subscription, loading: companyLoading } = useCompanyData();
   const company = me?.company;
   const toast = useToast();
 
@@ -375,70 +402,142 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Manage your organization and recruiting preferences." />
-      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <nav aria-label="Settings sections" className="workspace-settings-nav flex flex-wrap gap-1 lg:sticky lg:top-20 lg:flex-col">
-          {SETTINGS_SECTIONS.map(item => <Link key={item.id} to={`/settings?section=${item.id}`} aria-current={section === item.id ? "page" : undefined} className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-white"><item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />{item.label}</Link>)}
-          <Link to="/subscription" className="mt-2 rounded-lg border-t border-hairline px-3 py-3 text-sm text-slate-500 hover:text-brand-800">Plan and billing</Link>
+      <PageHeader title="Settings" description="Manage your profile, your organization and how hiring runs." />
+      <div className="grid items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <nav aria-label="Settings sections" className="workspace-settings-nav grid gap-1 rounded-2xl border border-hairline bg-white p-2 sm:grid-cols-2 lg:sticky lg:top-20 lg:grid-cols-1">
+          {SETTINGS_SECTIONS.map(item => (
+            <Link key={item.id} to={`/settings?section=${item.id}`} aria-current={section === item.id ? "page" : undefined} className="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-slate-700 hover:bg-canvas">
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.tile}`} aria-hidden="true"><item.icon className="h-4 w-4" /></span>
+              <span className="min-w-0">
+                <span className="block truncate">{item.label}</span>
+                <span className="block truncate text-[11px] font-normal text-slate-500" aria-hidden="true">{item.hint}</span>
+              </span>
+            </Link>
+          ))}
+          <Link to="/subscription" className="mt-1 flex items-center gap-3 rounded-xl border-t border-hairline px-2.5 py-2.5 text-sm text-slate-700 hover:bg-canvas">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600" aria-hidden="true"><CreditCard className="h-4 w-4" /></span>
+            <span className="min-w-0">
+              <span className="block">Plan and billing</span>
+              <span className="block truncate text-[11px] text-slate-500">{subscription?.plan?.name ? `${subscription.plan.name} plan` : "Your subscription"}</span>
+            </span>
+          </Link>
         </nav>
         <div className="min-w-0 space-y-4">
         {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">Company settings could not be loaded.<Button variant="secondary" onClick={() => setAttempt(value => value + 1)}>Retry settings</Button></div>}
         <fieldset disabled={saving} className="min-w-0 space-y-4">
-      {/* Read-only account + company */}
-      <section hidden={section !== "organization"} aria-label="Organization settings"><div className="grid gap-4 xl:grid-cols-2">
-        <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-            <User className="h-4.5 w-4.5 text-brand-600" /> Account
-          </h2>
-          <dl className="space-y-3 text-sm">
-            <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-slate-500">Name</dt>
-              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.name || "—"}</dd>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-slate-500">
-                <Mail className="h-3.5 w-3.5" /> Email
-              </dt>
-              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.email || "—"}</dd>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <dt className="flex shrink-0 items-center gap-1.5 text-slate-500">
-                <Phone className="h-3.5 w-3.5" /> Phone
-              </dt>
-              <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{user?.phone || "—"}</dd>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <dt className="shrink-0 text-slate-500">Role</dt>
-              <dd><Badge tone="brand">{user?.role}</Badge></dd>
-            </div>
-          </dl>
-        </Card>
-
-        <Card>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
-            <Building2 className="h-4.5 w-4.5 text-brand-600" /> Company
-          </h2>
-          {companyLoading ? (
-            <Skeleton className="h-24 w-full" />
-          ) : (
-            <dl className="space-y-3 text-sm">
-              <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-slate-500">Company Name</dt>
-                <dd className="min-w-0 text-right font-medium text-slate-800 [overflow-wrap:anywhere]">{company?.name || "—"}</dd>
+      {/* You, your company, and what is switched on — read-only here; each
+          overview tile links to the section where it is changed. */}
+      <section hidden={section !== "organization"} aria-label="Profile and organization" className="space-y-4">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <div className="flex items-center gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-800 text-lg font-bold text-white" aria-hidden="true">
+                {initialsOf(user?.name)}
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Your profile</p>
+                <h2 className="truncate text-lg font-bold text-slate-900">{user?.name || "—"}</h2>
+                <Badge tone="brand" className="mt-1 capitalize">{user?.role || "member"}</Badge>
               </div>
-              <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-slate-500">Company Code</dt>
-                <dd className="min-w-0 text-right font-mono text-xs font-medium text-slate-800 [overflow-wrap:anywhere]">{company?.companyCode || "—"}</dd>
+            </div>
+            <dl className="mt-5 grid gap-3 border-t border-hairline pt-4 text-sm sm:grid-cols-2">
+              <div className="min-w-0">
+                <dt className="flex items-center gap-1.5 text-xs text-slate-500"><Mail className="h-3.5 w-3.5" aria-hidden="true" /> Email</dt>
+                <dd className="mt-0.5 truncate font-medium text-slate-800" title={user?.email}>{user?.email || "—"}</dd>
               </div>
-              <div className="flex items-start justify-between gap-4">
-                <dt className="shrink-0 text-slate-500">Status</dt>
-                <dd><Badge tone={company?.status === "active" ? "green" : "amber"}>{company?.status || "—"}</Badge></dd>
+              <div className="min-w-0">
+                <dt className="flex items-center gap-1.5 text-xs text-slate-500"><Phone className="h-3.5 w-3.5" aria-hidden="true" /> Phone</dt>
+                <dd className="mt-0.5 truncate font-medium text-slate-800">{user?.phone || "Not added"}</dd>
               </div>
             </dl>
-          )}
-        </Card>
-      </div>
+          </Card>
 
+          <Card>
+            {companyLoading ? (
+              <Skeleton className="h-28 w-full" />
+            ) : (
+              <>
+                <div className="flex items-center gap-4">
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-lg font-bold text-teal-800" aria-hidden="true">
+                    {initialsOf(company?.name)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Organization</p>
+                    <h2 className="truncate text-lg font-bold text-slate-900">{company?.name || "—"}</h2>
+                    <Badge tone={company?.status === "active" ? "green" : "amber"} className="mt-1 capitalize">{company?.status || "unknown"}</Badge>
+                  </div>
+                </div>
+                <dl className="mt-5 grid gap-3 border-t border-hairline pt-4 text-sm sm:grid-cols-2">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Company code</dt>
+                    <dd className="mt-0.5 flex items-center gap-1.5">
+                      <span className="font-mono text-xs font-semibold text-slate-800">{company?.companyCode || "—"}</span>
+                      {company?.companyCode && (
+                        <button
+                          type="button"
+                          aria-label="Copy company code"
+                          onClick={() => navigator.clipboard?.writeText(company.companyCode).then(() => toast.success("Company code copied"), () => {})}
+                          className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                        >
+                          <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                      )}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-slate-500">Plan</dt>
+                    <dd className="mt-0.5 truncate font-medium text-slate-800">
+                      {subscription?.plan?.name ? (
+                        <Link to="/subscription" className="hover:text-brand-800 hover:underline">
+                          {subscription.plan.name}
+                          {subscription.currentPeriodEnd && <span className="font-normal text-slate-500"> · renews {new Date(subscription.currentPeriodEnd).toLocaleDateString()}</span>}
+                        </Link>
+                      ) : (
+                        "No active plan"
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              </>
+            )}
+          </Card>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-bold text-slate-900">How your workspace is set up</h2>
+          <p className="mt-0.5 text-xs text-slate-500">The settings that shape every hire, at a glance. Click one to change it.</p>
+          {loading ? (
+            <Skeleton className="mt-3 h-40 w-full" />
+          ) : loadError ? null : (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <GlanceTile section="screening" label="Screening engine" value={ENGINE_LABEL[form.atsEngine] ?? form.atsEngine} />
+              <GlanceTile
+                section="screening"
+                label="AI interview budget"
+                value={Number(form.aiBudgetUsd) > 0 ? `$${Number(form.aiBudgetUsd).toLocaleString()} / month` : "Uncapped"}
+                detail={Number(form.aiBudgetUsd) > 0 ? (form.aiHardCap ? "Hard cap on" : "Soft cap") : null}
+              />
+              <GlanceTile
+                section="privacy"
+                label="Automatic rejection"
+                value={form.autoReject ? "On — no human review" : "Off — a person decides"}
+                tone={form.autoReject ? "text-amber-800" : "text-slate-900"}
+              />
+              <GlanceTile
+                section="privacy"
+                label="Data retention"
+                value={`${form.retentionDays} days`}
+                detail={form.consentRequired ? "AI consent required" : "AI consent not asked"}
+              />
+              <GlanceTile
+                section="notifications"
+                label="Email notifications"
+                value={`${[form.notifNewApp, form.notifAts, form.notifInterview].filter(Boolean).length} of 3 on`}
+              />
+              <GlanceTile section="branding" label="Branding" value={form.brandingCustom ? `Custom · ${form.brandingColor}` : "AptusHire default"} />
+            </div>
+          )}
+        </div>
       </section>
 
       {loading ? (
@@ -610,7 +709,9 @@ export default function SettingsPage() {
         </>
       )}
       </fieldset>
-      {!loading && !loadError && <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-white px-4 py-3">
+      {/* The save bar belongs to sections with something to save — or to any
+          section while edits made elsewhere are still unsaved. */}
+      {!loading && !loadError && (dirty || !["organization", "integrations"].includes(section)) && <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-white px-4 py-3">
         <p role="status" className="text-xs text-slate-500">{dirty ? "Unsaved changes across settings sections" : "All changes saved"}</p>
         <div className="flex items-center gap-2">
           {dirty && <Button variant="secondary" disabled={saving} onClick={() => setForm(savedForm)}>Discard changes</Button>}

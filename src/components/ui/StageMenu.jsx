@@ -52,6 +52,13 @@ const PHASE_ORDER = ["Assessments", "Interviews", "Offers & Hires"];
  *   onMove  — (stage) => void; the caller owns the request and the refresh
  *   compact — narrow trigger for the pipeline board's 288px columns
  */
+const PHASE_TINT = {
+  Assessments: "!border-rose-200 !bg-rose-50 !text-rose-700 hover:!bg-rose-100",
+  Interviews: "!border-violet-200 !bg-violet-50 !text-violet-700 hover:!bg-violet-100",
+  "Offers & Hires": "!border-emerald-200 !bg-emerald-50 !text-emerald-800 hover:!bg-emerald-100",
+  none: "!border-slate-200 !bg-slate-50 !text-slate-700 hover:!bg-slate-100",
+};
+
 export default function StageMenu({ status, name, busy = false, onMove, compact = false, className = "" }) {
   const [confirming, setConfirming] = useState(null);
   const [showOther, setShowOther] = useState(false);
@@ -157,16 +164,20 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
     </>
   );
 
+  // Compact (on a card) the button wears its destination's colour — rose for
+  // an assessment, violet for an interview, the same hues those steps carry
+  // everywhere else — so the next move reads at a glance, and shrinks to fit.
+  const tint = compact ? PHASE_TINT[DECISIONS[primary]?.phase] || PHASE_TINT.none : "";
   const moreTrigger = (
     <Button
       variant="secondary"
       size="sm"
       disabled={busy}
       aria-label={`More stage moves for ${who}`}
-      className={primary ? "rounded-l-none px-2" : ""}
+      className={`${primary ? "rounded-l-none px-2" : ""} ${compact ? `!h-7 !min-h-0 !min-w-0 !px-1.5 ${tint}` : ""}`}
     >
       {!primary && "Move…"}
-      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+      <ChevronDown className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} aria-hidden="true" />
     </Button>
   );
 
@@ -184,9 +195,9 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
             // "Advance" alone is not a description of what the button does.
             aria-label={`${DECISIONS[primary].label} for ${who}`}
             title={DECISIONS[primary].label}
-            className="rounded-r-none border-r-0"
+            className={`rounded-r-none border-r-0 ${compact ? `!h-7 !min-h-0 !gap-1 !px-2 text-xs ${tint}` : ""}`}
           >
-            {!busy && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
+            {!busy && <ArrowRight className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} aria-hidden="true" />}
             <span aria-hidden="true">{compact ? DECISIONS[primary].short : DECISIONS[primary].label}</span>
           </Button>
         )}

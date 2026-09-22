@@ -22,7 +22,6 @@ import {
   CreditCard,
   Search,
   Mic2,
-  Plus,
   FileQuestion,
 } from "lucide-react";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
@@ -296,15 +295,6 @@ function TopNav({ onMenuClick, onOpenSearch }) {
 
       {/* Right */}
       <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate("/jobs?create=1")}
-          className="hidden sm:flex items-center gap-1.5 rounded-lg bg-[#0E3B2E] hover:bg-[#154d3d] text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Create Job</span>
-        </button>
-
         <button
           type="button"
           aria-label="Search workspace"

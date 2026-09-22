@@ -300,7 +300,7 @@ function CandidateCard({
         </p>
       )}
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex items-center justify-between gap-2">
         {/* The single next decision, and the menu of the rest — one rule for
             both (stageDecisions in pipeline.js). The card used to have its own
             separate advance button with a hand-written rule that could jump a
@@ -312,7 +312,7 @@ function CandidateCard({
           name={candidate.basicDetails?.name}
           busy={busy}
           onMove={(stage) => onMove(candidate, stage)}
-          className="min-w-0 flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:flex-1"
+          className="min-w-0"
         />
         <Menu
           label={`More actions for ${name}`}
@@ -322,7 +322,7 @@ function CandidateCard({
             <button
               type="button"
               aria-label={`More actions for ${name}`}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-hairline text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-900"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
             </button>

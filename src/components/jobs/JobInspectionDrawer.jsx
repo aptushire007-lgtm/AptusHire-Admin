@@ -41,7 +41,7 @@ import CandidateDrawer from "../candidate/CandidateDrawer.jsx";
 import ThreeDLoader from "../ui/ThreeDLoader.jsx";
 import PaperEditor from "../../pages/dashboard/PaperEditor.jsx";
 import { stageLabel } from "../../lib/pipeline.js";
-import { scoreOf, scoreCaveat } from "../../lib/pipelineMetrics.js";
+import { scoreOf } from "../../lib/pipelineMetrics.js";
 
 const TIER_COLORS = {
   critical: "bg-red-100 text-red-700 border-red-200",
@@ -262,7 +262,9 @@ export default function JobInspectionDrawer({
     rationale: c.rationale || "",
   }));
 
-  const primaryCandidate = candidates[0];
+  const recentCandidates = [...candidates]
+    .sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0))
+    .slice(0, 5);
 
   function handleJobUpdatedInternal(updatedJob) {
     setJob(updatedJob);
@@ -1001,96 +1003,51 @@ export default function JobInspectionDrawer({
                   )}
                 </div>
 
-                {/* Section 2: Latest Active Applicants */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      CANDIDATE APPLICATIONS
+                {/* Recent applicants — newest first, a few rows, one way into the pipeline. */}
+                <section aria-labelledby="recent-applicants" className="rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+                  <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                    <h3 id="recent-applicants" className="text-sm font-bold text-slate-900">
+                      Recent applicants <span className="num ml-1 font-semibold text-slate-400">{candidates.length}</span>
                     </h3>
-                    <button
-                      type="button"
-                      onClick={() => goTab("candidates")}
-                      className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer"
-                    >
-                      View all ({candidates.length}) →
-                    </button>
+                    {candidates.length > 0 && (
+                      <button type="button" onClick={() => goTab("candidates")} className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer">
+                        Open pipeline →
+                      </button>
+                    )}
                   </div>
-
-                  {primaryCandidate ? (
-                    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          {/* The /candidates payload nests these under
-                              `basicDetails` and `ats` — reading flat `.name`,
-                              `.headline` and `.score` off it always missed, so
-                              every job showed the same placeholder applicant
-                              ("AK", "Applicant") at a hardcoded 92%. */}
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-900 font-bold text-sm">
-                            {(primaryCandidate.basicDetails?.name || "?")
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)
-                              .toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-sm text-slate-900 truncate">
-                              {primaryCandidate.basicDetails?.name || "Unnamed candidate"}
-                            </h4>
-                            <p className="text-xs text-slate-500 truncate">
-                              {primaryCandidate.basicDetails?.email || "No email on file"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* `scoreOf` returns null unless a scoring run actually
-                            completed — a candidate awaiting screening says so
-                            rather than borrowing a number. */}
-                        {scoreOf(primaryCandidate) != null ? (
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
-                            <Sparkles className="h-3 w-3 text-emerald-600" />
-                            {scoreOf(primaryCandidate)}% Match
-                            {scoreCaveat(primaryCandidate) && (
-                              <span className="font-medium text-emerald-800/70">
-                                ({scoreCaveat(primaryCandidate)})
+                  {recentCandidates.length ? (
+                    <ul className="divide-y divide-slate-100">
+                      {recentCandidates.map((c) => {
+                        const score = scoreOf(c);
+                        return (
+                          <li key={c._id || c.id}>
+                            <button
+                              type="button"
+                              onClick={() => setInspectingCandidateId(c._id || c.id)}
+                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 cursor-pointer"
+                            >
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-900" aria-hidden="true">
+                                {(c.basicDetails?.name || "?").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="inline-flex shrink-0 items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200">
-                            Not scored
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                        <span className="text-slate-500">
-                          {/* String.replace swaps only the FIRST underscore, so
-                              "ai_interview_completed" read "ai interview_completed".
-                              stageLabel is the shared, correct mapping. */}
-                          Stage: {stageLabel(primaryCandidate.status)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setInspectingCandidateId(primaryCandidate._id || primaryCandidate.id)}
-                          className="rounded-lg bg-[#0E3B2E] text-white hover:bg-[#154d3d] px-3 py-1.5 text-xs font-semibold shadow-2xs transition cursor-pointer"
-                        >
-                          Review Candidate (Drawer)
-                        </button>
-                      </div>
-                    </div>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-semibold text-slate-900">{c.basicDetails?.name || "Unnamed candidate"}</span>
+                                <span className="block truncate text-xs text-slate-500">{c.basicDetails?.email || "No email on file"}</span>
+                              </span>
+                              <span className="hidden shrink-0 text-xs text-slate-600 sm:block">{stageLabel(c.status)}</span>
+                              <span className={`num w-16 shrink-0 text-right text-xs font-bold ${score != null ? "text-slate-900" : "text-slate-400 font-medium"}`}>
+                                {score != null ? `Fit ${score}` : "Not scored"}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   ) : (
-                    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-xs">
-                      <Users className="mx-auto h-8 w-8 text-slate-300" />
-                      <p className="mt-2 text-xs font-medium text-slate-600">
-                        No active applicants yet for this requisition.
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        New candidates will be screened automatically by Aptus AI.
-                      </p>
-                    </div>
+                    <p className="px-4 py-5 text-center text-xs text-slate-500">
+                      No applicants yet. New applications are screened automatically as they arrive.
+                    </p>
                   )}
-                </div>
+                </section>
               </>
             )}
 

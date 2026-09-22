@@ -129,13 +129,13 @@ describe("JobList Recruiter UX & Navigation", () => {
 
     // Applicants count from candidate pipeline
     expect(screen.getAllByText(/applicants/i).length).toBeGreaterThan(0);
-    expect(screen.getByText("1 review · 1 interview")).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: "1 screening, 1 interviewing, 0 at offer" })[0]).toBeInTheDocument();
 
     // Rubric badge
     expect(screen.getByText("Rubric approved")).toBeInTheDocument();
 
-    // Action buttons
-    expect(screen.getAllByRole("button", { name: /View Applicants/i })[0]).toBeInTheDocument();
+    // The separate Applicants button is gone — the applicant bar and the card open the job.
+    expect(screen.queryByRole("button", { name: /View Applicants/i })).toBeNull();
   });
 
   it("restores shared job filters and supports removing one condition", async () => {
