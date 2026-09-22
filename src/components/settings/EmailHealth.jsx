@@ -66,6 +66,12 @@ export default function EmailHealth() {
         </Button>
       </div>
 
+      <p className="mt-3 rounded-xl border border-hairline bg-canvas px-3 py-2 text-xs leading-relaxed text-slate-600">
+        Candidate emails are addressed from <span className="font-semibold text-slate-800">the recruiter</span> — their name on the
+        message, their address for replies — while {data.from ? <span className="font-mono text-[11px]">{data.from}</span> : "the workspace address"} does the
+        sending, which is what keeps mail out of spam. Automated emails use the recruiter who opened the role.
+      </p>
+
       <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Delivered", value: data.sent, tone: "text-slate-900" },
