@@ -48,6 +48,14 @@ import {
   allowedNextStages,
 } from "../../lib/pipeline.js";
 import { scoreOf, scoreCaveat, isScored } from "../../lib/pipelineMetrics.js";
+import {
+  criterionIndex,
+  assessmentCriterionRows,
+  claimCheckRows,
+  itemTally,
+  integrityRows,
+} from "../../lib/reportData.js";
+import { ScoreRing, DistributionStrip, ResultBar, CriterionBars } from "../report/Scorecard.jsx";
 import { EvidenceChip } from "../ui/Evidence.jsx";
 
 // A criterion the engine judged but did not score. Shown in place of a
@@ -147,6 +155,13 @@ export default function CandidateDrawer({
   const [interviewReport, setInterviewReport] = useState(null);
   const [assessmentSession, setAssessmentSession] = useState(null);
   const [profileAssessment, setProfileAssessment] = useState(null);
+  // Side data for the report's visuals, loaded apart from the drawer's main
+  // fetch so that never waits on it: the job's rubric (to NAME criteria, which
+  // the report printed as "c1", "c10") and the CV scores of the job's other
+  // applicants (to place this one among them). Null until loaded and on
+  // failure — the visuals that need them are then simply not drawn.
+  const [jobRubric, setJobRubric] = useState(null);
+  const [peerScores, setPeerScores] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [movingStage, setMovingStage] = useState(false);
@@ -232,6 +247,39 @@ export default function CandidateDrawer({
       setLoading(false);
     }
   }, []);
+
+  // The report's side data, keyed on the JOB (not the candidate): opening the
+  // next applicant for the same role reuses it. Both requests are reads.
+  const reportJobId = candidate?.job?._id || (typeof candidate?.job === "string" ? candidate.job : null);
+  useEffect(() => {
+    if (!reportJobId) return undefined;
+    let alive = true;
+    setJobRubric(null);
+    setPeerScores(null);
+    api
+      .get(`/rubrics/job/${reportJobId}`)
+      .then(({ data }) => alive && setJobRubric(data))
+      // `false`, not null: "could not load" must end the loading state, or the
+      // criteria section would wait forever on a request that already failed.
+      .catch(() => alive && setJobRubric(false));
+    api
+      .get("/candidates", { params: { jobId: reportJobId, limit: 200 } })
+      .then(({ data }) => {
+        if (!alive) return;
+        // Only applicants the ATS actually scored: an unscored application's
+        // schema-default 0 is not a score and must not drag the comparison.
+        setPeerScores(
+          (data.items || [])
+            .filter((c) => c._id !== candidateId && isScored(c))
+            .map((c) => scoreOf(c))
+            .filter((v) => v != null)
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [reportJobId, candidateId]);
 
   useEffect(() => {
     if (candidateId) {
@@ -533,6 +581,11 @@ export default function CandidateDrawer({
       : null;
   const assessmentPerCriterion = assessmentResult?.perCriterion || [];
   const assessmentClaimVerdicts = assessmentResult?.claimVerdicts || [];
+  const rubricIndex = criterionIndex(jobRubric);
+  const assessmentRows = assessmentCriterionRows(assessmentPerCriterion, rubricIndex);
+  const claimRows = claimCheckRows(assessmentClaimVerdicts, rubricIndex);
+  const tally = itemTally(assessmentResult?.perItem);
+  const integrity = integrityRows(assessmentItem?.proctoring?.counts);
 
   const linkedinUrl = candidate?.basicDetails?.linkedinUrl
     ? candidate.basicDetails.linkedinUrl.startsWith("http")
@@ -818,113 +871,105 @@ export default function CandidateDrawer({
               ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "summary" && (
             <div className="flex flex-col gap-3 p-3 flex-1 overflow-y-auto min-h-0">
-              {/* ── Row 1: 3 KPI Score Cards ─────────────────────────────── */}
-              <div className="grid grid-cols-3 gap-3 shrink-0">
-                {/* CV Screening */}
-                <Card padding="compact" className="bg-gradient-to-br from-blue-50 to-slate-50 border-l-4 border-l-blue-400 shadow-sm border-slate-200/80">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">CV Screening</span>
-                    <Badge tone="brand">ATS</Badge>
+              {/* ── Scorecard ─────────────────────────────────────────────────
+                  The three instruments side by side, each a ring in its step's
+                  colour — the same sky / rose / violet the pipeline card and job
+                  creation use, so a recruiter reads them without a legend. It
+                  replaces three number tiles in unrelated blue / green / purple
+                  gradients. A missing score is a dashed empty ring with the
+                  reason in it ("Not run", "Withheld"), never a low one. */}
+              {(() => {
+                const atsVerdict = { pass: "Passed screening", fail: "Did not pass", review: "Flagged for review" }[
+                  candidate.ats?.decision
+                ];
+                const peersBeaten = cvScore != null && peerScores ? peerScores.filter((v) => v < cvScore).length : null;
+                const interviewEnded = Boolean(interviewCompletedAt || interviewReport);
+                const tiles = [
+                  {
+                    key: "cv",
+                    title: "CV screening",
+                    hue: "sky",
+                    value: cvScore,
+                    empty: "Not run",
+                    verdict: cvScore == null ? "Not scored yet" : atsVerdict || "Scored",
+                    lines: [
+                      caveat || (profileAssessment?.engine === "evidence" || candidate.ats?.engine === "evidence" ? "Evidence engine" : "Keyword screening"),
+                      peersBeaten != null && peerScores.length >= 3
+                        ? `Higher than ${peersBeaten} of ${peerScores.length} other applicants`
+                        : null,
+                    ],
+                    tab: "ats-breakdown",
+                  },
+                  {
+                    key: "assessment",
+                    title: "Skills assessment",
+                    hue: "rose",
+                    value: assessmentScore,
+                    empty: assessmentDecision?.action === "skipped" ? "Skipped" : "Not run",
+                    verdict:
+                      assessmentItem?.status === "completed"
+                        ? `${assessmentTotalCorrect} of ${assessmentTotalItems} correct`
+                        : assessmentItem?.status === "in_progress"
+                        ? "In progress"
+                        : assessmentItem?.status === "scheduled"
+                        ? "Sent — awaiting the candidate"
+                        : assessmentDecision?.action === "skipped"
+                        ? `Skipped by ${assessmentDecision.byName || "a recruiter"}`
+                        : "Not sent",
+                    lines: [
+                      assessmentItem?.proctoring?.riskBand
+                        ? `${assessmentItem.proctoring.riskBand[0].toUpperCase()}${assessmentItem.proctoring.riskBand.slice(1)} integrity risk`
+                        : null,
+                    ],
+                    tab: "assessments",
+                  },
+                  {
+                    key: "interview",
+                    title: "AI interview",
+                    hue: "violet",
+                    value: interviewScore,
+                    // Ended but unscored is WITHHELD — a finished interview the
+                    // engine would not grade — not the same as never having run.
+                    empty: interviewEnded ? "Withheld" : "Not run",
+                    verdict:
+                      interviewScore != null
+                        ? "Scored"
+                        : interviewStatus === "in_progress"
+                        ? "In progress"
+                        : interviewEnded
+                        ? "Needs your review"
+                        : "Not held yet",
+                    lines: [],
+                    tab: "ai-interview",
+                  },
+                ];
+                return (
+                  <div className="grid shrink-0 grid-cols-1 gap-3 md:grid-cols-3">
+                    {tiles.map((t) => (
+                      <button
+                        key={t.key}
+                        type="button"
+                        onClick={() => handleTabSwitch(t.tab)}
+                        className="group flex items-center gap-3.5 rounded-2xl border border-hairline bg-white p-4 text-left transition-all duration-150 hover:-translate-y-px hover:border-slate-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                      >
+                        <ScoreRing value={t.value} hue={t.hue} size={72} emptyLabel={t.empty} label={t.title} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-semibold tracking-wide text-slate-500 uppercase">{t.title}</span>
+                          <span className="mt-1 block text-sm font-semibold text-slate-900">{t.verdict}</span>
+                          {t.lines.filter(Boolean).map((line) => (
+                            <span key={line} className="mt-0.5 block text-xs text-slate-500">
+                              {line}
+                            </span>
+                          ))}
+                          <span className="mt-1.5 block text-xs font-medium text-brand-700 opacity-0 transition-opacity group-hover:opacity-100">
+                            View details →
+                          </span>
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                  <div className="flex items-baseline gap-1.5">
-                    {cvScore != null ? (
-                      <>
-                        <span className="text-3xl font-bold tabular-nums text-blue-700">{cvScore}</span>
-                        <span className="text-xs text-slate-500 font-medium">/ 100</span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-semibold text-slate-500">Not scored</span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {profileAssessment?.engine === "evidence" || candidate.ats?.engine === "evidence"
-                      ? "Autonomous Evidence Engine"
-                      : "Keyword screening"}
-                  </p>
-                  {caveat && <p className="text-[11px] text-amber-700 font-medium mt-0.5">{caveat}</p>}
-                </Card>
-
-                {/* AI Interview */}
-                <Card padding="compact" className="bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500 shadow-sm border-slate-200/80">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">AI Interview</span>
-                    <Badge tone={interviewScore != null ? "green" : interviewStatus === "in_progress" ? "blue" : "slate"}>
-                      {interviewStatus ? interviewStatus.replaceAll("_", " ") : (interviewReport ? "Completed" : "Pending")}
-                    </Badge>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    {interviewScore != null ? (
-                      <>
-                        <span className="text-3xl font-bold tabular-nums text-emerald-700">{interviewScore}</span>
-                        <span className="text-xs text-slate-500 font-medium">/ 100</span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-semibold text-slate-500">
-                        {interviewStatus === "in_progress" ? "In Progress" : "Pending Evaluation"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {interviewCompletedAt
-                      ? "Session completed & evaluated"
-                      : interviewStatus === "in_progress"
-                      ? "Interview currently in progress"
-                      : "Awaiting interview session"}
-                  </p>
-                </Card>
-
-                {/* Skill Assessment */}
-                <Card padding="compact" className="bg-gradient-to-br from-purple-50 to-indigo-50 border-l-4 border-l-purple-500 shadow-sm border-slate-200/80">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Skill Assessment</span>
-                    <Badge
-                      tone={
-                        assessmentItem?.status === "completed"
-                          ? "green"
-                          : assessmentItem?.status === "in_progress"
-                          ? "blue"
-                          : assessmentItem?.status === "scheduled"
-                          ? "amber"
-                          : "slate"
-                      }
-                    >
-                      {assessmentItem?.status?.replaceAll("_", " ") ||
-                        (assessmentDecision?.action === "skipped"
-                          ? "Skipped"
-                          : assessmentDecision?.action === "send"
-                          ? "Pending"
-                          : "Not Assigned")}
-                    </Badge>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    {assessmentScore != null ? (
-                      <>
-                        <span className="text-3xl font-bold tabular-nums text-purple-700">{assessmentScore}</span>
-                        <span className="text-xs text-slate-500 font-medium">/ 100</span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-semibold text-slate-500">
-                        {assessmentItem?.status === "in_progress"
-                          ? "In Progress"
-                          : assessmentItem?.status === "scheduled"
-                          ? "Scheduled"
-                          : assessmentDecision?.action === "skipped"
-                          ? "Skipped"
-                          : "Not assigned"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {assessmentItem?.status === "completed"
-                      ? `${assessmentTotalCorrect}/${assessmentTotalItems} items correct`
-                      : assessmentItem?.status === "in_progress"
-                      ? "Awaiting candidate submission"
-                      : assessmentDecision?.action === "skipped"
-                      ? "Direct to interview"
-                      : "Awaiting paper assignment"}
-                  </p>
-                </Card>
-              </div>
+                );
+              })()}
 
               {/* ── Row 2: 3-Column Content Grid (fills remaining height) ── */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -948,23 +993,8 @@ export default function CandidateDrawer({
                         </span>
                       </div>
                     </div>
-                    {cvScore !== null ? (
-                      <span
-                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                          cvScore >= 70
-                            ? "text-emerald-800 bg-emerald-100 border-emerald-300"
-                            : cvScore >= 50
-                            ? "text-amber-800 bg-amber-100 border-amber-300"
-                            : "text-rose-800 bg-rose-100 border-rose-300"
-                        }`}
-                      >
-                        {cvScore}% Match
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-slate-600 bg-white/80 px-2.5 py-0.5 rounded-md border border-slate-200">
-                        Evaluating…
-                      </span>
-                    )}
+                    {/* No "{score}% Match" badge here: it restated the CV score
+                        already shown in the scorecard ring above. */}
                   </div>
 
                   <div className="mt-2.5 text-xs text-slate-800 leading-relaxed flex-1">
@@ -1278,114 +1308,140 @@ export default function CandidateDrawer({
           {activeTab === "ats-breakdown" && (
             <div className="flex-1 overflow-y-auto p-4 min-h-0">
             <div className="space-y-5">
-              {/* CV Screening Breakdown Card */}
+              {/* CV Screening Breakdown */}
               <Card className="bg-white shadow-xs border-slate-200/80">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">CV Screening Assessment</h3>
-                    <p className="text-xs text-slate-500">Autonomous evaluation based on job rubric & experience</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {cvScore != null ? `${cvScore}/100` : "—"}
-                    </span>
-                    <span className="block text-[11px] text-slate-400">Overall Match</span>
+                {/* Headline: the score as a ring in CV screening's colour, the
+                    ATS verdict in words, and where this sits among the role's
+                    other scored applicants — one dot each, real people. */}
+                <div className="flex flex-wrap items-center gap-5 rounded-2xl bg-gradient-to-br from-sky-50/70 via-white to-white p-4">
+                  <ScoreRing
+                    value={cvScore}
+                    hue="sky"
+                    size={104}
+                    emptyLabel="Not run"
+                    label="CV screening score"
+                  />
+                  <div className="min-w-[14rem] flex-1">
+                    <h3 className="text-base font-semibold text-slate-900">CV screening</h3>
+                    <p className="mt-0.5 text-sm text-slate-700">
+                      {cvScore == null
+                        ? "Not screened yet."
+                        : { pass: "Passed screening", fail: "Did not pass screening", review: "Flagged for review" }[
+                            candidate.ats?.decision
+                          ] || "Scored"}
+                      <span className="text-slate-500">
+                        {" · "}
+                        {profileAssessment?.engine === "evidence" || candidate.ats?.engine === "evidence"
+                          ? "evidence engine"
+                          : "keyword screening"}
+                      </span>
+                    </p>
+                    {caveat && <p className="mt-0.5 text-xs font-medium text-amber-700">{caveat}</p>}
+                    {cvScore != null && peerScores && (
+                      <div className="mt-3 max-w-md">
+                        <DistributionStrip values={peerScores} mine={cvScore} hue="sky" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* The same honest gate as the Summary tab's rubric breakdown:
-                    these axes DEFAULT TO 0 in the schema, so `|| 0` reported
-                    four confident zeroes about a candidate nobody screened.
-                    An axis the run did not produce reads "—", not 0%. */}
+                {/* The same honest gate as before: these axes DEFAULT TO 0 in
+                    the schema, so an unscreened candidate has no breakdown. An
+                    axis the run did not produce reads as a dashed empty track
+                    with "Not measured", never as 0%. */}
                 {!isScored(candidate) ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="mt-4 text-xs text-slate-500">
                     Not screened yet — there is no CV screening breakdown to show.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: "Skills Match", value: candidate.ats?.skillsMatch ?? candidate.ats?.breakdown?.skillsScore },
-                      { label: "Experience Match", value: candidate.ats?.experienceMatch ?? candidate.ats?.breakdown?.experienceScore },
-                      { label: "Education Match", value: candidate.ats?.educationMatch ?? candidate.ats?.breakdown?.educationScore },
-                      { label: "Projects Match", value: candidate.ats?.projectsMatch },
-                    ].map((axis) => (
-                      <div key={axis.label} className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
-                        <span className="text-xs font-semibold text-slate-600 block mb-1">{axis.label}</span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold text-slate-900 tabular-nums">
-                            {axis.value != null ? `${axis.value}%` : "—"}
-                          </span>
-                        </div>
-                        {axis.value != null && (
-                          <div className="w-full h-1.5 rounded-full bg-slate-200 mt-2 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-emerald-600"
-                              style={{ width: `${Math.min(100, axis.value)}%` }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <section className="mt-5">
+                    <h4 className="mb-3 text-sm font-semibold text-slate-900">How the CV matches the role</h4>
+                    <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                      <CriterionBars
+                        hue="sky"
+                        rows={[
+                          { key: "skills", label: "Skills", value: candidate.ats?.skillsMatch ?? candidate.ats?.breakdown?.skillsScore, note: "Not measured" },
+                          { key: "experience", label: "Experience", value: candidate.ats?.experienceMatch ?? candidate.ats?.breakdown?.experienceScore, note: "Not measured" },
+                        ]}
+                      />
+                      <CriterionBars
+                        hue="sky"
+                        rows={[
+                          { key: "education", label: "Education", value: candidate.ats?.educationMatch ?? candidate.ats?.breakdown?.educationScore, note: "Not measured" },
+                          { key: "projects", label: "Projects", value: candidate.ats?.projectsMatch, note: "Not measured" },
+                        ]}
+                      />
+                    </div>
+                  </section>
                 )}
 
                 {candidate.ats?.missingSkills?.length > 0 && (
-                  <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200">
-                    <span className="text-xs font-bold text-amber-900 block mb-1">
-                      Flagged Unverified / Missing Competencies:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {candidate.ats.missingSkills.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="rounded bg-white border border-amber-300 px-2 py-0.5 text-xs text-amber-900 font-medium"
-                        >
-                          {s}
+                  <section className="mt-5">
+                    <h4 className="text-sm font-semibold text-slate-900">Skills the job asks for that the CV does not show</h4>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {candidate.ats.missingSkills.map((sk, idx) => (
+                        <span key={idx} className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-200">
+                          {sk}
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 )}
 
                 {findings.length > 0 && (
-                  <div className="mt-4 border-t border-slate-100 pt-3 space-y-1.5">
-                    <span className="text-xs font-bold text-slate-800 block mb-1">
-                      Evaluated Rubric Criteria
-                    </span>
-                    {findings.map((f, idx) => {
-                      // Only a real `criterionScore` becomes a percentage.
-                      // Mapping "satisfied" to 100% and "partial" to 50%
-                      // manufactures precision the engine never claimed —
-                      // the status is a judgement, not a measurement — so a
-                      // finding without a score shows its status word.
-                      const pct = f.criterionScore != null ? Math.round(f.criterionScore * 100) : null;
-                      return (
-                        <div key={idx} className="p-2 rounded-lg border border-slate-100 bg-slate-50/70 text-[11px]">
-                          <div className="flex justify-between items-center gap-2 mb-0.5">
-                            <span className="font-semibold text-slate-800">{f.label}</span>
-                            <span className={`font-bold tabular-nums shrink-0 ${f.status === "satisfied" ? "text-emerald-700" : "text-slate-600"}`}>
-                              {pct != null ? `${pct}%` : STATUS_WORDS[f.status] || "Not assessed"}
-                            </span>
-                          </div>
-                          {pct != null && (
-                            <div className="w-full h-1 rounded-full bg-slate-200 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${f.status === "satisfied" ? "bg-emerald-600" : "bg-slate-400"}`}
-                                style={{ width: `${pct}%` }}
-                              />
+                  <section className="mt-6">
+                    <h4 className="text-sm font-semibold text-slate-900">Rubric criteria</h4>
+                    <p className="mt-0.5 mb-3 text-xs text-slate-500">
+                      Each criterion's judgement, and separately how strong the CV's evidence for it is.
+                    </p>
+                    <ul className="space-y-2.5">
+                      {findings.map((f, idx) => {
+                        // Two channels, deliberately apart. The STATUS is the
+                        // engine's judgement; `criterionScore` is evidence
+                        // strength. They can disagree — "satisfied" with a
+                        // strength of 0 is in the data — and the old row hid
+                        // that by painting the 0% in the status's green. Now
+                        // the chip says the judgement and the bar says the
+                        // strength, so a disagreement is visible, not dressed.
+                        //
+                        // "absent" means no evidence was found in the CV. It
+                        // is drawn as an empty dashed track with no number:
+                        // a missing reading is not a measured zero.
+                        const absent = f.status === "absent";
+                        const pct = !absent && f.criterionScore != null ? Math.round(f.criterionScore * 100) : null;
+                        const chip = {
+                          satisfied: "bg-emerald-100 text-emerald-800",
+                          partial: "bg-amber-100 text-amber-800",
+                          unmet: "bg-red-100 text-red-700",
+                          contradicted: "bg-red-100 text-red-700",
+                        }[f.status] || "bg-slate-100 text-slate-600";
+                        return (
+                          <li key={idx} className="rounded-xl border border-hairline px-4 py-3">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                              <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">{f.label}</span>
+                              <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${chip}`}>
+                                {absent ? "No evidence in CV" : STATUS_WORDS[f.status] || "Not assessed"}
+                              </span>
+                              {pct != null && (
+                                <span className="num w-10 text-right text-xs font-semibold text-slate-700">{pct}%</span>
+                              )}
                             </div>
-                          )}
-                          {/* The engine's justification for this criterion.
-                              Dropping it left a bare number with nothing a
-                              recruiter could check it against, which is the
-                              opposite of an evidence-bound score. */}
-                          {f.reasoning && (
-                            <p className="mt-1 text-[11px] leading-snug text-slate-600">{f.reasoning}</p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <div
+                              className={`mt-2 h-1.5 overflow-hidden rounded-full ${
+                                pct != null ? "bg-slate-100" : "border border-dashed border-slate-300"
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {pct != null && <div className="h-full rounded-full bg-sky-500" style={{ width: `${pct}%` }} />}
+                            </div>
+                            {/* The engine's justification — without it, a bare
+                                number with nothing to check it against. */}
+                            {f.reasoning && <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{f.reasoning}</p>}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
                 )}
               </Card>
             </div>
@@ -1496,84 +1552,126 @@ export default function CandidateDrawer({
                 </div>
 
                 {assessmentItem ? (
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <span className="text-xs text-slate-500 font-medium">
-                          {/* The paper's own section title, or nothing — an
-                              invented one ("Core Technical Assessment") named a
-                              paper that does not exist under that name. */}
-                          {assessmentPaper?.sections?.[0]?.title || "Untitled section"}
-                        </span>
-                        <div className="mt-1 flex items-baseline gap-1.5">
-                          <span className="text-3xl font-extrabold text-slate-900 tabular-nums">
-                            {assessmentScore != null ? assessmentScore : "—"}
-                          </span>
-                          <span className="text-xs text-slate-500">/ 100</span>
-                        </div>
-                      </div>
-                      <div className="text-right text-xs">
-                        <span className="text-slate-500 block">
-                          Result:{" "}
-                          <strong className="text-slate-900 font-semibold">
-                            {assessmentItem.status === "completed"
-                              ? `${assessmentTotalCorrect}/${assessmentTotalItems} correct`
-                              : assessmentItem.status === "in_progress"
-                              ? "In Progress"
-                              : "Scheduled"}
-                          </strong>
-                        </span>
-                        <span className="text-slate-400 block text-[11px] mt-0.5">
+                  <div className="space-y-6">
+                    {/* Headline: the score as a ring in the assessment's colour,
+                        and right / wrong / unanswered as one bar — three separate
+                        facts, because a question never reached is not a question
+                        answered wrongly. */}
+                    <div className="flex flex-wrap items-center gap-5 rounded-2xl border border-hairline bg-gradient-to-br from-rose-50/60 via-white to-white p-5">
+                      <ScoreRing
+                        value={assessmentScore}
+                        hue="rose"
+                        size={104}
+                        emptyLabel={assessmentItem.status === "completed" ? "Withheld" : "Pending"}
+                        label="Skills assessment score"
+                      />
+                      <div className="min-w-[14rem] flex-1">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {assessmentPaper?.sections?.[0]?.title || "Skills assessment"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-500">
                           {assessmentItem.status === "completed"
                             ? `Scored ${formatWhen(assessmentResult?.scoredAt || assessmentItem.completedAt)}`
-                            : `Assigned ${formatWhen(assessmentItem.assignment?.at || assessmentItem.createdAt)}`}
-                        </span>
+                            : assessmentItem.status === "in_progress"
+                            ? "In progress — awaiting submission"
+                            : `Sent ${formatWhen(assessmentItem.assignment?.at || assessmentItem.createdAt)}`}
+                          {assessmentItem.difficultyTier?.value && ` · ${assessmentItem.difficultyTier.value} difficulty`}
+                        </p>
+                        {assessmentItem.status === "completed" && (
+                          <>
+                            <p className="mt-3 text-sm text-slate-700">
+                              <span className="num font-semibold text-slate-900">{assessmentTotalCorrect}</span> of{" "}
+                              {assessmentTotalItems} correct
+                            </p>
+                            {/* The three-way bar needs the per-question record.
+                                Without it, the total is stated in words and no
+                                split is guessed — splitting "10 − 8" into
+                                "incorrect" would count unanswered as wrong. */}
+                            {tally.correct + tally.incorrect + tally.unanswered > 0 && (
+                              <div className="mt-3">
+                                <ResultBar {...tally} />
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {assessmentItem.difficultyTier?.value && (
-                      <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                        <span>Difficulty Tier:</span>
-                        <strong className="text-slate-800 uppercase">{assessmentItem.difficultyTier.value}</strong>
-                        {assessmentItem.difficultyTier.basis && (
-                          <span className="text-slate-400">({assessmentItem.difficultyTier.basis})</span>
+                    {assessmentRows.length > 0 && (
+                      <section>
+                        <h4 className="mb-3 text-sm font-semibold text-slate-900">What it tested</h4>
+                        {/* Wait for the rubric only if a name is actually
+                            missing; rows the result already named show now. */}
+                        {jobRubric === null && assessmentRows.some((r) => r.unnamed) ? (
+                          <p className="text-xs text-slate-500">Loading criteria…</p>
+                        ) : (
+                          <CriterionBars rows={assessmentRows} hue="rose" />
                         )}
-                      </div>
+                      </section>
                     )}
 
-                    {assessmentPerCriterion.length > 0 && (
-                      <div className="mt-3 space-y-1.5 border-t border-slate-200/70 pt-3">
-                        <span className="text-xs font-semibold text-slate-700 block mb-1">Criterion Performance</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {assessmentPerCriterion.map((c, idx) => (
-                            <div
-                              key={c.criterionId || idx}
-                              className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs"
-                            >
-                              <span className="text-slate-600 font-medium">{c.label || c.criterionId}</span>
-                              <span className="font-bold text-slate-900 tabular-nums">
-                                {c.correctCount}/{c.itemCount}
-                                {c.itemCount ? ` (${Math.round((c.correctCount / c.itemCount) * 100)}%)` : ""}
+                    {/* Résumé claims the test put to the proof. Named — these
+                        were printed as "contradicted c2 (0/4 items)". */}
+                    {claimRows.length > 0 && (
+                      <section>
+                        <h4 className="text-sm font-semibold text-slate-900">Résumé claims it checked</h4>
+                        <p className="mt-0.5 mb-3 text-xs text-slate-500">
+                          Questions targeting a skill the résumé claims. A contradicted claim is worth probing in
+                          the interview — not a conclusion on its own.
+                        </p>
+                        <ul className="divide-y divide-rule rounded-xl border border-hairline">
+                          {claimRows.map((c) => (
+                            <li key={c.key} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5">
+                              <span
+                                className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${
+                                  { verified: "bg-emerald-100 text-emerald-800", contradicted: "bg-red-100 text-red-700", inconclusive: "bg-slate-100 text-slate-700" }[c.verdict] || "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {c.verdict}
                               </span>
-                            </div>
+                              <span className="min-w-0 flex-1 text-sm text-slate-800">{c.label}</span>
+                              <span className="text-xs text-slate-500">{c.detail}</span>
+                            </li>
                           ))}
-                        </div>
-                      </div>
+                        </ul>
+                      </section>
                     )}
 
-                    {assessmentClaimVerdicts.length > 0 && (
-                      <div className="mt-3 space-y-1.5 border-t border-slate-200/70 pt-3">
-                        <span className="text-xs font-semibold text-slate-700 block mb-1">Résumé-Claim Probes</span>
-                        {assessmentClaimVerdicts.map((v, idx) => (
-                          <div key={v.claimId || idx} className="text-xs flex items-center gap-2">
-                            <Badge tone={v.verdict === "verified" ? "green" : v.verdict === "contradicted" ? "red" : "amber"}>
-                              {v.verdict}
-                            </Badge>
-                            <span className="text-slate-700">{v.criterionId || v.claimId}</span>
-                            <span className="text-slate-400 font-medium">({v.correctCount}/{v.itemCount} items)</span>
-                          </div>
-                        ))}
-                      </div>
+                    {/* Integrity, in plain words and with the innocent reading
+                        of each event beside it (mirrored from the scorer's own
+                        catalogue). A flag is a prompt to look, never a verdict. */}
+                    {assessmentItem.proctoring?.riskBand && (
+                      <section>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <h4 className="text-sm font-semibold text-slate-900">Integrity</h4>
+                          <span
+                            className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                              assessmentItem.proctoring.riskBand === "high"
+                                ? "bg-red-100 text-red-700"
+                                : assessmentItem.proctoring.riskBand === "medium"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-emerald-100 text-emerald-800"
+                            }`}
+                          >
+                            {assessmentItem.proctoring.riskBand[0].toUpperCase() + assessmentItem.proctoring.riskBand.slice(1)} risk
+                          </span>
+                        </div>
+                        {integrity.length === 0 ? (
+                          <p className="text-sm text-slate-600">No integrity events were recorded during the test.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {integrity.map((e) => (
+                              <li key={e.type} className="rounded-xl border border-hairline px-4 py-2.5">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-sm text-slate-800">{e.label}</span>
+                                  <span className="num text-xs font-semibold text-slate-700">×{e.count}</span>
+                                </div>
+                                {e.note && <p className="mt-0.5 text-xs text-slate-500">{e.note}</p>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </section>
                     )}
                   </div>
                 ) : assessmentDecision?.action === "skipped" ? (

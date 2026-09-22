@@ -98,10 +98,11 @@ it("displays isolated, accurate candidate DB information in inspection modal wit
   expect(await screen.findByText("Vijendra")).toBeTruthy();
   expect(screen.getByText("algorithemicedge@gmail.com")).toBeTruthy();
   expect(screen.getByText("Req: AI Research Lead")).toBeTruthy();
-  // The drawer's header badge reads "<n>% Match". What matters is that the 69
-  // is the overallScore the API returned and not a stand-in: a candidate with
-  // no score renders "Evaluating…" there, never a number.
-  expect(screen.getByText("69% Match")).toBeTruthy();
+  // What matters is that the 69 is the overallScore the API returned and not a
+  // stand-in. It used to be a "69% Match" badge restating the score; it is now
+  // the scorecard ring, whose accessible name states the figure — and an
+  // unscored candidate's ring says "Not run", never a number.
+  expect(screen.getByRole("img", { name: "CV screening: 69 out of 100" })).toBeTruthy();
   expect(screen.getAllByText("Generative AI expertise").length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText(/"8 years of experience delivering GenAI solutions"/)).toBeTruthy();
 

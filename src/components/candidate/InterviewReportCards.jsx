@@ -341,9 +341,14 @@ export function EvaluationCard({ interview, ev, rec }) {
             </p>
           )}
 
+          {/* The status only. The REASON is already the headline of the
+              interview summary directly above this card (it renders first on
+              every surface that shows this card), and printing it again here —
+              then a third time as the summary paragraph below — told the
+              recruiter the same sentence three times in one screen. */}
           {ev.reviewReason && (
             <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
-              Recommendation withheld — {ev.reviewReason}. This interview needs human review before any decision.
+              Recommendation withheld. This interview needs human review before any decision.
             </p>
           )}
 
@@ -426,7 +431,7 @@ export function EvaluationCard({ interview, ev, rec }) {
             </div>
           </div>
 
-          {ev.summary && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{ev.summary}</p>}
+          {/* No second copy of `ev.summary`: <InterviewSummary> above prints it. */}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {ev.strengths?.length > 0 && (
