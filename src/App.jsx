@@ -26,6 +26,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword.jsx"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword.jsx"));
 
 const JobList = lazy(() => import("./pages/JobList.jsx"));
+const JobWorkspace = lazy(() => import("./pages/JobWorkspace.jsx"));
 const CandidateInterviewModal = lazy(() => import("./components/candidate/CandidateInterviewModal.jsx"));
 const AssessmentReport = lazy(() => import("./pages/AssessmentReport.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
@@ -94,11 +95,12 @@ function JobRouteRedirect({ tab, edit }) {
   return <Navigate to={`/jobs?${searchParams.toString()}`} replace />;
 }
 
-// The old drawer tab. Kept as a redirect so existing links, the command
-// palette's older entries and anything a recruiter bookmarked still resolve.
-function JobCandidatesRedirect() {
+// Every older job URL — /jobs/:id/rubric, /questions, /post, /evaluation … —
+// now lands on the matching section of the job's workspace, so links in old
+// emails, notifications and bookmarks keep working.
+function JobSectionRedirect({ section }) {
   const { id } = useParams();
-  return <Navigate to={`/jobs/${id}/pipeline`} replace />;
+  return <Navigate to={`/jobs/${id}/${section}`} replace />;
 }
 
 function CandidateRouteRedirect() {
@@ -158,19 +160,23 @@ export default function App() {
             <Route path="jobs" element={<JobList />} />
             <Route path="jobs/new" element={<Navigate to="/jobs?create=1" replace />} />
             <Route path="jobs/setup/:draftId" element={<Navigate to="/jobs?create=1" replace />} />
-            <Route path="jobs/:id" element={<JobRouteRedirect tab="overview" />} />
-            {/* A job's candidate board is a PAGE, not a drawer tab: it has
-                its own URL, so it can be refreshed, bookmarked and pasted to a
-                colleague. /jobs/:id/candidates keeps working and lands here. */}
+            {/* ── A job's own workspace ────────────────────────────────────
+                Opening a job swaps the sidebar for that job's navigation (see
+                JobSidebar.jsx). A job opens on its board, because the first
+                thing a recruiter wants from a role is where its candidates
+                stand. Every section has a real URL: refreshable, bookmarkable,
+                shareable with a colleague. */}
+            <Route path="jobs/:id" element={<JobSectionRedirect section="pipeline" />} />
             <Route path="jobs/:id/pipeline" element={<HiringPipeline />} />
-            <Route path="jobs/:id/candidates" element={<JobCandidatesRedirect />} />
-            <Route path="jobs/:id/evaluation" element={<JobRouteRedirect tab="rubric" />} />
-            <Route path="jobs/:id/post" element={<JobRouteRedirect tab="overview" />} />
-            <Route path="jobs/:id/journey" element={<JobRouteRedirect tab="overview" />} />
-            <Route path="jobs/:id/rubric" element={<JobRouteRedirect tab="rubric" />} />
-            <Route path="jobs/:id/questions" element={<JobRouteRedirect tab="questions" />} />
-            <Route path="jobs/:id/assessment" element={<JobRouteRedirect tab="assessment" />} />
-            <Route path="jobs/:id/assessments" element={<JobRouteRedirect tab="assessment" />} />
+            <Route path="jobs/:id/candidates" element={<HiringPipeline />} />
+            <Route path="jobs/:id/:section" element={<JobWorkspace />} />
+            {/* Older URLs, from before the workspace. */}
+            <Route path="jobs/:id/evaluation" element={<JobSectionRedirect section="cv-screening" />} />
+            <Route path="jobs/:id/rubric" element={<JobSectionRedirect section="cv-screening" />} />
+            <Route path="jobs/:id/questions" element={<JobSectionRedirect section="ai-interview" />} />
+            <Route path="jobs/:id/assessments" element={<JobSectionRedirect section="assessment" />} />
+            <Route path="jobs/:id/post" element={<JobSectionRedirect section="details" />} />
+            <Route path="jobs/:id/journey" element={<JobSectionRedirect section="details" />} />
             <Route path="jobs/:id/edit" element={<JobRouteRedirect edit={true} />} />
             <Route path="candidates" element={<CandidatesAll />} />
             <Route path="pipeline" element={<HiringPipeline />} />

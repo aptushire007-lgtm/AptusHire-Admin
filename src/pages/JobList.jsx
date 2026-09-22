@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { jobWorkspacePath } from "../components/dashboard/JobSidebar.jsx";
 import { useRef } from "react";
 import {
   Briefcase,
@@ -206,6 +207,12 @@ export function PublishBoardsModal({ job, onClose }) {
 
 export default function JobList() {
   const { candidatesByJob, refresh: refreshCompanyData } = useCompanyData() || {};
+  const navigate = useNavigate();
+  // Opening a job used to pop a dialog over this list. It now goes to the job's
+  // own workspace, where its sidebar takes over the navigation — so all nine
+  // places on this page that open a job (card view and table view) route
+  // through this one function.
+  const openJob = (job, tab = "overview") => navigate(jobWorkspacePath(job._id, tab === "overview" ? null : tab));
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -267,6 +274,12 @@ export default function JobList() {
   useEffect(() => {
     const targetJobId = params.get("jobId");
     if (!targetJobId) return;
+    // Old ?jobId= links (notifications, emails, bookmarks) forward into the
+    // workspace. `edit=1` keeps its existing behaviour: the edit dialog, here.
+    if (params.get("edit") !== "1") {
+      navigate(jobWorkspacePath(targetJobId, params.get("tab")), { replace: true });
+      return;
+    }
 
     if (jobs.length > 0) {
       const found = jobs.find((j) => j._id === targetJobId);
@@ -611,6 +624,9 @@ export default function JobList() {
   // KPI Metrics Ribbon (Live counts from jobs and candidate data)
   const kpiMetrics = useMemo(() => {
     let totalReqs = jobs.length;
+    const weekAgo = Date.now() - 7 * 86_400_000;
+    const createdThisWeek = jobs.filter((j) => new Date(j.createdAt).getTime() >= weekAgo).length;
+    const rubricsToApprove = jobs.filter((j) => j.status === "published" && j.rubricStatus !== "approved").length;
     let activeApps = 0;
     let inReview = 0;
     let scheduled = 0;
@@ -650,6 +666,8 @@ export default function JobList() {
 
     return {
       totalRequisitions: totalReqs,
+      createdThisWeek,
+      rubricsToApprove,
       activeApplicants: activeApps,
       inReview: inReview,
       interviewsScheduled: scheduled,
@@ -754,9 +772,14 @@ export default function JobList() {
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Total Requisitions
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              +1 this week
-            </span>
+            {/* Was the literal string "+1 this week" whatever had happened.
+                Counted from the jobs' own createdAt now, and drawn only when
+                there is something to say. */}
+            {kpiMetrics.createdThisWeek > 0 && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
+                +{kpiMetrics.createdThisWeek} this week
+              </span>
+            )}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
@@ -786,9 +809,9 @@ export default function JobList() {
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Interviews Scheduled
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              Next today 3:00 PM
-            </span>
+            {/* A "Next today 3:00 PM" chip stood here as a literal string — it
+                announced a 3pm interview on every day, for every workspace.
+                There is no scheduled time in this payload to show instead. */}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
@@ -797,19 +820,26 @@ export default function JobList() {
           </div>
         </div>
 
+        {/* This card used to read "Avg. Time to Screen 1.8d · -65% vs manual"
+            — every character of it a literal, the figure included. It is now a
+            count this page can actually source, and the one a recruiter can act
+            on: live roles that are screening without an approved rubric. */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Avg. Time to Screen
+              Rubrics to approve
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              -65% vs manual
-            </span>
+            {kpiMetrics.rubricsToApprove > 0 && (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200/60">
+                Needs action
+              </span>
+            )}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
-              1.8d
+              {kpiMetrics.rubricsToApprove}
             </span>
+            <span className="text-xs text-slate-500">live roles without one</span>
           </div>
         </div>
       </div>
@@ -919,7 +949,7 @@ export default function JobList() {
                   value={selectedDepartments[0] || "all"}
                   onChange={(e) => setSelectedDepartments(e.target.value === "all" ? [] : [e.target.value])}
                   aria-label="Filter by department"
-                  className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="all">All Departments</option>
                   {allDepartments.map((dept) => (
@@ -934,7 +964,7 @@ export default function JobList() {
                 value={workplaceFilter}
                 onChange={(e) => setWorkplaceFilter(e.target.value)}
                 aria-label="Filter by workplace mode"
-                className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
               >
                 <option value="all">All Modes</option>
                 <option value="remote">Remote ({filterCounts.remote})</option>
@@ -947,7 +977,7 @@ export default function JobList() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   aria-label="Sort requisitions"
-                  className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="newest">Sort: Newest first</option>
                   <option value="oldest">Sort: Oldest first</option>
@@ -1081,8 +1111,7 @@ export default function JobList() {
                   <div
                     key={job._id}
                     onClick={() => {
-                      setDrawerTab("overview");
-                      setSelectedJob(job);
+                      openJob(job, "overview");
                     }}
                     className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-xs hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                   >
@@ -1124,8 +1153,7 @@ export default function JobList() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDrawerTab("overview");
-                            setSelectedJob(job);
+                            openJob(job, "overview");
                           }}
                           className="text-left block text-base font-bold text-slate-900 group-hover:text-brand-700 transition-colors line-clamp-1 cursor-pointer"
                         >
@@ -1186,8 +1214,7 @@ export default function JobList() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDrawerTab("rubric");
-                            setSelectedJob(job);
+                            openJob(job, "rubric");
                           }}
                           className="inline-flex rounded-full hover:opacity-80 transition-opacity cursor-pointer"
                         >
@@ -1207,8 +1234,7 @@ export default function JobList() {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setDrawerTab("candidates");
-                          setSelectedJob(job);
+                          openJob(job, "candidates");
                         }}
                         size="sm"
                         variant="secondary"
@@ -1304,12 +1330,8 @@ export default function JobList() {
             /* ── Dense List / Table View ─────────────────────────────────────── */
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
-                <span className="font-semibold tracking-wide text-slate-600">
-                  Showing <span className="num font-bold text-slate-900">{sortedJobs.length}</span> of{" "}
-                  <span className="num font-bold text-slate-900">{jobs.length}</span> requisitions
-                </span>
-                <span className="text-[11px] text-slate-400 hidden sm:inline">
-                  Click any row to open full candidate pipeline & AI rubric
+                <span className="text-xs text-slate-500 hidden sm:inline">
+                  Click any row to open that job&rsquo;s workspace
                 </span>
               </div>
 
@@ -1338,8 +1360,7 @@ export default function JobList() {
                         <TR
                           key={job._id}
                           onClick={() => {
-                            setDrawerTab("overview");
-                            setSelectedJob(job);
+                            openJob(job, "overview");
                           }}
                           className={`cursor-pointer transition-all ${
                             isSelected
@@ -1360,8 +1381,7 @@ export default function JobList() {
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setDrawerTab("overview");
-                                    setSelectedJob(job);
+                                    openJob(job, "overview");
                                   }}
                                   className="text-left font-bold text-slate-900 hover:text-brand-700 transition-colors text-sm cursor-pointer"
                                 >
@@ -1396,8 +1416,7 @@ export default function JobList() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setDrawerTab("rubric");
-                                setSelectedJob(job);
+                                openJob(job, "rubric");
                               }}
                               className="inline-flex items-center hover:opacity-80 transition-opacity cursor-pointer"
                             >
@@ -1408,24 +1427,15 @@ export default function JobList() {
                           </TD>
                           <TD padding="compact">
                             <div className="flex items-center gap-2">
-                              {applicantsCount > 0 && (
-                                <div className="flex -space-x-1.5 overflow-hidden">
-                                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-900 border-2 border-white shadow-2xs">
-                                    {(applicants[0]?.name || "A")[0]}
-                                  </span>
-                                  {applicantsCount > 1 && (
-                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-900 border-2 border-white shadow-2xs">
-                                      {(applicants[1]?.name || "B")[0]}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                              {/* No avatar stack: it drew the letters "A" and "B"
+                                  on every row, falling back to literals because
+                                  the shell loads no candidate names. The count
+                                  beside it is real (applicationCounts). */}
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setDrawerTab("candidates");
-                                  setSelectedJob(job);
+                                  openJob(job, "candidates");
                                 }}
                                 className="num rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                               >
@@ -1457,8 +1467,7 @@ export default function JobList() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setDrawerTab("candidates");
-                                  setSelectedJob(job);
+                                  openJob(job, "candidates");
                                 }}
                                 size="sm"
                                 variant="outline"

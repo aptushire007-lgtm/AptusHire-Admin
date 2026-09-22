@@ -50,7 +50,14 @@ it("restores focus on Escape and keeps collapsed navigation accessible", () => {
   fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
   const nav = screen.getByRole("navigation", { name: "Dashboard Navigation" });
   expect(within(nav).getByRole("link", { name: "Jobs" })).toHaveAttribute("aria-current", "page");
-  expect(within(nav).getByRole("link", { name: "Recordings" })).toHaveAttribute("href", "/recordings");
+  // Recordings moved out of the company-wide sidebar and into each job's own
+  // workspace. It must still be FINDABLE, though: the palette is fed its own
+  // complete list precisely so trimming the sidebar strands nothing.
+  expect(within(nav).queryByRole("link", { name: "Recordings" })).not.toBeInTheDocument();
+  fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "Record" } });
+  expect(screen.getByRole("option", { name: /Recordings/ })).toBeInTheDocument();
+  fireEvent.keyDown(screen.getByRole("combobox"), { key: "Escape" });
   fireEvent.click(screen.getByRole("button", { name: "Account options" }));
   fireEvent.click(screen.getByRole("menuitem", { name: "Plan and billing" }));
   expect(screen.getByTestId("location")).toHaveTextContent("/subscription");

@@ -36,6 +36,8 @@ describe("original Recruitment-AI admin design contract", () => {
     expect(shell).toContain('w-[236px]');
     expect(shell).toContain('<CompanyDataProvider includeCandidates={false}>');
     expect(shell).not.toContain('allCandidates.length');
-    expect(shell).toContain('label: "Screening reviews"');
+    // Renamed from "Screening reviews" when the sidebar was trimmed to what
+    // spans every job; the destination (/review-queue) is unchanged.
+    expect(shell).toContain('label: "Review queue"');
   });
 });

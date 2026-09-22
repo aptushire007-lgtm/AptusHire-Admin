@@ -50,6 +50,33 @@ const TIER_COLORS = {
   bonus: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
+/**
+ * The outer frame: the original <Modal> for the drawer, a plain panel for a
+ * page. Everything inside is identical either way. The Modal-only props
+ * (`open`, `placement`, …) are simply unused on a page.
+ */
+function Shell({ page, children, panelClassName, ...modalProps }) {
+  if (!page) {
+    return (
+      <Modal {...modalProps} panelClassName={panelClassName}>
+        {children}
+      </Modal>
+    );
+  }
+  return <div className="workspace-panel overflow-hidden rounded-2xl border border-hairline bg-white">{children}</div>;
+}
+
+/**
+ * `variant="page"` renders this as a job-workspace PAGE rather than a dialog:
+ * no overlay, no close button, and no tab bar of its own — the job's sidebar
+ * (JobSidebar.jsx) is the navigation, and the URL decides the tab. Every panel,
+ * handler and loader below is shared unchanged between the two, so the page and
+ * the drawer can never drift into two different job editors.
+ *
+ * In page mode, anything that used to switch tabs internally navigates instead
+ * (`onNavigateTab`), so the sidebar and the URL stay the single source of truth
+ * for where the recruiter is.
+ */
 export default function JobInspectionDrawer({
   job: initialJob,
   onClose,
@@ -57,10 +84,15 @@ export default function JobInspectionDrawer({
   candidates = [],
   onJobUpdated,
   onJobDeleted,
+  variant = "drawer",
+  onNavigateTab,
+  pageTitle,
 }) {
+  const isPage = variant === "page";
   const toast = useToast();
   const [job, setJob] = useState(initialJob);
   const [activeTab, setActiveTab] = useState(initialTab || "overview");
+  const goTab = (tab) => (isPage && onNavigateTab ? onNavigateTab(tab) : setActiveTab(tab));
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [studioModalOpen, setStudioModalOpen] = useState(false);
   const [inspectingCandidateId, setInspectingCandidateId] = useState(null);
@@ -137,7 +169,7 @@ export default function JobInspectionDrawer({
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key === "Escape" && !editModalOpen && !inspectingCandidateId) {
+      if (!isPage && e.key === "Escape" && !editModalOpen && !inspectingCandidateId) {
         onClose?.();
       }
     }
@@ -694,7 +726,8 @@ export default function JobInspectionDrawer({
 
   return (
     <>
-      <Modal
+      <Shell
+        page={isPage}
         open={Boolean(job)}
         onClose={onClose}
         label={`Job Inspection: ${job.title}`}
@@ -754,22 +787,22 @@ export default function JobInspectionDrawer({
                   <Pencil className="h-3.5 w-3.5 text-slate-500" />
                   <span>Edit</span>
                 </button>
-                <button
+                {!isPage && <button
                   type="button"
                   onClick={onClose}
                   aria-label="Close drawer"
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
                 >
                   <X className="h-4 w-4" />
-                </button>
+                </button>}
               </div>
             </div>
 
             <div className="mt-3">
               <h2 className="font-display text-xl font-bold text-slate-900 leading-snug">
-                {job.title}
+                {isPage && pageTitle ? pageTitle : job.title}
               </h2>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
+              {!isPage && <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
                 <span className="flex items-center gap-1">
                   <Briefcase className="h-3.5 w-3.5 text-slate-400" />
                   {job.department || "General"}
@@ -784,11 +817,12 @@ export default function JobInspectionDrawer({
                 {job.minExperienceYears != null && (
                   <span>• {job.minExperienceYears}+ yrs exp</span>
                 )}
-              </div>
+              </div>}
             </div>
 
-            {/* Tab Navigation */}
-            <div role="tablist" className="mt-5 -mb-5 flex border-b border-slate-200 gap-6 overflow-x-auto">
+            {/* Tab Navigation — the drawer's own. On a page the job sidebar is
+                the navigation, so this is not rendered at all. */}
+            {!isPage && <div role="tablist" className="mt-5 -mb-5 flex border-b border-slate-200 gap-6 overflow-x-auto">
               {[
                 { id: "overview", label: "Overview" },
                 { id: "candidates", label: `Candidates (${candidates.length})` },
@@ -802,7 +836,7 @@ export default function JobInspectionDrawer({
                   role="tab"
                   aria-selected={activeTab === tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => goTab(tab.id)}
                   className={`pb-3 text-xs font-semibold transition-all relative cursor-pointer ${
                     activeTab === tab.id
                       ? "text-[#0E3B2E]"
@@ -815,7 +849,7 @@ export default function JobInspectionDrawer({
                   )}
                 </button>
               ))}
-            </div>
+            </div>}
           </div>
 
           {/* Scrollable Drawer Body */}
@@ -883,7 +917,7 @@ export default function JobInspectionDrawer({
 
                     <button
                       type="button"
-                      onClick={() => setActiveTab("rubric")}
+                      onClick={() => goTab("rubric")}
                       className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer"
                     >
                       View Rubric →
@@ -946,7 +980,7 @@ export default function JobInspectionDrawer({
                     </h3>
                     <button
                       type="button"
-                      onClick={() => setActiveTab("candidates")}
+                      onClick={() => goTab("candidates")}
                       className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer"
                     >
                       View all ({candidates.length}) →
@@ -1882,6 +1916,10 @@ export default function JobInspectionDrawer({
             )}
           </div>
 
+          {/* Drawer Footer Actions — drawer only. On a page, Close is the
+              sidebar's "All jobs", Delete and Edit are already in the header,
+              and Applicants is the sidebar's "All candidates". */}
+          {!isPage && (<>
           {/* Drawer Footer Actions */}
           <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4 shadow-lift">
             <div className="flex items-center gap-2">
@@ -1925,7 +1963,7 @@ export default function JobInspectionDrawer({
               </Button>
               <Button
                 type="button"
-                onClick={() => setActiveTab("candidates")}
+                onClick={() => goTab("candidates")}
                 size="sm"
                 className="bg-[#0E3B2E] text-white hover:bg-[#154d3d] shadow-xs gap-1.5"
               >
@@ -1934,8 +1972,9 @@ export default function JobInspectionDrawer({
               </Button>
             </div>
           </div>
+          </>)}
         </div>
-      </Modal>
+      </Shell>
 
       {/* Layered Edit Job Modal */}
       {editModalOpen && (

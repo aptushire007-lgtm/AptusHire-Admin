@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import CandidateLink from "../../components/candidate/CandidateLink.jsx";
 import CandidateDrawer from "../../components/candidate/CandidateDrawer.jsx";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowDownUp,
   ArrowRight,
@@ -653,7 +653,15 @@ export default function HiringPipeline() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showEmpty, setShowEmpty] = useState(false);
-  const density = params.get("view") === "list" ? "list" : "board";
+  // The ROUTER's location, not the global `window.location`: the two agree in
+  // a browser, but only this one is correct under a MemoryRouter or during a
+  // navigation that has not reached the address bar yet.
+  const location = useLocation();
+  // Pipeline and All candidates are one page in two views. An explicit ?view=
+  // always wins; otherwise the URL section picks the default, so the job
+  // sidebar's "All candidates" opens as a list and "Pipeline" as a board.
+  const onCandidatesSection = /\/candidates\/?$/.test(location.pathname);
+  const density = (params.get("view") ?? (onCandidatesSection ? "list" : "board")) === "list" ? "list" : "board";
   const setDensity = (value) => setFilter("view", value);
   const [columnDensity, setColumnDensity] = useState("comfortable");
   const query = params.get("q") || "";
@@ -1022,48 +1030,9 @@ export default function HiringPipeline() {
 
   return (
     <div className="flex flex-col min-w-0 bg-mesh-canvas -mx-4 sm:-mx-6 -mt-[22px] -mb-12 min-h-[calc(100vh-57px)]">
-      {/* On /jobs/:id/pipeline this board IS the job's Pipeline tab, so it
-          carries the job's own context strip: where you are, and the sibling
-          tabs of the same job. On /pipeline there is no single job to head, so
-          nothing is rendered and the board opens as before. */}
-      {jobScoped && (
-        <nav
-          aria-label="Job sections"
-          className="shrink-0 border-b border-hairline bg-white/90 px-4 sm:px-6 pt-3 backdrop-blur"
-        >
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <Link to="/jobs" className="font-medium hover:text-slate-900 hover:underline">
-              Jobs
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span className="truncate font-semibold text-slate-900">
-              {selectedJob?.title || "This role"}
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1">
-            {[
-              { key: "overview", label: "JD" },
-              { key: "rubric", label: "Process" },
-              { key: "questions", label: "Questions" },
-              { key: "assessment", label: "Assessment" },
-            ].map((tab) => (
-              <Link
-                key={tab.key}
-                to={`/jobs?jobId=${routeJobId}&tab=${tab.key}`}
-                className="rounded-t-lg border border-transparent px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-canvas hover:text-slate-900"
-              >
-                {tab.label}
-              </Link>
-            ))}
-            <span
-              aria-current="page"
-              className="-mb-px rounded-t-lg border border-hairline border-b-white bg-white px-3 py-2 text-[13px] font-semibold text-[#0E3B2E]"
-            >
-              Pipeline
-            </span>
-          </div>
-        </nav>
-      )}
+      {/* No job tab strip here: inside a job, the sidebar IS the job's
+          navigation (see JobSidebar.jsx), so a second row of the same links
+          above the board would only compete with it. */}
       {loading && (
         <p role="status" className="shrink-0 bg-white px-6 py-2 text-sm text-slate-600 border-b border-slate-200">
           Updating pipeline… Previous results remain visible; stage actions are paused.
@@ -1184,7 +1153,7 @@ export default function HiringPipeline() {
             {/* Top Breadcrumb & Metadata line */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-2.5">
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
-                {publishedJobs.length > 1 && (
+                {!jobScoped && publishedJobs.length > 1 && (
                   <>
                     <button
                       type="button"
@@ -1265,8 +1234,10 @@ export default function HiringPipeline() {
                   {filtered.length} {filtered.length === 1 ? "candidate" : "candidates"}
                 </span>
 
-                {/* Switch Job Dropdown */}
-                <Menu
+                {/* Switch Job Dropdown — company-wide board only. Inside a job
+                    it would edit ?job=, which the route overrides, so choosing a
+                    job did nothing; the job sidebar's switcher does it instead. */}
+                {!jobScoped && <Menu
                   align="start"
                   width={280}
                   label="Filter by requisition"
@@ -1324,7 +1295,7 @@ export default function HiringPipeline() {
                       </MenuItem>
                     ))}
                   </MenuGroup>
-                </Menu>
+                </Menu>}
               </div>
 
               {/* Add Candidate Button */}

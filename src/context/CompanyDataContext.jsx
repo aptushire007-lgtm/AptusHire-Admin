@@ -10,6 +10,9 @@ export function CompanyDataProvider({ children, includeCandidates = true }) {
   const [candidatesByJob, setCandidatesByJob] = useState({});
   const [queue, setQueue] = useState([]);
   const [subscription, setSubscription] = useState(null);
+  // How many screening decisions are waiting — the sidebar's "Review queue"
+  // badge. `null` until known and on failure: a missing badge, never a 0.
+  const [reviewCount, setReviewCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadedScope, setLoadedScope] = useState(null);
   // Every downstream page (Dashboard, Hiring Pipeline, AI Interviews, Subscription) reads its
@@ -57,12 +60,22 @@ export function CompanyDataProvider({ children, includeCandidates = true }) {
       } catch {
         // Subscription availability must not block core recruiting data.
       }
+      // Same rule for the review badge: a sidebar count must never be the
+      // reason the recruiter's jobs and candidates fail to load.
+      let nextReviewCount = null;
+      try {
+        const reviewRes = await api.get("/review-queue");
+        nextReviewCount = Array.isArray(reviewRes.data) ? reviewRes.data.length : null;
+      } catch {
+        // Leave it unknown; the badge is simply not drawn.
+      }
       if (!isCurrent()) return;
       setMe(meRes.data);
       setJobs(jobsRes.data);
       setQueue(queueRes.data);
       setCandidatesByJob(grouped);
       setSubscription(nextSubscription);
+      setReviewCount(nextReviewCount);
       setLoadedScope(includeCandidates);
       setLoadError("");
     } catch (err) {
@@ -136,8 +149,8 @@ export function CompanyDataProvider({ children, includeCandidates = true }) {
   }, [candidatesByJob, jobs]);
 
   const value = useMemo(
-    () => ({ me, jobs, candidatesByJob, allCandidates, queue, subscription, loading: loading || loadedScope !== includeCandidates, loadError, refresh: load }),
-    [me, jobs, candidatesByJob, allCandidates, queue, subscription, loading, loadedScope, includeCandidates, loadError, load]
+    () => ({ me, jobs, candidatesByJob, allCandidates, queue, subscription, reviewCount, loading: loading || loadedScope !== includeCandidates, loadError, refresh: load }),
+    [me, jobs, candidatesByJob, allCandidates, queue, subscription, reviewCount, loading, loadedScope, includeCandidates, loadError, load]
   );
 
   return <CompanyDataContext.Provider value={value}>{children}</CompanyDataContext.Provider>;
