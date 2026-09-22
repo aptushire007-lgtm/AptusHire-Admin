@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import CandidateLink from "../../components/candidate/CandidateLink.jsx";
 import CandidateDrawer from "../../components/candidate/CandidateDrawer.jsx";
+import OfferDialog from "../../components/candidate/OfferDialog.jsx";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowDownUp,
@@ -478,6 +479,7 @@ export default function HiringPipeline() {
     );
 
   const [busyId, setBusyId] = useState(null);
+  const [offerFor, setOfferFor] = useState(null);
   const bulkRunning = useRef(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkResult, setBulkResult] = useState("");
@@ -661,15 +663,22 @@ export default function HiringPipeline() {
   }, []);
 
   // Move candidate to target stage
-  async function handleMove(candidate, toStage) {
+  // Sending an offer stops at the offer dialog first, so the recruiter can pick
+  // a saved template; the dialog calls back here with the message.
+  async function handleMove(candidate, toStage, offerMessage) {
     if (bulkRunning.current || busyId || loading || loadError) return;
     if (!activeApplications.some((item) => item._id === candidate._id)) {
       toast.error("This application is no longer in the active pipeline. Refresh to see its current state.");
       return;
     }
+    if (toStage === "offer_sent" && !offerFor) {
+      setOfferFor(candidate);
+      return;
+    }
     setBusyId(candidate._id);
     try {
-      await api.patch(`/candidates/${candidate._id}/stage`, { stage: toStage });
+      await api.patch(`/candidates/${candidate._id}/stage`, { stage: toStage, offerMessage });
+      setOfferFor(null);
       toast.success(`${candidate.basicDetails?.name || "Candidate"} → ${stageLabel(toStage)}`);
       await refresh();
     } catch (err) {
@@ -1703,6 +1712,13 @@ export default function HiringPipeline() {
         </Modal>
       )}
 
+      {offerFor && (
+        <OfferDialog
+          candidate={offerFor}
+          onClose={() => setOfferFor(null)}
+          onSend={(message) => handleMove(offerFor, "offer_sent", message)}
+        />
+      )}
       <CandidateDrawer
         candidateId={selectedCandidateId}
         reviewIds={sortedFlat.map((item) => item._id)}

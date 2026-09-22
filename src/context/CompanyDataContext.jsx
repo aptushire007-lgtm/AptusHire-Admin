@@ -1,8 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { CompanyDataContext } from "./companyDataContextObject.js";
 import api from "../api/client.js";
 import { getSocket } from "../lib/socket.js";
 
-const CompanyDataContext = createContext(null);
 
 export function CompanyDataProvider({ children, includeCandidates = true }) {
   const [me, setMe] = useState(null);

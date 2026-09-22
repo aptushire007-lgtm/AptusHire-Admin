@@ -9,6 +9,7 @@ import {
   ChevronRight,
   FilePlus2,
   Layers,
+  Mail,
   Scale,
   TrendingUp,
   Users,
@@ -23,6 +24,7 @@ import { recruiterTasks } from "../../lib/recruiterTasks.js";
 
 import { useEffect } from "react";
 import api from "../../api/client.js";
+import { TEMPLATE_CATEGORIES } from "../../lib/templates.js";
 import { getSocket } from "../../lib/socket.js";
 
 
@@ -205,6 +207,54 @@ export default function DashboardHome() {
           {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.upcomingInterviews.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No interview activity yet.</p> : model.upcomingInterviews.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Interview"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
         </Card>
       </section>
+      <TemplatesCard />
     </div>
+  );
+}
+
+const TEMPLATE_TYPE = Object.fromEntries(TEMPLATE_CATEGORIES.map((c) => [c.value, c.label]));
+
+// Saved messages, one click from Home: the recruiter's offer letters and other
+// standard emails. Its own fetch, so a failure here never blanks the dashboard.
+function TemplatesCard() {
+  const [templates, setTemplates] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    api.get("/templates")
+      .then(({ data }) => { if (alive) setTemplates(data.templates || []); })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  return (
+    <Card padding="none">
+      <CardHeader
+        title="Message templates"
+        count={templates?.length || undefined}
+        description="Offer letters and other messages you send again and again."
+        action={<Button as={Link} to="/templates" variant="secondary" size="sm">{templates?.length ? "Manage" : "Create template"}</Button>}
+      />
+      {failed ? (
+        <p className="p-[18px] text-sm text-slate-500">Could not load templates. <Link to="/templates" className="font-semibold text-brand-700 hover:underline">Open templates</Link></p>
+      ) : templates === null ? (
+        <div className="p-[18px]"><Skeleton className="h-12" /></div>
+      ) : templates.length === 0 ? (
+        <p className="p-[18px] text-sm text-slate-500">No templates yet. Save an offer letter once and reuse it every time you send an offer from the pipeline.</p>
+      ) : (
+        <ul className="grid gap-px sm:grid-cols-2 xl:grid-cols-4">
+          {templates.slice(0, 4).map((t) => (
+            <li key={t._id}>
+              <Link to="/templates" className="flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas">
+                <Mail className="h-4 w-4 shrink-0 text-brand-700" aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-slate-900">{t.name}</span>
+                  <span className="block truncate text-xs text-slate-500">{TEMPLATE_TYPE[t.category] || "Other"}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

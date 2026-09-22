@@ -70,6 +70,7 @@ const STATUS_WORDS = {
 import InterviewWorkspace, { InterviewSummary } from "./InterviewWorkspace.jsx";
 import RelatedApplications from "./RelatedApplications.jsx";
 import InsightPanel from "../report/InsightPanel.jsx";
+import OfferDialog from "./OfferDialog.jsx";
 import {
   EvaluationCard,
   IntegrityCard,
@@ -165,6 +166,7 @@ export default function CandidateDrawer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [movingStage, setMovingStage] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [interviewSubTab, setInterviewSubTab] = useState("all");
@@ -299,11 +301,17 @@ export default function CandidateDrawer({
     }
   }, [candidateId, initialTab, loadData, resolveTab]);
 
-  async function handleStageMove(newStage) {
+  // An offer goes through the offer dialog, which calls back with the message.
+  async function handleStageMove(newStage, offerMessage) {
     if (!candidateId || !newStage) return;
+    if (newStage === "offer_sent" && !offerOpen) {
+      setOfferOpen(true);
+      return;
+    }
     setMovingStage(true);
     try {
-      await api.patch(`/candidates/${candidateId}/stage`, { stage: newStage });
+      await api.patch(`/candidates/${candidateId}/stage`, { stage: newStage, offerMessage });
+      setOfferOpen(false);
       toast.success(`Candidate moved to ${stageLabel(newStage)}`);
       const updated = { ...candidate, status: newStage };
       setCandidate(updated);
@@ -607,6 +615,7 @@ export default function CandidateDrawer({
     .toUpperCase();
 
   return (
+    <>
     <Modal
       open={Boolean(candidateId)}
       onClose={onClose}
@@ -2316,5 +2325,9 @@ export default function CandidateDrawer({
         </footer>
       )}
     </Modal>
+    {offerOpen && candidate && (
+      <OfferDialog candidate={candidate} onClose={() => setOfferOpen(false)} onSend={(message) => handleStageMove("offer_sent", message)} />
+    )}
+    </>
   );
 }

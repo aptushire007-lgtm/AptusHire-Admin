@@ -7,6 +7,7 @@ import {
   KanbanSquare,
   Bot,
   BarChart3,
+  Mail,
   Bell,
   Settings,
   LogOut,
@@ -65,6 +66,7 @@ const NAV_MAIN = [
   { to: "/candidates", label: "Talent Pool", icon: Users },
   { to: "/review-queue", label: "Review queue", icon: Scale, countKey: "reviews" },
   { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/templates", label: "Templates", icon: Mail },
 ];
 const NAV_SETTINGS = { to: "/settings", label: "Settings", icon: Settings };
 const NAV_PLATFORM = { to: "/platform", label: "Platform administration", icon: Building2 };

@@ -43,6 +43,7 @@ const AssessmentsHub = lazy(() => import("./pages/dashboard/AssessmentsHub.jsx")
 const ScoreExplanation = lazy(() => import("./pages/dashboard/ScoreExplanation.jsx"));
 const ReviewQueue = lazy(() => import("./pages/dashboard/ReviewQueue.jsx"));
 const Recordings = lazy(() => import("./pages/dashboard/Recordings.jsx"));
+const Templates = lazy(() => import("./pages/dashboard/Templates.jsx"));
 
 const PlatformConsole = lazy(() => import("./pages/platform/PlatformConsole.jsx"));
 
@@ -186,6 +187,7 @@ export default function App() {
             <Route path="candidates/:id/assessment-report" element={<AssessmentReport />} />
             <Route path="review-queue" element={<ReviewQueue />} />
             <Route path="recordings" element={<Recordings />} />
+            <Route path="templates" element={<Templates />} />
             <Route path="ai-interviews" element={<AIInterviews />} />
             <Route path="assessments" element={<AssessmentsHub />} />
             <Route path="reports" element={<Reports />} />
