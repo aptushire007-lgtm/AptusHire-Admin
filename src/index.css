@@ -518,6 +518,19 @@
 
 .accent-edge { box-shadow: inset 3px 0 0 var(--color-brand-400); }
 
+/* A preview pane arriving: a 4px rise and a fade. Whole pixels only — a
+   fractional offset on a composited layer rasterises its text soft, which is
+   exactly the blur this file fixed elsewhere. Short enough (180ms) to read as a
+   response to the click rather than as an animation to wait for. */
+@keyframes feature-pane-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.feature-pane-in { animation: feature-pane-in 180ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) {
+  .feature-pane-in { animation: none; }
+}
+
 /* Authenticated recruiting surfaces only. Public pages keep the brand theme. */
 /* The canvas used to sit at #F5F7F6 against #FFFFFF cards — a 2% luminance
    step, which is why dense screens read as one undifferentiated sheet rather

@@ -20,7 +20,10 @@ const STATUS_TONE = {
   todo: "rounded-md bg-amber-100 px-1.5 py-0.5 text-amber-800",
 };
 
-export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count, status, forceActive }) {
+// `iconClass` lets a destination carry its screening step's hue (see
+// lib/featureHues.js) while inactive. On the active pill every icon is white:
+// the pill already says "here", and a coloured glyph on forest would fight it.
+export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count, status, forceActive, iconClass }) {
   return (
     <NavLink
       to={to}
@@ -44,7 +47,7 @@ export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count,
           <>
             {Icon && (
               <Icon
-                className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-slate-500 group-hover:text-slate-700"}`}
+                className={`h-4 w-4 shrink-0 ${active ? "text-white" : iconClass || "text-slate-500 group-hover:text-slate-700"}`}
                 aria-hidden="true"
               />
             )}

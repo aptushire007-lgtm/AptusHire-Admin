@@ -196,6 +196,8 @@ const tileTones = {
   indigo: "bg-indigo-100 text-indigo-800",
   violet: "bg-violet-100 text-violet-800",
   ai: "bg-violet-100 text-violet-800",
+  sky: "bg-sky-100 text-sky-700",
+  teal: "bg-teal-100 text-teal-700",
 };
 
 const tileSizes = {
@@ -292,6 +294,7 @@ export function StatCard({
   label,
   value,
   icon: Icon,
+  iconTone,
   tone = "default",
   note,
   chip,
@@ -318,7 +321,10 @@ export function StatCard({
             the pair as one quantity. Above it, on the label's line, it reads as
             a qualifier of the label — which is what it is. */}
         {chip && <Badge tone={chipTone} className="shrink-0">{chip}</Badge>}
-        {Icon && !chip && <IconTile icon={Icon} tone={t.tile} size="sm" className="shrink-0" />}
+        {/* `iconTone` gives a metric its subject's colour (interviews are
+            violet wherever they appear) without tinting the whole card — a
+            tinted card would read as a verdict, and it is only a figure. */}
+        {Icon && !chip && <IconTile icon={Icon} tone={iconTone || t.tile} size="sm" className="shrink-0" />}
       </div>
       {/* `.num` — mono, tabular, tight. These tiles are read as a ROW of
           figures, and the row only lines up if the digits do. See index.css

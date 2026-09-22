@@ -87,11 +87,11 @@ export default function DashboardHome() {
   const totalJobPages = Math.ceil(jobs.length / jobsPerPage) || 1;
   const paginatedJobs = jobs.slice(jobPage * jobsPerPage, (jobPage + 1) * jobsPerPage);
   const stats = [
-    { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, delta: null, to: "/jobs", accent: "brand" },
-    { label: "Applications",    value: summary.total,      sub: "All roles, including historical applications",                                   icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
-    { label: "Interview queue",    value: liveQueue.length,            sub: "Queue entries for existing roles",                                                   icon: Layers,    delta: null, to: "/ai-interviews", accent: "orange" },
-    { label: "Shortlisted",   value: summary.shortlisted, sub: "Applications at shortlist stage",        icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
-    { label: "Hired",         value: summary.joined,      sub: "Applications marked joined",     icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
+    { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, iconTone: "brand", delta: null, to: "/jobs", accent: "brand" },
+    { label: "Applications",    value: summary.total,      sub: "All roles, including historical applications",                                   icon: Users,     iconTone: "sky", delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
+    { label: "Interview queue",    value: liveQueue.length,            sub: "Queue entries for existing roles",                                                   icon: Layers,    iconTone: "violet", delta: null, to: "/ai-interviews", accent: "orange" },
+    { label: "Shortlisted",   value: summary.shortlisted, sub: "Applications at shortlist stage",        icon: Scale,     iconTone: "teal", delta: null,                  to: "/pipeline",      accent: "brand" },
+    { label: "Hired",         value: summary.joined,      sub: "Applications marked joined",     icon: Users,     iconTone: "positive", delta: null,                  to: "/pipeline",      accent: "orange" },
   ];
 
   return (
@@ -173,7 +173,7 @@ export default function DashboardHome() {
           className={index === 0 ? "accent-edge" : ""}
           aria-label={loading ? item.label : `${item.value} ${item.label}`}
           label={item.label} value={loading ? <Skeleton className="h-7 w-16" /> : loadError ? "—" : item.value}
-          note={item.sub} icon={item.icon}
+          note={item.sub} icon={item.icon} iconTone={item.iconTone}
           chip={item.delta == null ? undefined : `${item.delta > 0 ? "+" : ""}${item.delta}%`}
           chipTone={item.delta > 0 ? "green" : item.delta < 0 ? "red" : "slate"}
         />)}</StatGrid>

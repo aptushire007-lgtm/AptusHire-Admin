@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../../api/client.js";
+import { HUES, STEP_HUE } from "../../lib/featureHues.js";
 import {
   ArrowLeft,
   KanbanSquare,
@@ -35,12 +36,12 @@ import { NavItem, NavGroupLabel } from "./NavItem.jsx";
 export const JOB_SECTIONS = [
   { key: "pipeline", label: "Pipeline", icon: KanbanSquare, group: "Candidates" },
   { key: "candidates", label: "All candidates", icon: Users, group: "Candidates" },
-  { key: "cv-screening", label: "CV screening", icon: FileCheck2, group: "Screening steps" },
+  { key: "cv-screening", label: "CV screening", icon: FileCheck2, group: "Screening steps", hue: STEP_HUE.cv },
   // `title` is the page heading when it differs from the rail label: "Skills
   // assessment" does not fit beside its status in a 236px rail, but a page
   // heading has the room to say it in full.
-  { key: "assessment", label: "Assessment", title: "Skills assessment", icon: FileQuestion, group: "Screening steps" },
-  { key: "ai-interview", label: "AI interview", icon: Bot, group: "Screening steps" },
+  { key: "assessment", label: "Assessment", title: "Skills assessment", icon: FileQuestion, group: "Screening steps", hue: STEP_HUE.assessment },
+  { key: "ai-interview", label: "AI interview", icon: Bot, group: "Screening steps", hue: STEP_HUE.interview },
   { key: "details", label: "Job details", icon: FileText, group: "Job" },
   { key: "activity", label: "Activity", icon: Activity, group: "Job" },
 ];
@@ -228,6 +229,9 @@ export default function JobSidebar({ jobId, section, collapsed, onNavigate }) {
                     forceActive={section === s.key}
                     count={count}
                     status={status}
+                    // The same hue the step wears when a job is created, so
+                    // the colour a recruiter learned there still means it here.
+                    iconClass={s.hue ? HUES[s.hue].icon : undefined}
                   />
                 );
               })}
