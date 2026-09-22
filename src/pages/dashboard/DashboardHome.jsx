@@ -156,20 +156,6 @@ export default function DashboardHome() {
       {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
         <span>{loadError} Figures may be incomplete.</span><Button variant="secondary" size="sm" onClick={refresh}>Refresh</Button>
       </div>}
-      <Card padding="none">
-        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Ordered by what blocks a decision first." />
-        {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
-          visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
-          <ul className="max-h-[360px] overflow-y-auto overscroll-contain">{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
-            <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
-            <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
-          </li>)}</ul>}
-        {summary.attentionTotal > 20 && <div className="flex flex-wrap items-center gap-3 p-3">
-          <Button variant="secondary" size="sm" disabled={taskPage === 1} onClick={() => setTaskPage(page => page - 1)}>Previous tasks</Button>
-          <span className="text-xs">Page {taskPage} of {Math.ceil(summary.attentionTotal / 20)}</span>
-          <Button variant="secondary" size="sm" disabled={taskPage >= Math.ceil(summary.attentionTotal / 20)} onClick={() => setTaskPage(page => page + 1)}>Next tasks</Button>
-        </div>}
-      </Card>
       <section aria-label="Key Performance Indicators">
         <StatGrid min={170}>{stats.map((item, index) => <StatCard key={item.label} as={Link} to={item.to} interactive
           className={index === 0 ? "accent-edge" : ""}
@@ -195,6 +181,20 @@ export default function DashboardHome() {
           })}</div>
         </Card>
       </section>
+      <Card padding="none">
+        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Ordered by what blocks a decision first." />
+        {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
+          visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
+          <ul className="max-h-[360px] overflow-y-auto overscroll-contain">{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
+            <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
+            <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
+          </li>)}</ul>}
+        {summary.attentionTotal > 20 && <div className="flex flex-wrap items-center gap-3 p-3">
+          <Button variant="secondary" size="sm" disabled={taskPage === 1} onClick={() => setTaskPage(page => page - 1)}>Previous tasks</Button>
+          <span className="text-xs">Page {taskPage} of {Math.ceil(summary.attentionTotal / 20)}</span>
+          <Button variant="secondary" size="sm" disabled={taskPage >= Math.ceil(summary.attentionTotal / 20)} onClick={() => setTaskPage(page => page + 1)}>Next tasks</Button>
+        </div>}
+      </Card>
       <section className="grid items-start gap-[18px] xl:grid-cols-3">
         <Card padding="none"><CardHeader title="Recent candidates" action={<Link to="/candidates" className="text-xs font-semibold text-brand-700 hover:underline">View all</Link>} />
           {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.recent.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No candidates yet.</p> : model.recent.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Application"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
