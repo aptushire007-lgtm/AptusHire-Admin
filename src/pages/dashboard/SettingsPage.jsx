@@ -9,6 +9,7 @@ import { Card, Badge, Skeleton } from "../../components/ui/Card.jsx";
 import { Input, Select, Label, FormGroup } from "../../components/ui/Field.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
+import EmailHealth from "../../components/settings/EmailHealth.jsx";
 
 // A small inline switch — the UI kit has no toggle, and a checkbox reads poorly for on/off policy.
 function Toggle({ checked, onChange, disabled, label }) {
@@ -667,7 +668,8 @@ export default function SettingsPage() {
           </Card>
 
           </section>
-          <section hidden={section !== "notifications"} aria-label="Email notification settings">
+          <section hidden={section !== "notifications"} aria-label="Email notification settings" className="space-y-4">
+          <EmailHealth />
           {/* Notifications */}
           <Card>
             <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">

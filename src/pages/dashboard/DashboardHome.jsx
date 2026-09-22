@@ -160,7 +160,7 @@ export default function DashboardHome() {
         <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Ordered by what blocks a decision first." />
         {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
           visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
-          <ul>{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
+          <ul className="max-h-[360px] overflow-y-auto overscroll-contain">{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
             <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
             <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
           </li>)}</ul>}
