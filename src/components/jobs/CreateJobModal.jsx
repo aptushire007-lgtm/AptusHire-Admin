@@ -99,9 +99,9 @@ const PRIORITY_TIERS = {
   bonus: {
     key: "bonus",
     label: "Good to Have",
-    badgeClass: "bg-indigo-50 text-indigo-600 border-indigo-200",
+    badgeClass: "bg-emerald-50 text-brand-800 border-emerald-200",
     borderClass: "border-l-indigo-500",
-    dotClass: "bg-indigo-500",
+    dotClass: "bg-brand-700",
     bars: 1,
     multiplier: 1,
     subtitle: "Bonus qualification",
@@ -487,7 +487,7 @@ function ParticleSwirlCanvas() {
       width={280}
       height={180}
       className="mx-auto block"
-      aria-label="Creating hiring project animation"
+      aria-label="Creating job animation"
     />
   );
 }
@@ -495,6 +495,65 @@ function ParticleSwirlCanvas() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Modal Component
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * The one header every step of job creation uses: Back, the step's question,
+ * where you are, Close.
+ *
+ * Each step used to hand-roll its own, so they drifted: some had a divider and
+ * some did not, and one carried a static `bg-brand-700` bar styled like a
+ * progress indicator that measured nothing. No step said how many remained.
+ * This draws a real one — a segment per step, filled up to this one — with the
+ * count in words beside it, so "how much is left" is answerable at a glance.
+ *
+ * The 88px side columns hold the title dead centre whether or not there is a
+ * Back button, so the heading does not shift sideways as you move through the
+ * steps. `id="create-job-modal-title"` is what the dialog is labelled by.
+ */
+function StepHeader({ title, onBack, onClose, position, total }) {
+  return (
+    <div className="border-b border-hairline pb-4">
+      <div className="grid grid-cols-[88px_1fr_88px] items-center gap-2">
+        <div>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-hairline px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+            </button>
+          )}
+        </div>
+        <h2 id="create-job-modal-title" className="text-center font-display text-lg leading-snug font-semibold text-slate-900">
+          {title}
+        </h2>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-canvas hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+      {position > 0 && total > 1 && (
+        <div className="mt-3 flex flex-col items-center gap-1.5">
+          <div className="flex w-full max-w-[240px] gap-1" aria-hidden="true">
+            {Array.from({ length: total }, (_, i) => (
+              <span key={i} className={`h-1 flex-1 rounded-full ${i < position ? "bg-brand-700" : "bg-slate-200"}`} />
+            ))}
+          </div>
+          <p className="text-xs text-slate-500">
+            Step {position} of {total}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJob, initialDraft = null }) {
   const navigate = useNavigate();
   const toast = useToast();
@@ -524,6 +583,13 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
     reviewQueue: true,
   });
   const [focusedFeature, setFocusedFeature] = useState("aiInterview");
+
+  // Where the recruiter is in the flow, and how much is left. The step count
+  // genuinely varies — the AI interview and skills test screens only appear
+  // when those are included — so it is derived from `includes` rather than
+  // fixed, and updates live as the recruiter ticks options on step 2.
+  const flow = [1, 2, 3, ...(includes.aiInterview ? [4] : []), 5, ...(includes.test ? ["assessment"] : [])];
+  const progress = { position: flow.indexOf(step) + 1, total: flow.length };
 
   // Step 3 Setup options: 'jd' (upload or enter) | 'title' (AI generate) | 'duplicate'
   const [setupMode, setSetupMode] = useState("jd");
@@ -1167,7 +1233,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       if (warnings.length) {
         toast.info(`Job created with ${warnings.length} step${warnings.length === 1 ? "" : "s"} still to finish.`);
       } else {
-        toast.success("Hiring Project created successfully!");
+        toast.success("Job created");
       }
     } catch (err) {
       // Stays on step 6: the failure is the API's (quota, conflict, network),
@@ -1190,7 +1256,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
           .join(" ");
         setError(fieldMsg);
       } else {
-        setError(respData?.error || "Failed to create the hiring project. Please try again.");
+        setError(respData?.error || "Could not create the job. Please try again.");
       }
     }
   }
@@ -1216,21 +1282,11 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       ────────────────────────────────────────────────────────────────────────── */}
       {step === 1 && (
         <div className="relative w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-150">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close modal"
-            className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-
-          <h2
-            id="create-job-modal-title"
-            className="text-center text-lg font-bold text-slate-900 mb-6"
-          >
-            New Hiring Project
-          </h2>
+          {/* "Create a job", not Flowmingo's "New Hiring Project": everywhere
+              else in this product the thing is a Job, and the dialog that
+              creates one should use the same word as the button that opened it. */}
+          <StepHeader title="Create a job" onClose={onClose} {...progress} />
+          <div className="mb-5" />
 
           <form onSubmit={handleStep1Continue} className="space-y-4">
             <div>
@@ -1247,7 +1303,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 placeholder="e.g. AI Specialist"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full rounded-xl border border-blue-400 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100/70 transition placeholder:text-slate-400"
+                className="w-full rounded-xl border border-brand-700 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-4 focus:ring-emerald-100/70 transition placeholder:text-slate-400"
               />
             </div>
 
@@ -1256,7 +1312,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 htmlFor="project-name-input"
                 className="block text-xs font-semibold text-slate-700 mb-1.5"
               >
-                Project Name <span className="text-slate-400 font-normal">(internal use only)</span>
+                Internal name <span className="text-slate-500 font-normal">(only your team sees this)</span>
               </label>
               <input
                 id="project-name-input"
@@ -1264,7 +1320,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 placeholder={title ? `${title} - Project` : "Project Name"}
                 value={projectName}
                 onChange={(e) => handleProjectNameChange(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-50 transition"
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition"
               />
               <p className="mt-1 text-[11px] text-slate-400">
                 Auto-filled from Job Title — edit if you want.
@@ -1282,7 +1338,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   placeholder="e.g. Bengaluru · Hybrid"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-50 transition"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition"
                 />
               </div>
               <div>
@@ -1295,7 +1351,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   placeholder="e.g. Engineering"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-50 transition"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition"
                 />
               </div>
             </div>
@@ -1312,7 +1368,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 step="1"
                 value={numberOfOpenings}
                 onChange={(e) => setNumberOfOpenings(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-50 transition sm:w-40"
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition sm:w-40"
               />
               <p className="mt-1 text-[11px] text-slate-400">
                 The role closes automatically once this many offers are accepted.
@@ -1329,7 +1385,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               <button
                 type="submit"
                 disabled={!title.trim()}
-                className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Continue
               </button>
@@ -1343,26 +1399,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       ────────────────────────────────────────────────────────────────────────── */}
       {step === 2 && (
         <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-            <h2 id="create-job-modal-title" className="text-base font-bold text-slate-900">
-              What will this project include?
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <StepHeader title="What will this job include?" onBack={() => setStep(1)} onClose={onClose} {...progress} />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-4 flex-1 overflow-y-auto">
             {/* Left Column */}
@@ -1378,8 +1415,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("aiInterview")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "aiInterview"
-                        ? "border border-blue-400 bg-blue-50/20 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <label className="flex items-center gap-3 cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1387,14 +1424,14 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         type="checkbox"
                         checked={includes.aiInterview}
                         onChange={() => toggleInclude("aiInterview")}
-                        className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black accent-black cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-300 accent-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 cursor-pointer"
                       />
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <Bot className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-900">AI Interview</span>
+                      <span className="text-sm font-semibold text-slate-900">AI Interview</span>
                     </label>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-600 border border-blue-200">
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-brand-800 border border-emerald-200">
                       Recommended
                     </span>
                   </div>
@@ -1404,8 +1441,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("cvEvaluation")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "cvEvaluation"
-                        ? "border border-blue-400 bg-blue-50/20 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <label className="flex items-center gap-3 cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1413,12 +1450,12 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         type="checkbox"
                         checked={includes.cvEvaluation}
                         onChange={() => toggleInclude("cvEvaluation")}
-                        className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black accent-black cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-300 accent-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 cursor-pointer"
                       />
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <FileCheck2 className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-900">CV Evaluation</span>
+                      <span className="text-sm font-semibold text-slate-900">CV Evaluation</span>
                     </label>
                   </div>
 
@@ -1427,8 +1464,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("test")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "test"
-                        ? "border border-blue-400 bg-blue-50/20 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <label className="flex items-center gap-3 cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1436,12 +1473,12 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         type="checkbox"
                         checked={includes.test}
                         onChange={() => toggleInclude("test")}
-                        className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black accent-black cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-300 accent-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 cursor-pointer"
                       />
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-brand-700">
                         <FileCode className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-900">Skills Assessment (Test)</span>
+                      <span className="text-sm font-semibold text-slate-900">Skills Assessment (Test)</span>
                     </label>
                   </div>
 
@@ -1450,8 +1487,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("reviewQueue")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "reviewQueue"
-                        ? "border border-blue-400 bg-blue-50/20 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <label className="flex items-center gap-3 cursor-pointer flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1459,12 +1496,12 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         type="checkbox"
                         checked={includes.reviewQueue}
                         onChange={() => toggleInclude("reviewQueue")}
-                        className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black accent-black cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-300 accent-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 cursor-pointer"
                       />
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                         <ShieldCheck className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-900">Human Review Queue</span>
+                      <span className="text-sm font-semibold text-slate-900">Human Review Queue</span>
                     </label>
                   </div>
                 </div>
@@ -1479,8 +1516,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("ats")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "ats"
-                        ? "border border-teal-400 bg-teal-50/30 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -1499,15 +1536,15 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setFocusedFeature("jobPost")}
                     className={`flex items-center justify-between rounded-xl p-2.5 transition cursor-pointer ${
                       focusedFeature === "jobPost"
-                        ? "border border-blue-400 bg-blue-50/20 shadow-xs"
-                        : "border border-transparent hover:bg-slate-50"
+                        ? "border border-brand-700 bg-emerald-50 shadow-xs"
+                        : "border border-hairline bg-white hover:border-slate-300"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-4 w-4 items-center justify-center rounded bg-slate-200 text-slate-600">
                         <Check className="h-3 w-3" />
                       </div>
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <Briefcase className="h-4 w-4" />
                       </div>
                       <span className="text-xs font-semibold text-slate-700">Job Post</span>
@@ -1517,22 +1554,22 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               </div>
 
               <p className="text-[11px] text-slate-400 pt-2">
-                You can configure evaluation plans and assessment papers after project creation.
+                You can change any of these after the job is created.
               </p>
             </div>
 
             {/* Right Column: Preview Pane */}
             <div className="md:col-span-7 flex flex-col">
               {focusedFeature === "aiInterview" && (
-                <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/30 via-white to-sky-50/40 p-6 flex-1 flex flex-col justify-between">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 via-white to-emerald-50/40 p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <Bot className="h-4 w-4" />
                       </div>
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">AI Voice & Video Interview</h3>
-                        <p className="text-[11px] text-blue-600 font-medium">LiveKit conversational evaluation</p>
+                        <p className="text-xs text-brand-800 font-medium">Conducted by voice and video</p>
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-slate-600 leading-relaxed">
@@ -1544,19 +1581,19 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     </p>
                     <ol className="space-y-3 text-xs text-slate-600">
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           1
                         </span>
                         <span>An AI Interviewer asks approved role questions, listens, and dynamically probes deeper on resume claims.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           2
                         </span>
                         <span>Every answer is transcribed, analyzed, and scored against your calibrated rubric criteria.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           3
                         </span>
                         <span>Recruiters review timestamped video recordings, AI summaries, and verified skill scores.</span>
@@ -1568,13 +1605,13 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-slate-800 p-2 text-center text-white">
                           <div className="rounded bg-slate-700/80 p-3 flex flex-col items-center justify-center">
                             <div className="h-6 w-6 rounded-full bg-slate-500 mb-1" />
-                            <span className="text-[9px] text-slate-300">Candidate</span>
+                            <span className="text-[11px] text-slate-300">Candidate</span>
                           </div>
                           <div className="rounded bg-slate-700/80 p-3 flex flex-col items-center justify-center">
-                            <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center font-bold text-[10px] text-white mb-1">
+                            <div className="h-6 w-6 rounded-full bg-brand-800 flex items-center justify-center font-bold text-[10px] text-white mb-1">
                               AI
                             </div>
-                            <span className="text-[9px] text-slate-300">Interviewer</span>
+                            <span className="text-[11px] text-slate-300">Interviewer</span>
                           </div>
                         </div>
                         <div className="mt-1.5 flex justify-center">
@@ -1588,7 +1625,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     <button
                       type="button"
                       onClick={() => toast.info("AI Interview configuration will open in Step 4.")}
-                      className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 text-xs font-semibold shadow-xs transition cursor-pointer"
+                      className="rounded-full bg-brand-800 hover:bg-brand-800 text-white px-4 py-1.5 text-xs font-semibold shadow-xs transition cursor-pointer"
                     >
                       Preview Candidate Experience
                     </button>
@@ -1597,15 +1634,15 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               )}
 
               {focusedFeature === "cvEvaluation" && (
-                <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/30 via-white to-blue-50/30 p-6 flex-1 flex flex-col justify-between">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 via-white to-emerald-50/30 p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <FileCheck2 className="h-4 w-4" />
                       </div>
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">CV Evaluation (ATS Screening)</h3>
-                        <p className="text-[11px] text-indigo-600 font-medium">Automated resume criteria scoring</p>
+                        <p className="text-[11px] text-brand-800 font-medium">Automated resume criteria scoring</p>
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-slate-600 leading-relaxed">
@@ -1617,19 +1654,19 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     </p>
                     <ol className="space-y-3 text-xs text-slate-600">
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           1
                         </span>
                         <span>Resumes are parsed to extract verified skills, years of experience, and project achievements.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           2
                         </span>
                         <span>Each criterion in the job's role rubric is scored from 0 to 100 with clear evidence citations.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">
                           3
                         </span>
                         <span>Candidates passing the ATS threshold (e.g. 60/100) automatically advance to assessment or interview.</span>
@@ -1642,11 +1679,11 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                           <span className="text-[10px] font-bold text-slate-700">ATS Criteria Scorecard</span>
                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">84/100</span>
                         </div>
-                        <div className="space-y-1 text-[9px] text-slate-600">
+                        <div className="space-y-1 text-[11px] text-slate-600">
                           <div className="flex justify-between"><span>Technical Competence</span><span className="font-semibold text-slate-900">90%</span></div>
-                          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-600 w-[90%]" /></div>
+                          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-brand-800 w-[90%]" /></div>
                           <div className="flex justify-between pt-1"><span>Experience Depth</span><span className="font-semibold text-slate-900">80%</span></div>
-                          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-600 w-[80%]" /></div>
+                          <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-brand-800 w-[80%]" /></div>
                         </div>
                       </div>
                     </div>
@@ -1655,15 +1692,15 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               )}
 
               {focusedFeature === "test" && (
-                <div className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/30 via-white to-amber-50/20 p-6 flex-1 flex flex-col justify-between">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 via-white to-amber-50/20 p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-brand-700">
                         <FileCode className="h-4 w-4" />
                       </div>
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">Skills Assessment (Technical Test)</h3>
-                        <p className="text-[11px] text-rose-600 font-medium">Timed coding & domain quizzes</p>
+                        <p className="text-[11px] text-brand-700 font-medium">Timed coding & domain quizzes</p>
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-slate-600 leading-relaxed">
@@ -1675,19 +1712,19 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     </p>
                     <ol className="space-y-3 text-xs text-slate-600">
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           1
                         </span>
                         <span>Assign an approved assessment paper with custom coding exercises or multiple-choice sections.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           2
                         </span>
                         <span>Candidates take the timed exam inside the secure portal with anti-cheat telemetry.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           3
                         </span>
                         <span>Code compilation results and question breakdowns appear directly on the candidate's scorecard.</span>
@@ -1698,9 +1735,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <div className="w-64 rounded-xl border border-slate-200 bg-slate-900 p-3 text-white shadow-xs">
                         <div className="flex items-center justify-between text-[10px] border-b border-slate-800 pb-1 mb-2">
                           <span className="text-slate-400">Section 1 • Coding</span>
-                          <span className="text-rose-400 font-mono">24:50 remaining</span>
+                          <span className="text-brand-400 font-mono">24:50 remaining</span>
                         </div>
-                        <div className="font-mono text-[9px] text-emerald-400 bg-slate-950 p-2 rounded">
+                        <div className="font-mono text-[11px] text-emerald-400 bg-slate-950 p-2 rounded">
                           ✓ Test Case 1 Passed<br />
                           ✓ Test Case 2 Passed
                         </div>
@@ -1754,9 +1791,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <div className="w-64 rounded-xl border border-amber-200 bg-amber-50/60 p-3 shadow-xs text-[10px]">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-amber-900">Flagged: Borderline ATS Score</span>
-                          <span className="bg-amber-100 text-amber-800 font-bold px-1 rounded text-[9px]">Needs Audit</span>
+                          <span className="bg-amber-100 text-amber-800 font-bold px-1 rounded text-[11px]">Needs Audit</span>
                         </div>
-                        <p className="text-slate-600 text-[9px]">Score 58/100 (Threshold 60) — Question 3 requires human verification.</p>
+                        <p className="text-slate-600 text-[11px]">Score 58/100 (Threshold 60) — Question 3 requires human verification.</p>
                       </div>
                     </div>
                   </div>
@@ -1764,7 +1801,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               )}
 
               {focusedFeature === "ats" && (
-                <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/40 via-white to-cyan-50/30 p-6 flex-1 flex flex-col justify-between">
+                <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/40 via-white to-emerald-50/30 p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-700">
@@ -1814,7 +1851,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                           <div className="h-1.5 w-14 bg-slate-200 rounded" />
                         </div>
                         <div className="rounded bg-white p-2 border border-slate-100 shadow-2xs">
-                          <div className="h-2 w-8 bg-blue-400 rounded mb-1" />
+                          <div className="h-2 w-8 bg-brand-700 rounded mb-1" />
                           <div className="h-1.5 w-14 bg-slate-200 rounded" />
                         </div>
                       </div>
@@ -1824,14 +1861,14 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               )}
 
               {focusedFeature === "jobPost" && (
-                <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/20 p-6 flex-1 flex flex-col justify-between">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/30 via-white to-emerald-50/20 p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-brand-800">
                         <Briefcase className="h-4 w-4" />
                       </div>
                       <h3 className="text-sm font-bold text-slate-900">Job Post & Careers Portal</h3>
-                      <span className="ml-2 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-800">
+                      <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-brand-800">
                         Comes with every hiring project
                       </span>
                     </div>
@@ -1844,19 +1881,19 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     </p>
                     <ol className="space-y-3 text-xs text-slate-600">
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           1
                         </span>
                         <span>Publish your role with one click to make it visible on your company's careers portal.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           2
                         </span>
                         <span>Candidates review full responsibilities, requirements, and submit their application directly.</span>
                       </li>
                       <li className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
                           3
                         </span>
                         <span>Headcount caps and vacancy controls automatically close the role once openings are filled.</span>
@@ -1867,10 +1904,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <div className="w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xs text-[10px]">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-slate-900">{title || "Public Role Title"}</span>
-                          <span className="bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded text-[9px]">Active Post</span>
+                          <span className="bg-emerald-50 text-brand-800 font-bold px-1.5 py-0.5 rounded text-[11px]">Active Post</span>
                         </div>
-                        <p className="text-slate-500 text-[9px] mb-2">Remote / Hybrid • Full-time</p>
-                        <div className="w-full text-center py-1 bg-black text-white rounded font-medium text-[9px]">
+                        <p className="text-slate-500 text-[11px] mb-2">Remote / Hybrid • Full-time</p>
+                        <div className="w-full text-center py-1 bg-black text-white rounded font-medium text-[11px]">
                           Apply for this role
                         </div>
                       </div>
@@ -1885,7 +1922,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleStep2Continue}
-              className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer"
+              className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer"
             >
               Continue
             </button>
@@ -1898,38 +1935,14 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       ────────────────────────────────────────────────────────────────────────── */}
       {step === 3 && (
         <div className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
-          <div className="flex items-center justify-between pb-2">
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-
-            <div className="text-center">
-              <h2 id="create-job-modal-title" className="text-base font-bold text-slate-900">
-                How would you like to set things up?
-              </h2>
-              <div className="h-1 w-10 bg-blue-500 rounded-full mx-auto mt-1.5" />
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <StepHeader title="How would you like to set things up?" onBack={() => setStep(2)} onClose={onClose} {...progress} />
 
           <div className="mt-4 space-y-3 flex-1 overflow-y-auto pr-1">
             {/* Option 1: From Job Description */}
             <div
               className={`rounded-2xl border transition ${
                 setupMode === "jd"
-                  ? "border-blue-400 ring-2 ring-blue-50 bg-white"
+                  ? "border-brand-700 ring-2 ring-emerald-50 bg-white"
                   : "border-slate-200/80 bg-white hover:border-slate-300"
               } p-4.5`}
             >
@@ -1947,7 +1960,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-900">From Job Description</span>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 border border-blue-200">
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-brand-800 border border-emerald-200">
                       Recommended
                     </span>
                   </div>
@@ -1992,7 +2005,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         setJdText(SAMPLE_JD);
                         toast.info("Sample loaded — edit it to describe your actual role before continuing.");
                       }}
-                      className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer inline-flex items-center gap-1"
+                      className="text-xs font-semibold text-brand-800 hover:underline cursor-pointer inline-flex items-center gap-1"
                     >
                       Don't have a JD? Try with a sample →
                     </button>
@@ -2027,7 +2040,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         placeholder="Paste your job description here (responsibilities, qualifications, requirements)..."
                         value={jdText}
                         onChange={(e) => setJdText(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-50 leading-relaxed transition"
+                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-800 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 leading-relaxed transition"
                       />
                       <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1">
                         <span>Include core responsibilities for optimal rubric compilation.</span>
@@ -2043,7 +2056,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <div
               className={`rounded-2xl border transition ${
                 setupMode === "title"
-                  ? "border-blue-400 ring-2 ring-blue-50 bg-white"
+                  ? "border-brand-700 ring-2 ring-emerald-50 bg-white"
                   : "border-slate-200/80 bg-white hover:border-slate-300"
               } p-4.5`}
             >
@@ -2091,7 +2104,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <div
               className={`rounded-2xl border transition ${
                 setupMode === "duplicate"
-                  ? "border-blue-400 ring-2 ring-blue-50 bg-white"
+                  ? "border-brand-700 ring-2 ring-emerald-50 bg-white"
                   : "border-slate-200/80 bg-white hover:border-slate-300"
               } p-4.5`}
             >
@@ -2107,9 +2120,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   className="mt-0.5 h-4 w-4 text-black focus:ring-black accent-black cursor-pointer"
                 />
                 <div className="flex-1">
-                  <span className="text-sm font-bold text-slate-900">Duplicate previous project to customize</span>
+                  <span className="text-sm font-bold text-slate-900">Duplicate a previous job</span>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Clone an existing Hiring Project as a starting point.
+                    Start from a copy of an existing job.
                   </p>
                 </div>
               </label>
@@ -2123,7 +2136,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       placeholder="Search past projects..."
                       value={pastProjectsSearch}
                       onChange={(e) => setPastProjectsSearch(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-50"
+                      className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-50"
                     />
                   </div>
 
@@ -2180,7 +2193,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 (setupMode === "jd" && !jdText.trim()) ||
                 (setupMode === "duplicate" && !selectedPastJobId)
               }
-              className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+              className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
             >
               Continue
             </button>
@@ -2194,26 +2207,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       {step === 4 && (
         <div className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <button
-              type="button"
-              onClick={() => setStep(3)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-            <h2 id="create-job-modal-title" className="text-base font-bold text-slate-900">
-              Review your AI Interview
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <StepHeader title="Review your AI Interview" onBack={() => setStep(3)} onClose={onClose} {...progress} />
 
           {/* Subtabs: General Settings vs Questions */}
           <div className="pt-4 flex justify-center">
@@ -2255,7 +2249,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     type="text"
                     value={interviewerName}
                     onChange={(e) => setInterviewerName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-50"
                   />
                 </div>
                 <div>
@@ -2266,7 +2260,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     type="text"
                     value={interviewerTitle}
                     onChange={(e) => setInterviewerTitle(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-50"
                   />
                 </div>
               </div>
@@ -2275,10 +2269,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-blue-600" />
+                    <Clock className="h-4 w-4 text-brand-800" />
                     <span className="text-xs font-semibold text-slate-800">Interview Duration</span>
                   </div>
-                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200">
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-brand-800 border border-emerald-200">
                     {interviewDuration} min
                   </span>
                 </div>
@@ -2289,7 +2283,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   step="5"
                   value={interviewDuration}
                   onChange={(e) => setInterviewDuration(Number(e.target.value))}
-                  className="w-full accent-blue-600 cursor-pointer"
+                  className="w-full accent-brand-800 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 font-medium">
                   <span>10m</span>
@@ -2298,7 +2292,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   <span>45m</span>
                   <span>60m</span>
                 </div>
-                <p className="text-[11px] text-blue-600 font-medium pt-0.5">
+                <p className="text-[11px] text-brand-800 font-medium pt-0.5">
                   Recommended: 15-20 min for standard screening depth.
                 </p>
               </div>
@@ -2313,7 +2307,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   <select
                     value={interviewLanguage}
                     onChange={(e) => setInterviewLanguage(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-2 text-xs text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-50 bg-white cursor-pointer"
+                    className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-2 text-xs text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-50 bg-white cursor-pointer"
                   >
                     <option value="English (US)">English (US)</option>
                     <option value="English (UK)">English (UK)</option>
@@ -2325,11 +2319,11 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 </div>
               </div>
 
-              {/* LiveKit Telemetry Info Card */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3 flex items-start gap-2.5">
-                <Bot className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+              {/* How the AI interview runs */}
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 flex items-start gap-2.5">
+                <Bot className="h-4 w-4 text-brand-800 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  <strong>LiveKit Audio & Video:</strong> The AI interviewer conducts natural conversational evaluations and adapts follow-ups in real time according to your rubric.
+                  <strong>Voice &amp; video:</strong> The AI interviewer conducts natural conversational evaluations and adapts follow-ups in real time according to your rubric.
                 </p>
               </div>
             </div>
@@ -2355,7 +2349,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onChange={(e) => setCvProbingEnabled(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-800"></div>
                 </label>
               </div>
 
@@ -2370,7 +2364,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setQuestionMode("dynamic")}
                     className={`rounded-xl border p-2.5 text-left transition cursor-pointer ${
                       questionMode === "dynamic"
-                        ? "border-blue-500 bg-blue-50/30 text-slate-900 ring-1 ring-blue-500"
+                        ? "border-brand-700 bg-emerald-50/30 text-slate-900 ring-1 ring-brand-700"
                         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -2383,7 +2377,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setQuestionMode("preset")}
                     className={`rounded-xl border p-2.5 text-left transition cursor-pointer ${
                       questionMode === "preset"
-                        ? "border-blue-500 bg-blue-50/30 text-slate-900 ring-1 ring-blue-500"
+                        ? "border-brand-700 bg-emerald-50/30 text-slate-900 ring-1 ring-brand-700"
                         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -2407,7 +2401,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         "What key technical challenge have you recently overcome?",
                       ])
                     }
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-brand-800 hover:text-brand-800 inline-flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="h-3.5 w-3.5" /> Add question
                   </button>
@@ -2430,7 +2424,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                             return copy;
                           });
                         }}
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-50"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-50"
                       />
                       <button
                         type="button"
@@ -2476,7 +2470,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleStep4Continue}
-              className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer"
+              className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer"
             >
               Continue
             </button>
@@ -2490,31 +2484,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       {step === 5 && (
         <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <button
-              type="button"
-              onClick={() => setStep(includes.aiInterview ? 4 : 3)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-            <div className="text-center">
-              <h2 id="create-job-modal-title" className="text-base font-bold text-slate-900">
-                Define what makes a successful candidate
-              </h2>
-              <p className="text-[11px] text-slate-500">
-                Set the criteria that matter for this role. These seed the rubric — edit them and their priority levels below.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <StepHeader title="Define what makes a successful candidate" onBack={() => setStep(includes.aiInterview ? 4 : 3)} onClose={onClose} {...progress} />
 
           {/* Starting-point banner.
               This used to read "✨ AI Calibrated: <role>" over criteria that
@@ -2575,7 +2545,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${tier.dotClass}`} />
                         <span>{tier.label}</span>
-                        <span className="text-[9px] opacity-75">({tier.bars}/4)</span>
+                        <span className="text-[11px] opacity-75">({tier.bars}/4)</span>
                       </button>
 
                       <button
@@ -2597,7 +2567,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       value={c.description}
                       onChange={(e) => handleUpdateCriterion(idx, "description", e.target.value)}
                       placeholder="Explain what satisfactory performance looks like for this criterion..."
-                      className="w-full text-xs text-slate-600 border border-slate-100 rounded-lg p-2 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-100 resize-none"
+                      className="w-full text-xs text-slate-600 border border-slate-100 rounded-lg p-2 focus:border-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-100 resize-none"
                     />
                     <div className="flex justify-end text-[10px] text-slate-400">
                       <span>{c.description?.length || 0}/200 characters</span>
@@ -2618,7 +2588,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                             onClick={() => handleSelectPriority(idx, pTier.key)}
                             className={`flex flex-col items-start p-2 rounded-lg border text-left transition cursor-pointer ${
                               c.importance === pTier.key
-                                ? "border-blue-500 bg-blue-50/30 ring-1 ring-blue-500"
+                                ? "border-brand-700 bg-emerald-50/30 ring-1 ring-brand-700"
                                 : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-300"
                             }`}
                           >
@@ -2628,7 +2598,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                                 {pTier.label}
                               </span>
                             </div>
-                            <span className="text-[9px] text-slate-500 leading-tight">
+                            <span className="text-[11px] text-slate-500 leading-tight">
                               {pTier.subtitle}
                             </span>
                           </button>
@@ -2644,7 +2614,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleAddCriterion}
-              className="w-full rounded-xl border-2 border-dashed border-slate-200 py-3 text-center text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600 transition cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full rounded-xl border-2 border-dashed border-slate-200 py-3 text-center text-xs font-semibold text-slate-600 hover:border-brand-700 hover:text-brand-800 transition cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus className="h-4 w-4" /> Add criterion
             </button>
@@ -2655,7 +2625,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleStep5Continue}
-              className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-2"
+              className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-2"
             >
               Continue
             </button>
@@ -2669,39 +2639,15 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       {step === "assessment" && (
         <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <button
-              type="button"
-              onClick={() => setStep(5)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </button>
-            <div className="text-center">
-              <h2 id="create-job-modal-title" className="text-base font-bold text-slate-900">
-                Skills Assessment Configuration
-              </h2>
-              <p className="text-[11px] text-slate-500">
-                Configure test duration, adaptive difficulty, proctoring, and question topics
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <StepHeader title="Skills Assessment Configuration" onBack={() => setStep(5)} onClose={onClose} {...progress} />
 
           <div className="flex-1 overflow-y-auto space-y-4 pt-4 pr-1">
             {/* Banner: Grounded in Rubric */}
-            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3 flex items-start gap-2.5">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white mt-0.5">
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 flex items-start gap-2.5">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-800 text-white mt-0.5">
                 <Sparkles className="h-3.5 w-3.5" />
               </div>
-              <div className="text-xs text-blue-900">
+              <div className="text-xs text-brand-900">
                 <span className="font-bold">Grounded in your calibrated rubric:</span> Test questions will be compiled directly from the {criteria.length} evaluation criteria you defined in the previous step. No generic or hallucinated trivia questions.
               </div>
             </div>
@@ -2753,13 +2699,13 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setTestDifficulty(item.id)}
                     className={`flex flex-col items-start p-3 rounded-xl border text-left transition cursor-pointer ${
                       testDifficulty === item.id
-                        ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500 shadow-xs"
+                        ? "border-brand-700 bg-emerald-50/40 ring-1 ring-brand-700 shadow-xs"
                         : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full mb-1">
                       <span className="text-xs font-bold text-slate-900">{item.title}</span>
-                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
                         {item.badge}
                       </span>
                     </div>
@@ -2798,14 +2744,14 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     onClick={() => setTestDuration(d.mins)}
                     className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition cursor-pointer ${
                       testDuration === d.mins
-                        ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500 shadow-xs"
+                        ? "border-brand-700 bg-emerald-50/40 ring-1 ring-brand-700 shadow-xs"
                         : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                     }`}
                   >
                     <span className="text-xs font-bold text-slate-900">{d.label}</span>
                     <span className="text-[10px] text-slate-500 mt-0.5">{d.sub}</span>
                     {d.badge && (
-                      <span className="mt-1 text-[8px] font-bold text-blue-600 bg-blue-100/60 px-1.5 py-0.2 rounded-full">
+                      <span className="mt-1 text-[8px] font-bold text-brand-800 bg-emerald-100/60 px-1.5 py-0.2 rounded-full">
                         {d.badge}
                       </span>
                     )}
@@ -2890,7 +2836,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   placeholder="e.g. React 19, TypeScript, Concurrency, SQL Optimization, System Design"
                   value={customTestTopics}
                   onChange={(e) => setCustomTestTopics(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
 
@@ -2920,7 +2866,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   type="checkbox"
                   checked={testAutoGenerateItems}
                   onChange={(e) => setTestAutoGenerateItems(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black accent-black cursor-pointer"
+                  className="h-4 w-4 rounded border-slate-300 accent-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 cursor-pointer"
                 />
                 <span className="text-xs font-semibold text-slate-800">
                   Synthesize and verify question pool immediately upon project creation
@@ -2941,10 +2887,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={executeProjectCreation}
-              className="rounded-full bg-black hover:bg-slate-800 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-2"
+              className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-2"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Create Hiring Project</span>
+              <span>Create job</span>
             </button>
           </div>
         </div>
@@ -2964,7 +2910,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 id="create-job-modal-title"
                 className="text-lg font-bold text-slate-900 mt-2"
               >
-                Creating your hiring project...
+                Creating your job…
               </h2>
               <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
                 Configuring AI interviewer, compiling evaluation rubrics, and provisioning candidate pipelines.
@@ -2974,7 +2920,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               <div className="mt-5">
                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400 transition-all duration-300 ease-out"
+                    className="h-full bg-gradient-to-r from-brand-800 via-brand-600 to-brand-400 transition-all duration-300 ease-out"
                     style={{ width: `${creationProgress}%` }}
                   />
                 </div>
@@ -2988,7 +2934,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               <div className="mt-6 text-left space-y-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3.5 text-xs text-slate-700">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold ${
                       creationMilestone >= 1 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
                     }`}
                   >
@@ -3001,7 +2947,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
 
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold ${
                       creationMilestone >= 2 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
                     }`}
                   >
@@ -3014,7 +2960,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
 
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold ${
                       creationMilestone >= 3 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
                     }`}
                   >
@@ -3027,7 +2973,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
 
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold ${
                       creationMilestone >= 4 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
                     }`}
                   >
@@ -3061,7 +3007,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 </div>
 
                 <h2 id="create-job-modal-title" className="text-lg font-bold text-slate-900">
-                  Hiring Project Created!
+                  Job created
                 </h2>
                 <p className="mt-1 text-xs text-slate-500">
                   {creationWarnings.length === 0
@@ -3108,13 +3054,13 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     <span className="text-slate-500">Active Modules:</span>
                     <div className="flex gap-1 flex-wrap">
                       {includes.aiInterview && (
-                        <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">AI Interview</span>
+                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-800">AI Interview</span>
                       )}
                       {includes.cvEvaluation && (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">CV Eval</span>
                       )}
                       {includes.test && (
-                        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700">Skills Assessment</span>
+                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-800">Skills Assessment</span>
                       )}
                       <span className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700">ATS</span>
                     </div>
@@ -3156,7 +3102,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                           navigate(`/jobs/${createdJob._id}/assessment`);
                         }
                       }}
-                      className="w-full flex items-center justify-between rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 text-xs font-semibold shadow-xs transition cursor-pointer"
+                      className="w-full flex items-center justify-between rounded-xl bg-brand-700 hover:bg-brand-800 text-white px-4 py-3 text-xs font-semibold shadow-xs transition cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <FileCode className="h-4 w-4" />
