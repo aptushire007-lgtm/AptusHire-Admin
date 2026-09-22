@@ -104,7 +104,9 @@ it("displays isolated, accurate candidate DB information in inspection modal wit
   // unscored candidate's ring says "Not run", never a number.
   expect(screen.getByRole("img", { name: "CV screening: 69 out of 100" })).toBeTruthy();
   expect(screen.getAllByText("Generative AI expertise").length).toBeGreaterThanOrEqual(1);
-  expect(screen.getByText(/"8 years of experience delivering GenAI solutions"/)).toBeTruthy();
+  // The CV quote sits inside its criterion's row — open the row to read it.
+  fireEvent.click(screen.getByRole("button", { name: /Generative AI expertise/, expanded: false }));
+  expect(screen.getByText(/8 years of experience delivering GenAI solutions/)).toBeTruthy();
 
   // The per-criterion reasoning now lives on the ATS Score Breakdown tab,
   // which is where the CV-screening evidence was consolidated.
