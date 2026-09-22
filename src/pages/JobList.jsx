@@ -37,6 +37,7 @@ import { RowAction, TableWrap, Table, THead, TH, TBody, TR, TD } from "../compon
 import { useCompanyData } from "../context/CompanyDataContext.jsx";
 import { getSocket } from "../lib/socket.js";
 import { departmentPalette, initials } from "../lib/departmentHue.js";
+import { boardMeta, isConnected } from "../components/jobs/PublishTargets.jsx";
 
 // The page's department → colour lookup, built once from all its jobs.
 const DeptHue = createContext(departmentPalette([]));
@@ -213,7 +214,15 @@ export function PublishBoardsModal({ job, onClose }) {
           <Skeleton className="h-32 w-full" />
         ) : (
           <div className="space-y-2.5">
-            {boards.map((b) => {
+            {/* Connected first — the ones you can actually post to right now.
+                The rest are folded away rather than sitting there disabled. */}
+            {boards.filter(isConnected).length === 0 && (
+              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-xs text-slate-600">
+                No job board is connected yet. Your careers page still carries this role.{" "}
+                <Link to="/settings?section=integrations" className="font-semibold text-brand-700 hover:underline">Connect a board</Link>
+              </p>
+            )}
+            {boards.filter(isConnected).map((b) => {
               const blocked =
                 !b.enabled || (b.needsCredential && !b.credentialConfigured) || b.validationErrors.length > 0;
               return (
@@ -227,8 +236,10 @@ export function PublishBoardsModal({ job, onClose }) {
                         onChange={(e) => setSelected((s) => ({ ...s, [b.board]: e.target.checked }))}
                         className="h-4 w-4 rounded border-slate-300 text-brand-600"
                       />
+                      <span className={`flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold ring-1 ring-inset ${boardMeta(b.board, b.name).cls}`} aria-hidden="true">
+                        {boardMeta(b.board, b.name).short}
+                      </span>
                       {b.name}
-                      <Badge tone="slate">Tier {b.tier}</Badge>
                     </label>
                     {b.status && <Badge tone={PUB_STATUS_TONE[b.status] || "slate"}>{b.status}</Badge>}
                   </div>
@@ -255,6 +266,33 @@ export function PublishBoardsModal({ job, onClose }) {
                 </div>
               );
             })}
+
+            {boards.some((b) => !isConnected(b)) && (
+              <details className="rounded-xl border border-slate-200 px-3 py-2">
+                <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+                  Not available yet ({boards.filter((b) => !isConnected(b)).length})
+                </summary>
+                <ul className="mt-2 space-y-1.5">
+                  {boards.filter((b) => !isConnected(b)).map((b) => (
+                    <li key={b.board} className="flex items-start gap-2 text-xs text-slate-500">
+                      <span className={`mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold ring-1 ring-inset ${boardMeta(b.board, b.name).cls}`} aria-hidden="true">
+                        {boardMeta(b.board, b.name).short}
+                      </span>
+                      <span>
+                        <span className="font-medium text-slate-700">{b.name}</span> —{" "}
+                        {!b.enabled ? b.reason : "credentials not connected"}
+                        {b.enabled && (
+                          <>
+                            {" "}
+                            <Link to="/settings?section=integrations" className="font-semibold text-brand-700 hover:underline">Connect</Link>
+                          </>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </div>
         )}
 

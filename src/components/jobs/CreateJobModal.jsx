@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import api from "../../api/client.js";
 import { useToast } from "../ui/Toast.jsx";
+import PublishTargets from "./PublishTargets.jsx";
 import { validateJobForm, JOB_FIELD_LABELS } from "../../lib/jobForm.js";
 import FeaturePicker from "./FeaturePicker.jsx";
 
@@ -628,6 +629,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
   const [creationWarnings, setCreationWarnings] = useState([]);
   const [createdJob, setCreatedJob] = useState(null);
   const [publishingImmediately, setPublishingImmediately] = useState(false);
+  // Boards picked on the finish step; posted right after the job goes live.
+  const [publishBoards, setPublishBoards] = useState([]);
   const [error, setError] = useState("");
   const [generationNotice, setGenerationNotice] = useState("");
 
@@ -957,6 +960,19 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
       setCreatedJob(published);
       onCreated?.(published);
       toast.success(`"${published.title}" is now published and live on your careers page!`);
+
+      // Boards only accept a job that is already live, so this follows the
+      // publish rather than riding with it. A board that refuses is said out
+      // loud — the job is still published either way.
+      if (publishBoards.length) {
+        try {
+          await api.post(`/jobs/${createdJob._id}/publish-boards`, { boards: publishBoards });
+          toast.success(`Sent to ${publishBoards.length} job board${publishBoards.length === 1 ? "" : "s"}.`);
+          setPublishBoards([]);
+        } catch (boardErr) {
+          toast.error(boardErr.response?.data?.error || "Published, but posting to the job boards failed.");
+        }
+      }
     } catch (err) {
       const failedCheck = err.response?.data?.readiness?.checks?.find((c) => c.status === "needs_attention");
       const msg = failedCheck?.reason || err.response?.data?.error || "Could not publish job. Please check prerequisites.";
@@ -2551,6 +2567,16 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   </div>
                 </div>
 
+                {/* Where it gets posted — only the platforms this workspace
+                    is actually connected to appear. */}
+                <PublishTargets
+                  jobId={createdJob._id}
+                  value={publishBoards}
+                  onChange={setPublishBoards}
+                  heading={createdJob.status === "published" ? "Also post to" : "Post to"}
+                  className="mt-5"
+                />
+
                 {/* Guided Navigation Buttons */}
                 <div className="mt-6 space-y-2.5">
                   {/* Primary: Publish Job to Careers Portal Now */}
@@ -2563,7 +2589,13 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     >
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4" />
-                        <span>{publishingImmediately ? "Publishing Job..." : "Publish Job to Careers Portal Now"}</span>
+                        <span>
+                          {publishingImmediately
+                            ? "Publishing Job..."
+                            : publishBoards.length
+                            ? `Publish to careers page + ${publishBoards.length} board${publishBoards.length === 1 ? "" : "s"}`
+                            : "Publish Job to Careers Portal Now"}
+                        </span>
                       </div>
                       <span className="text-[11px] bg-emerald-700/80 px-2 py-0.5 rounded text-emerald-100">Make Live</span>
                     </button>

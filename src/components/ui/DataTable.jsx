@@ -64,9 +64,12 @@ export function TR({ children, className = "", ...props }) {
   );
 }
 
-export function TD({ children, align = "left", padding = "default", className = "" }) {
+// `...props` is load-bearing: an actions cell passes `onClick` to stop a click
+// on its menu from reaching the row's own click handler. Dropped here, every
+// press of a row's ⋯ button also opened the row.
+export function TD({ children, align = "left", padding = "default", className = "", ...props }) {
   return (
-    <td className={`${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`}>{children}</td>
+    <td className={`${tdPadding[padding] ?? tdPadding.default} ${cellAlign[align] ?? ""} ${className}`} {...props}>{children}</td>
   );
 }
 
