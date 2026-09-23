@@ -824,7 +824,7 @@ export default function CandidateDrawer({
                 </span>
               )}
 
-              {candidate.status !== "selected" && candidate.status !== "joined" && (
+              {!(["rejected", "selected", "joined"].includes(normalizeStage(candidate.status))) && (
                 <Button
                   variant="primary"
                   size="sm"
@@ -2124,7 +2124,7 @@ export default function CandidateDrawer({
                 Reject Candidate
               </Button>
             )}
-            {candidate.status !== "selected" && candidate.status !== "joined" && (
+            {!(["rejected", "selected", "joined"].includes(normalizeStage(candidate.status))) && (
               <Button
                 variant="primary"
                 size="sm"

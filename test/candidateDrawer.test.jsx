@@ -71,6 +71,12 @@ const mockCandidateB = {
   createdAt: "2026-03-03T10:00:00Z",
 };
 
+const mockRejectedCandidate = {
+  ...mockCandidateA,
+  _id: "cand-rejected",
+  status: "rejected",
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   get.mockImplementation((url) => {
@@ -79,6 +85,9 @@ beforeEach(() => {
     }
     if (url === "/candidates/cand-2") {
       return Promise.resolve({ data: mockCandidateB });
+    }
+    if (url === "/candidates/cand-rejected") {
+      return Promise.resolve({ data: mockRejectedCandidate });
     }
     if (url.startsWith("/interview-sessions/candidate/") || url.startsWith("/interviews/sessions/candidate/")) {
       return Promise.resolve({ data: null });
@@ -130,6 +139,18 @@ it("renders candidate profile, score, and identity in drawer overlay", async () 
   expect(screen.queryByRole("link", { name: /Open full profile/i })).toBeNull();
   expect(screen.getByText("Strong candidate with deep ML systems experience.")).toBeTruthy();
   expect(screen.getByText("PyTorch")).toBeTruthy();
+});
+
+it("does not show advance actions for rejected candidates", async () => {
+  render(
+    <MemoryRouter>
+      <CandidateDrawer candidateId="cand-rejected" onClose={vi.fn()} />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText("Jane Doe")).toBeTruthy();
+  expect(screen.getByText("Status: Rejected")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Advance Candidate|Shortlist Candidate|Schedule Technical Interview/i })).toBeNull();
 });
 
 it("supports cycling through candidate list with Prev and Next buttons", async () => {
