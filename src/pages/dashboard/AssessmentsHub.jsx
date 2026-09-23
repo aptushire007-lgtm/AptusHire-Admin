@@ -72,20 +72,13 @@ export default function AssessmentsHub() {
       const jobList = Array.isArray(res.data) ? res.data : res.data?.items || [];
       setJobs(jobList);
 
-      // Fetch papers for active/draft jobs
-      const papersMap = {};
-      await Promise.all(
-        jobList.slice(0, 30).map(async (j) => {
-          try {
-            const pRes = await api.get(`/assessments/papers/job/${j._id}`);
-            if (Array.isArray(pRes.data) && pRes.data.length > 0) {
-              papersMap[j._id] = pRes.data[0]; // Active or latest version
-            }
-          } catch {
-            // Paper might not exist yet
-          }
-        })
-      );
+      // Replace up to 30 HTTP calls (and 60 DB reads) with one tenant-scoped
+      // query returning the latest paper for each listed job.
+      const requestedJobs = jobList.slice(0, 50);
+      const pRes = requestedJobs.length
+        ? await api.get("/assessments/papers/latest", { params: { jobIds: requestedJobs.map((job) => job._id).join(",") } })
+        : { data: [] };
+      const papersMap = Object.fromEntries((pRes.data || []).map((paper) => [String(paper.job), paper]));
       setPapersByJob(papersMap);
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to load assessments data");
@@ -451,7 +444,7 @@ export default function AssessmentsHub() {
                       <div className="flex items-center justify-between py-1 border-b border-slate-100">
                         <span className="text-slate-500">Item Pool:</span>
                         <span className="font-semibold text-slate-800">
-                          {paper.items?.length || 0} generated items
+                          {paper.itemCount ?? paper.items?.length ?? 0} generated items
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-1">
