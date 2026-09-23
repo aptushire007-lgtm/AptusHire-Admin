@@ -41,7 +41,7 @@ import CandidateDrawer from "../candidate/CandidateDrawer.jsx";
 import ThreeDLoader from "../ui/ThreeDLoader.jsx";
 import PaperEditor from "../../pages/dashboard/PaperEditor.jsx";
 import { stageLabel } from "../../lib/pipeline.js";
-import { scoreOf, scoreCaveat } from "../../lib/pipelineMetrics.js";
+import { scoreOf } from "../../lib/pipelineMetrics.js";
 
 const TIER_COLORS = {
   critical: "bg-red-100 text-red-700 border-red-200",
@@ -50,6 +50,33 @@ const TIER_COLORS = {
   bonus: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
+/**
+ * The outer frame: the original <Modal> for the drawer, a plain panel for a
+ * page. Everything inside is identical either way. The Modal-only props
+ * (`open`, `placement`, …) are simply unused on a page.
+ */
+function Shell({ page, children, panelClassName, ...modalProps }) {
+  if (!page) {
+    return (
+      <Modal {...modalProps} panelClassName={panelClassName}>
+        {children}
+      </Modal>
+    );
+  }
+  return <div className="workspace-panel overflow-hidden rounded-2xl border border-hairline bg-white">{children}</div>;
+}
+
+/**
+ * `variant="page"` renders this as a job-workspace PAGE rather than a dialog:
+ * no overlay, no close button, and no tab bar of its own — the job's sidebar
+ * (JobSidebar.jsx) is the navigation, and the URL decides the tab. Every panel,
+ * handler and loader below is shared unchanged between the two, so the page and
+ * the drawer can never drift into two different job editors.
+ *
+ * In page mode, anything that used to switch tabs internally navigates instead
+ * (`onNavigateTab`), so the sidebar and the URL stay the single source of truth
+ * for where the recruiter is.
+ */
 export default function JobInspectionDrawer({
   job: initialJob,
   onClose,
@@ -57,10 +84,19 @@ export default function JobInspectionDrawer({
   candidates = [],
   onJobUpdated,
   onJobDeleted,
+  variant = "drawer",
+  onNavigateTab,
+  pageTitle,
 }) {
+  const isPage = variant === "page";
   const toast = useToast();
   const [job, setJob] = useState(initialJob);
   const [activeTab, setActiveTab] = useState(initialTab || "overview");
+  const goTab = (tab) => (isPage && onNavigateTab ? onNavigateTab(tab) : setActiveTab(tab));
+  // The job's own actions (publish, delete, edit the job) belong to the job,
+  // so on a workspace page they appear on Job details only. In the dialog,
+  // which is one surface for the whole job, they stay where they were.
+  const showJobActions = !isPage || activeTab === "overview";
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [studioModalOpen, setStudioModalOpen] = useState(false);
   const [inspectingCandidateId, setInspectingCandidateId] = useState(null);
@@ -137,7 +173,7 @@ export default function JobInspectionDrawer({
 
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key === "Escape" && !editModalOpen && !inspectingCandidateId) {
+      if (!isPage && e.key === "Escape" && !editModalOpen && !inspectingCandidateId) {
         onClose?.();
       }
     }
@@ -226,7 +262,9 @@ export default function JobInspectionDrawer({
     rationale: c.rationale || "",
   }));
 
-  const primaryCandidate = candidates[0];
+  const recentCandidates = [...candidates]
+    .sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0))
+    .slice(0, 5);
 
   function handleJobUpdatedInternal(updatedJob) {
     setJob(updatedJob);
@@ -692,9 +730,19 @@ export default function JobInspectionDrawer({
     }
   }
 
+  // What "edit" means on each section. Criteria and questions are edited in
+  // place (the ✎ on each row); these start a new one. The assessment has its
+  // own full editor.
+  const sectionAction = {
+    rubric: { label: "Add criterion", icon: Plus, onClick: () => setShowAddCriterion(true) },
+    questions: { label: "Add question", icon: Plus, onClick: () => setShowAddQuestion(true) },
+    assessment: { label: "Open assessment editor", icon: Pencil, onClick: () => setStudioModalOpen(true) },
+  }[activeTab];
+
   return (
     <>
-      <Modal
+      <Shell
+        page={isPage}
         open={Boolean(job)}
         onClose={onClose}
         label={`Job Inspection: ${job.title}`}
@@ -725,7 +773,23 @@ export default function JobInspectionDrawer({
               </div>
 
               <div className="flex items-center gap-1.5">
-                {job.status !== "published" && (
+                {/* On a workspace page, the header acts on the SECTION you are
+                    on. It used to show the job's own Edit and Delete on every
+                    section, so "Edit" on the AI interview page opened the whole
+                    job editor, and deleting the job was one click from the
+                    screening criteria. The job's actions now live on Job
+                    details; each other section offers its own. */}
+                {isPage && sectionAction && (
+                  <button
+                    type="button"
+                    onClick={sectionAction.onClick}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-800 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+                  >
+                    <sectionAction.icon className="h-4 w-4" aria-hidden="true" />
+                    <span>{sectionAction.label}</span>
+                  </button>
+                )}
+                {showJobActions && job.status !== "published" && (
                   <button
                     type="button"
                     onClick={handlePublishJob}
@@ -736,7 +800,7 @@ export default function JobInspectionDrawer({
                     <span>{publishingJob ? "Publishing..." : "Publish Job"}</span>
                   </button>
                 )}
-                <button
+                {showJobActions && <button
                   type="button"
                   onClick={handleDeleteJob}
                   disabled={deletingJob}
@@ -745,31 +809,31 @@ export default function JobInspectionDrawer({
                 >
                   <Trash2 className="h-3.5 w-3.5 text-red-600" />
                   <span>{deletingJob ? "Deleting..." : "Delete"}</span>
-                </button>
-                <button
+                </button>}
+                {showJobActions && <button
                   type="button"
                   onClick={() => setEditModalOpen(true)}
                   className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
                 >
                   <Pencil className="h-3.5 w-3.5 text-slate-500" />
-                  <span>Edit</span>
-                </button>
-                <button
+                  <span>{isPage ? "Edit job" : "Edit"}</span>
+                </button>}
+                {!isPage && <button
                   type="button"
                   onClick={onClose}
                   aria-label="Close drawer"
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
                 >
                   <X className="h-4 w-4" />
-                </button>
+                </button>}
               </div>
             </div>
 
             <div className="mt-3">
               <h2 className="font-display text-xl font-bold text-slate-900 leading-snug">
-                {job.title}
+                {isPage && pageTitle ? pageTitle : job.title}
               </h2>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
+              {!isPage && <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
                 <span className="flex items-center gap-1">
                   <Briefcase className="h-3.5 w-3.5 text-slate-400" />
                   {job.department || "General"}
@@ -784,11 +848,12 @@ export default function JobInspectionDrawer({
                 {job.minExperienceYears != null && (
                   <span>• {job.minExperienceYears}+ yrs exp</span>
                 )}
-              </div>
+              </div>}
             </div>
 
-            {/* Tab Navigation */}
-            <div role="tablist" className="mt-5 -mb-5 flex border-b border-slate-200 gap-6 overflow-x-auto">
+            {/* Tab Navigation — the drawer's own. On a page the job sidebar is
+                the navigation, so this is not rendered at all. */}
+            {!isPage && <div role="tablist" className="mt-5 -mb-5 flex border-b border-slate-200 gap-6 overflow-x-auto">
               {[
                 { id: "overview", label: "Overview" },
                 { id: "candidates", label: `Candidates (${candidates.length})` },
@@ -802,7 +867,7 @@ export default function JobInspectionDrawer({
                   role="tab"
                   aria-selected={activeTab === tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => goTab(tab.id)}
                   className={`pb-3 text-xs font-semibold transition-all relative cursor-pointer ${
                     activeTab === tab.id
                       ? "text-[#0E3B2E]"
@@ -815,7 +880,7 @@ export default function JobInspectionDrawer({
                   )}
                 </button>
               ))}
-            </div>
+            </div>}
           </div>
 
           {/* Scrollable Drawer Body */}
@@ -883,7 +948,7 @@ export default function JobInspectionDrawer({
 
                     <button
                       type="button"
-                      onClick={() => setActiveTab("rubric")}
+                      onClick={() => goTab("rubric")}
                       className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer"
                     >
                       View Rubric →
@@ -904,7 +969,7 @@ export default function JobInspectionDrawer({
                           key={idx}
                           className="rounded-xl border border-slate-200/70 bg-[#F9FBFA] p-3 transition-colors hover:bg-emerald-50/20"
                         >
-                          <div className="flex items-center justify-between gap-2 text-[10.5px]">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
                             <span
                               className={`font-bold tracking-wider ${
                                 c.tag === "MUST HAVE"
@@ -938,96 +1003,51 @@ export default function JobInspectionDrawer({
                   )}
                 </div>
 
-                {/* Section 2: Latest Active Applicants */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      CANDIDATE APPLICATIONS
+                {/* Recent applicants — newest first, a few rows, one way into the pipeline. */}
+                <section aria-labelledby="recent-applicants" className="rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+                  <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                    <h3 id="recent-applicants" className="text-sm font-bold text-slate-900">
+                      Recent applicants <span className="num ml-1 font-semibold text-slate-400">{candidates.length}</span>
                     </h3>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("candidates")}
-                      className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer"
-                    >
-                      View all ({candidates.length}) →
-                    </button>
+                    {candidates.length > 0 && (
+                      <button type="button" onClick={() => goTab("candidates")} className="text-xs font-semibold text-emerald-800 hover:underline cursor-pointer">
+                        Open pipeline →
+                      </button>
+                    )}
                   </div>
-
-                  {primaryCandidate ? (
-                    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          {/* The /candidates payload nests these under
-                              `basicDetails` and `ats` — reading flat `.name`,
-                              `.headline` and `.score` off it always missed, so
-                              every job showed the same placeholder applicant
-                              ("AK", "Applicant") at a hardcoded 92%. */}
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-900 font-bold text-sm">
-                            {(primaryCandidate.basicDetails?.name || "?")
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)
-                              .toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-sm text-slate-900 truncate">
-                              {primaryCandidate.basicDetails?.name || "Unnamed candidate"}
-                            </h4>
-                            <p className="text-xs text-slate-500 truncate">
-                              {primaryCandidate.basicDetails?.email || "No email on file"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* `scoreOf` returns null unless a scoring run actually
-                            completed — a candidate awaiting screening says so
-                            rather than borrowing a number. */}
-                        {scoreOf(primaryCandidate) != null ? (
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60">
-                            <Sparkles className="h-3 w-3 text-emerald-600" />
-                            {scoreOf(primaryCandidate)}% Match
-                            {scoreCaveat(primaryCandidate) && (
-                              <span className="font-medium text-emerald-800/70">
-                                ({scoreCaveat(primaryCandidate)})
+                  {recentCandidates.length ? (
+                    <ul className="divide-y divide-slate-100">
+                      {recentCandidates.map((c) => {
+                        const score = scoreOf(c);
+                        return (
+                          <li key={c._id || c.id}>
+                            <button
+                              type="button"
+                              onClick={() => setInspectingCandidateId(c._id || c.id)}
+                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 cursor-pointer"
+                            >
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-900" aria-hidden="true">
+                                {(c.basicDetails?.name || "?").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                               </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="inline-flex shrink-0 items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200">
-                            Not scored
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                        <span className="text-slate-500">
-                          {/* String.replace swaps only the FIRST underscore, so
-                              "ai_interview_completed" read "ai interview_completed".
-                              stageLabel is the shared, correct mapping. */}
-                          Stage: {stageLabel(primaryCandidate.status)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setInspectingCandidateId(primaryCandidate._id || primaryCandidate.id)}
-                          className="rounded-lg bg-[#0E3B2E] text-white hover:bg-[#154d3d] px-3 py-1.5 text-xs font-semibold shadow-2xs transition cursor-pointer"
-                        >
-                          Review Candidate (Drawer)
-                        </button>
-                      </div>
-                    </div>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-semibold text-slate-900">{c.basicDetails?.name || "Unnamed candidate"}</span>
+                                <span className="block truncate text-xs text-slate-500">{c.basicDetails?.email || "No email on file"}</span>
+                              </span>
+                              <span className="hidden shrink-0 text-xs text-slate-600 sm:block">{stageLabel(c.status)}</span>
+                              <span className={`num w-16 shrink-0 text-right text-xs font-bold ${score != null ? "text-slate-900" : "text-slate-400 font-medium"}`}>
+                                {score != null ? `Fit ${score}` : "Not scored"}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   ) : (
-                    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-xs">
-                      <Users className="mx-auto h-8 w-8 text-slate-300" />
-                      <p className="mt-2 text-xs font-medium text-slate-600">
-                        No active applicants yet for this requisition.
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        New candidates will be screened automatically by Aptus AI.
-                      </p>
-                    </div>
+                    <p className="px-4 py-5 text-center text-xs text-slate-500">
+                      No applicants yet. New applications are screened automatically as they arrive.
+                    </p>
                   )}
-                </div>
+                </section>
               </>
             )}
 
@@ -1273,7 +1293,7 @@ export default function JobInspectionDrawer({
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <span
-                                className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider border ${
+                                className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                                   TIER_COLORS[c.importance] || "bg-slate-100 text-slate-700"
                                 }`}
                               >
@@ -1564,7 +1584,7 @@ export default function JobInspectionDrawer({
                           </span>
                           <Badge
                             tone={job.assessmentPolicy === "manual" ? "brand" : "slate"}
-                            className="text-[10.5px] font-semibold"
+                            className="text-[11px] font-semibold"
                           >
                             {job.assessmentPolicy === "manual" ? "Required for Candidates" : "Assessment Off"}
                           </Badge>
@@ -1679,17 +1699,17 @@ export default function JobInspectionDrawer({
                       {/* Specs Grid */}
                       <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Sections</span>
+                          <span className="text-slate-400 block text-[11px]">Sections</span>
                           <span className="font-bold text-slate-800">{assessmentPaper.sections?.length || 0} Sections</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Questions Served</span>
+                          <span className="text-slate-400 block text-[11px]">Questions Served</span>
                           <span className="font-bold text-slate-800">
                             {assessmentPaper.sections?.reduce((sum, s) => sum + (s.servedItemCount || 0), 0) || 0} items
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10.5px]">Item Pool</span>
+                          <span className="text-slate-400 block text-[11px]">Item Pool</span>
                           <span className="font-bold text-slate-800">{assessmentPaper.items?.length || 0} generated</span>
                         </div>
                       </div>
@@ -1882,6 +1902,10 @@ export default function JobInspectionDrawer({
             )}
           </div>
 
+          {/* Drawer Footer Actions — drawer only. On a page, Close is the
+              sidebar's "All jobs", Delete and Edit are already in the header,
+              and Applicants is the sidebar's "All candidates". */}
+          {!isPage && (<>
           {/* Drawer Footer Actions */}
           <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4 shadow-lift">
             <div className="flex items-center gap-2">
@@ -1925,7 +1949,7 @@ export default function JobInspectionDrawer({
               </Button>
               <Button
                 type="button"
-                onClick={() => setActiveTab("candidates")}
+                onClick={() => goTab("candidates")}
                 size="sm"
                 className="bg-[#0E3B2E] text-white hover:bg-[#154d3d] shadow-xs gap-1.5"
               >
@@ -1934,8 +1958,9 @@ export default function JobInspectionDrawer({
               </Button>
             </div>
           </div>
+          </>)}
         </div>
-      </Modal>
+      </Shell>
 
       {/* Layered Edit Job Modal */}
       {editModalOpen && (

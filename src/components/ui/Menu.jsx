@@ -79,13 +79,24 @@ export default function Menu({ trigger, children, footer, label, align = "end", 
     const dismiss = () => close(false);
 
     document.addEventListener("mousedown", onPointerDown);
-    // Capture phase: the scroll that matters is usually an ancestor's, not the
-    // window's — the pipeline rail and the dashboard's own scroll container.
-    window.addEventListener("scroll", dismiss, true);
     window.addEventListener("resize", dismiss);
+
+    // Close on scroll — but not on the scroll THIS menu just caused. Focusing
+    // the first item scrolls whatever container the trigger sits in, and that
+    // event arrived before the menu had finished opening: every ⋯ menu in a
+    // table dismissed itself in the same tick it opened. Subscribing a frame
+    // later keeps "a real scroll closes the menu" without the self-inflicted
+    // one. Capture phase, because the scroll that matters is usually an
+    // ancestor's, not the window's.
+    let subscribed = false;
+    const frame = requestAnimationFrame(() => {
+      subscribed = true;
+      window.addEventListener("scroll", dismiss, true);
+    });
     return () => {
+      cancelAnimationFrame(frame);
       document.removeEventListener("mousedown", onPointerDown);
-      window.removeEventListener("scroll", dismiss, true);
+      if (subscribed) window.removeEventListener("scroll", dismiss, true);
       window.removeEventListener("resize", dismiss);
     };
   }, [open, close]);

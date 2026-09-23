@@ -32,18 +32,45 @@ const SHEETS = {
   user: read("../../AptusHire-Frontend/src/index.css"),
 };
 
-// The values the brand block declares. If a future edit wants to change one of
+// The values each brand block declares. If a future edit wants to change one of
 // these, it should have to change this list too — that is the point.
+//
+// PER APP, because the two frontends no longer share a palette: the candidate
+// portal was deliberately rebranded to orange + navy (its index.css carries a
+// labelled "ORANGE SCALE" and explicit `green aliases → orange` compatibility
+// lines, with ~400 call sites behind them). Asserting the admin's green values
+// against it was testing a merge that had already been undone on purpose, and
+// the fix was never to repaint the portal — it was to write down that it owns
+// its own ramp.
+//
+// The invariant this file exists for is UNCHANGED and still enforced for both:
+// a palette must not silently override itself. Each app simply declares which
+// palette it is.
 const BRAND = {
-  "--color-brand-400": "#7CDE4A",
-  "--color-brand-500": "#2FBE62",
-  "--color-brand-800": "#0E3B2E",
-  "--color-brand-900": "#0C1F1B",
-  "--color-accent-400": "#12B98A",
-  "--color-canvas": "#FAFCF8",
-  "--color-canvas-deep": "#F3F7F1",
-  "--color-hairline": "#E3EBE4",
-  "--color-rule": "#F0F4EF",
+  admin: {
+    "--color-brand-400": "#7CDE4A",
+    "--color-brand-500": "#2FBE62",
+    "--color-brand-800": "#0E3B2E",
+    "--color-brand-900": "#0C1F1B",
+    "--color-accent-400": "#12B98A",
+    "--color-canvas": "#FAFCF8",
+    "--color-canvas-deep": "#F3F7F1",
+    "--color-hairline": "#E3EBE4",
+    "--color-rule": "#F0F4EF",
+  },
+  // No `--color-accent-400`: the portal does not declare one, and inventing an
+  // expectation for a token that does not exist is how this list stops being a
+  // record of what shipped.
+  user: {
+    "--color-brand-400": "#FB923C",
+    "--color-brand-500": "#F97316",
+    "--color-brand-800": "#9A3E08",
+    "--color-brand-900": "#7C3009",
+    "--color-canvas": "#F8FAFC",
+    "--color-canvas-deep": "#F1F5F9",
+    "--color-hairline": "#E2E8F0",
+    "--color-rule": "#F1F5F9",
+  },
 };
 
 // The retired sage ramp. Any reappearance, in a stylesheet or a component, is
@@ -123,7 +150,7 @@ describe("design tokens", () => {
   for (const [app, css] of Object.entries(SHEETS)) {
     describe(app, () => {
       it("declares each brand token exactly once, at the documented value", () => {
-        for (const [prop, value] of Object.entries(BRAND)) {
+        for (const [prop, value] of Object.entries(BRAND[app])) {
           const found = declarationsOf(css, prop);
           // The count matters as much as the value. A second declaration is
           // how the original bug worked: the first one stayed correct and

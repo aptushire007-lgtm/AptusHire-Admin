@@ -25,7 +25,9 @@ it("opens workspace search with the keyboard and routes to a matching job", () =
   fireEvent.change(input, { target: { value: "Backend" } });
   expect(screen.getByRole("option", { name: /Backend engineer/ })).toHaveAttribute("aria-selected", "true");
   fireEvent.keyDown(input, { key: "Enter" });
-  expect(screen.getByTestId("location")).toHaveTextContent("/jobs/j1/candidates");
+  // A job's candidate board is now a page of its own (/jobs/:id/pipeline)
+  // rather than a drawer tab, so the palette lands on it directly.
+  expect(screen.getByTestId("location")).toHaveTextContent("/jobs/j1/pipeline");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
@@ -48,7 +50,14 @@ it("restores focus on Escape and keeps collapsed navigation accessible", () => {
   fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
   const nav = screen.getByRole("navigation", { name: "Dashboard Navigation" });
   expect(within(nav).getByRole("link", { name: "Jobs" })).toHaveAttribute("aria-current", "page");
-  expect(within(nav).getByRole("link", { name: "Recordings" })).toHaveAttribute("href", "/recordings");
+  // Recordings moved out of the company-wide sidebar and into each job's own
+  // workspace. It must still be FINDABLE, though: the palette is fed its own
+  // complete list precisely so trimming the sidebar strands nothing.
+  expect(within(nav).queryByRole("link", { name: "Recordings" })).not.toBeInTheDocument();
+  fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "Record" } });
+  expect(screen.getByRole("option", { name: /Recordings/ })).toBeInTheDocument();
+  fireEvent.keyDown(screen.getByRole("combobox"), { key: "Escape" });
   fireEvent.click(screen.getByRole("button", { name: "Account options" }));
   fireEvent.click(screen.getByRole("menuitem", { name: "Plan and billing" }));
   expect(screen.getByTestId("location")).toHaveTextContent("/subscription");

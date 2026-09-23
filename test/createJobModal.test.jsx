@@ -69,16 +69,16 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     api.patch.mockResolvedValue({ data: { success: true } });
   });
 
-  it("Step 1: renders New Hiring Project, auto-populates project name from title", () => {
+  it("Step 1: renders Create a job, auto-populates project name from title", () => {
     render(
       <MemoryRouter>
         <CreateJobModal isOpen={true} onClose={vi.fn()} />
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("heading", { name: "New Hiring Project" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Create a job" })).toBeInTheDocument();
     const titleInput = screen.getByLabelText(/Job Title/);
-    const projectNameInput = screen.getByLabelText(/Project Name/);
+    const projectNameInput = screen.getByLabelText(/Internal name/);
 
     expect(titleInput).toBeInTheDocument();
     expect(projectNameInput).toHaveValue("");
@@ -87,12 +87,12 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     fireEvent.change(titleInput, { target: { value: "AI Researcher" } });
     expect(projectNameInput.value).toContain("AI Researcher - Project");
 
-    // Manually edit Project Name
+    // Manually edit the internal name
     fireEvent.change(projectNameInput, { target: { value: "Custom AI Project" } });
     expect(projectNameInput).toHaveValue("Custom AI Project");
   });
 
-  it("Step 2: navigates to 'What will this project include?' with 2-column layout and preview updates", async () => {
+  it("Step 2: navigates to 'What will this job include?' with 2-column layout and preview updates", async () => {
     render(
       <MemoryRouter>
         <CreateJobModal isOpen={true} onClose={vi.fn()} />
@@ -103,7 +103,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 2 heading
-    expect(await screen.findByRole("heading", { name: "What will this project include?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "What will this job include?" })).toBeInTheDocument();
     expect(screen.getByText("PICK WHAT TO INCLUDE")).toBeInTheDocument();
     expect(screen.getByText("ALWAYS INCLUDED")).toBeInTheDocument();
 
@@ -141,14 +141,14 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 2
-    expect(await screen.findByRole("heading", { name: "What will this project include?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "What will this job include?" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 3
     expect(await screen.findByRole("heading", { name: "How would you like to set things up?" })).toBeInTheDocument();
     expect(screen.getByText("From Job Description")).toBeInTheDocument();
     expect(screen.getByText("From Job Title only")).toBeInTheDocument();
-    expect(screen.getByText("Duplicate previous project to customize")).toBeInTheDocument();
+    expect(screen.getByText("Duplicate a previous job")).toBeInTheDocument();
 
     // Enter JD text
     fireEvent.click(screen.getByRole("button", { name: "Enter Your JD" }));
@@ -190,7 +190,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     // Step 1 -> 2 -> 3 -> 4 -> 5
     fireEvent.change(screen.getByLabelText(/Job Title/), { target: { value: "DevOps Engineer" } });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(await screen.findByRole("heading", { name: "What will this project include?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "What will this job include?" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(await screen.findByRole("heading", { name: "How would you like to set things up?" })).toBeInTheDocument();
@@ -262,7 +262,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 2
-    expect(await screen.findByRole("heading", { name: "What will this project include?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "What will this job include?" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 3
@@ -281,8 +281,8 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     expect(await screen.findByRole("heading", { name: "Define what makes a successful candidate" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    // Step 6: Creating your hiring project... (held open by the rubric gate)
-    expect(await screen.findByRole("heading", { name: "Creating your hiring project..." })).toBeInTheDocument();
+    // Step 6: Creating your job… (held open by the rubric gate)
+    expect(await screen.findByRole("heading", { name: "Creating your job…" })).toBeInTheDocument();
     expect(screen.getByText(/Synthesizing role brief & requirements/)).toBeInTheDocument();
     expect(screen.getByText(/Calibrating scoring rubric criteria/)).toBeInTheDocument();
 
@@ -301,7 +301,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     releaseRubric();
 
     // Milestone completion card
-    expect(await screen.findByRole("heading", { name: "Hiring Project Created!" }, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Job created" }, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Review Evaluation Plan & Scoring Rubric/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Inspect Requisition/i })).toBeInTheDocument();
     expect(onCreated).toHaveBeenCalled();
@@ -432,7 +432,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     // Step 2: Capabilities - Enable Skills Assessment (Test)
-    expect(await screen.findByRole("heading", { name: "What will this project include?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "What will this job include?" })).toBeInTheDocument();
     const testCheckbox = screen.getByLabelText(/Skills Assessment \(Test\)/i);
     expect(testCheckbox).not.toBeChecked();
     fireEvent.click(testCheckbox);
@@ -475,11 +475,11 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     expect(screen.getByText("Tab-Switch & Blur Soft Lock")).toBeInTheDocument();
     expect(screen.getByText(/Triple-Solver Verification Active/i)).toBeInTheDocument();
 
-    // Click "Create Hiring Project" from assessment step
-    fireEvent.click(screen.getByRole("button", { name: /Create Hiring Project/i }));
+    // Click "Create job" from assessment step
+    fireEvent.click(screen.getByRole("button", { name: /^Create job$/i }));
 
     // Step 6: Animated loader
-    expect(await screen.findByRole("heading", { name: "Creating your hiring project..." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Creating your job…" })).toBeInTheDocument();
 
     // Verify assessment compilation and patching were invoked
     await waitFor(() => {
@@ -503,7 +503,7 @@ describe("CreateJobModal - Flowmingo 6-Stage Modal Suite", () => {
     });
 
     // Verify success modal shows Skills Assessment badge and studio navigation button
-    expect(await screen.findByRole("heading", { name: "Hiring Project Created!" }, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Job created" }, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByText("Skills Assessment")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Configure Skills Assessment Studio/i })).toBeInTheDocument();
     expect(onCreated).toHaveBeenCalled();

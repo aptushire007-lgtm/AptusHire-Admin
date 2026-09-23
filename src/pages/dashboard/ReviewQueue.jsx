@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Inbox, CheckCircle2, XCircle, Scale, AlertTriangle } from "lucide-react";
 import api from "../../api/client.js";
+import { StepStrip } from "../../components/ui/PageHeader.jsx";
 import { getSocket } from "../../lib/socket.js";
 import { Card, Badge, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
 import { Textarea } from "../../components/ui/Field.jsx";
@@ -82,6 +83,13 @@ export default function ReviewQueue() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[#0C1F1B] [overflow-wrap:anywhere]">Screening Review Queue</h1>
+        <StepStrip
+          steps={[
+            "Screening flags an application it cannot settle",
+            "You decide: advance, hold or reject",
+            "The decision is recorded on the candidate’s timeline",
+          ]}
+        />
         <p className="mt-1 text-sm text-slate-500">
           Candidates the screening engine is <span className="font-medium text-slate-700">honestly unsure about</span> —
           it routed them to you instead of forcing a confident answer. Your decision is recorded and used to calibrate

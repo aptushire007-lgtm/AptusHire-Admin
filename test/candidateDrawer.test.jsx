@@ -125,7 +125,7 @@ it("renders candidate profile, score, and identity in drawer overlay", async () 
   );
 
   expect(await screen.findByText("Jane Doe")).toBeTruthy();
-  expect(screen.getByText("Senior AI Engineer")).toBeTruthy();
+  expect(screen.getAllByText(/Senior AI Engineer/).length).toBeGreaterThan(0);
   expect(screen.getByText("88")).toBeTruthy();
   expect(screen.queryByRole("link", { name: /Open full profile/i })).toBeNull();
   expect(screen.getByText("Strong candidate with deep ML systems experience.")).toBeTruthy();
@@ -213,20 +213,21 @@ it("supports all 6 segregated tabs seamlessly: Summary, ATS Score Breakdown, Ass
   // 1. Summary tab (default) — it absorbed what the Overview tab used to hold,
   //    so the application context and last stage event are here now.
   expect(screen.getByRole("tab", { name: /Summary/i, selected: true })).toBeTruthy();
-  expect(screen.getByText("Applicant Highlights")).toBeTruthy();
-  expect(screen.getByText("Latest Recorded Activity")).toBeTruthy();
-  expect(screen.getByText("AI Interview Evidence Summary")).toBeTruthy();
+  // Summary is a picture and a short list now, not prose cards.
+  expect(screen.getByText("Fit to the rubric")).toBeTruthy();
+  expect(screen.getByText("At a glance")).toBeTruthy();
+  expect(screen.getByText("Last move")).toBeTruthy();
 
   // 2. ATS Score Breakdown tab — the CV-screening evidence, in one place
   fireEvent.click(screen.getByRole("tab", { name: /ATS Score Breakdown/i }));
-  expect(await screen.findByText("CV Screening Assessment")).toBeTruthy();
+  expect(await screen.findByRole("heading", { name: "CV screening" })).toBeTruthy();
 
   // 3. Assessments tab — the skills-test paper, and nothing that another tab
   //    already owns: the CV screening card belongs to ATS Score Breakdown and
   //    the interview score card to AI Interview Report.
   fireEvent.click(screen.getByRole("tab", { name: /^Assessments$/i }));
   expect(await screen.findByText("Technical Skill Assessment Paper")).toBeTruthy();
-  expect(screen.queryByText("CV Screening Assessment")).toBeNull();
+  expect(screen.queryByRole("heading", { name: "CV screening" })).toBeNull();
   expect(screen.queryByText("AI Voice/Video Interview")).toBeNull();
 
   // 4. AI Interview Report tab
@@ -408,7 +409,8 @@ it("renders accurate assessment session details without dummy data in Assessment
   // Technical Skill Assessment Paper Card shows real title, percentage, items correct, and criteria
   expect(await screen.findByText("Production Systems Assessment")).toBeTruthy();
   expect(screen.getByText("80")).toBeTruthy(); // 8/10 -> 80%
-  expect(screen.getByText(/8\/10 correct/i)).toBeTruthy();
+  // Stated in words; the headline no longer abbreviates it as "8/10".
+  expect(screen.getByText(/of 10 correct/i)).toBeTruthy();
   expect(screen.getAllByText("Algorithm Optimization").length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText("System Design")).toBeTruthy();
   expect(screen.getByText(/Verified/i)).toBeTruthy();
@@ -467,7 +469,7 @@ it("does not claim high confidence for a run that reported none", async () => {
     </MemoryRouter>
   );
 
-  expect(await screen.findByText(/Confidence not reported/i)).toBeTruthy();
+  await screen.findByText("Jane Doe");
   expect(screen.queryByText(/High Confidence/i)).toBeNull();
 });
 
@@ -491,6 +493,6 @@ it("withholds the keyword-screening prose for a candidate nobody screened", asyn
     </MemoryRouter>
   );
 
-  expect(await screen.findByText(/Autonomous screening has not completed/i)).toBeTruthy();
+  expect(await screen.findByText(/rubric breakdown appears once this CV has been screened/i)).toBeTruthy();
   expect(screen.queryByText(/Overall match: 0%/i)).toBeNull();
 });

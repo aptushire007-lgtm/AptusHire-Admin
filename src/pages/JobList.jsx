@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { jobWorkspacePath } from "../components/dashboard/JobSidebar.jsx";
 import { useRef } from "react";
 import {
   Briefcase,
+  CalendarCheck,
+  ClipboardCheck,
   ChevronDown,
   Download,
   Globe2,
@@ -33,6 +36,11 @@ import ActionMenu, { MenuItem, MenuSeparator } from "../components/ui/Menu.jsx";
 import { RowAction, TableWrap, Table, THead, TH, TBody, TR, TD } from "../components/ui/DataTable.jsx";
 import { useCompanyData } from "../context/CompanyDataContext.jsx";
 import { getSocket } from "../lib/socket.js";
+import { departmentPalette, initials } from "../lib/departmentHue.js";
+import { boardMeta, isConnected } from "../components/jobs/PublishTargets.jsx";
+
+// The page's department → colour lookup, built once from all its jobs.
+const DeptHue = createContext(departmentPalette([]));
 
 const CANDIDATE_PORTAL_URL = import.meta.env.VITE_CANDIDATE_PORTAL_URL || "http://localhost:5174";
 
@@ -58,6 +66,66 @@ const PUB_STATUS_TONE = { published: "green", pending: "amber", failed: "red", e
 // approved rubric before the evidence engine can drive a decision). Surfacing
 // that state here — before candidates ever pile up — is the fix: the gate
 // stays human-only, but a recruiter can no longer fail to notice it's open.
+const INTERVIEW_STAGES = ["interview_scheduled", "interview_queue", "ai_interview_completed", "hr_interview", "technical_interview", "manager_interview"];
+const OFFER_STAGES = ["selected", "offer_sent", "offer_accepted", "joined"];
+
+/** Where a job's applicants are: in screening, interviewing, or at offer. Uses the server's counts when present. */
+function jobFunnel(job, applicants) {
+  const stages = job.applicationCounts?.stages;
+  const count = (list) =>
+    stages ? list.reduce((sum, st) => sum + (stages[st] || 0), 0) : applicants.filter((c) => list.includes(c.status)).length;
+  const total = job.applicationCounts?.total ?? applicants.length;
+  const interview = count(INTERVIEW_STAGES);
+  const offer = count(OFFER_STAGES);
+  const rejected = count(["rejected"]);
+  return { total, interview, offer, review: count(["under_review"]), screening: Math.max(0, total - interview - offer - rejected) };
+}
+
+/** Screening → interview → offer as one thin bar; the counts sit under it in words. */
+function FunnelBar({ f }) {
+  if (!f.total) return <span className="text-[11px] text-slate-400">No applicants yet</span>;
+  const seg = [
+    { n: f.screening, cls: "bg-slate-300", label: "screening" },
+    { n: f.interview, cls: "bg-violet-400", label: "interview" },
+    { n: f.offer, cls: "bg-emerald-500", label: "offer" },
+  ];
+  const shown = f.screening + f.interview + f.offer || 1;
+  return (
+    <div className="w-full min-w-[120px]">
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${f.screening} screening, ${f.interview} interviewing, ${f.offer} at offer`}>
+        {seg.map((x) => (x.n ? <span key={x.label} className={x.cls} style={{ width: `${(x.n / shown) * 100}%` }} /> : null))}
+      </div>
+      <p className="mt-1 flex gap-2 text-[11px] text-slate-500" aria-hidden="true">
+        {seg.filter((x) => x.n).map((x) => (
+          <span key={x.label} className="inline-flex items-center gap-1">
+            <span className={`h-1.5 w-1.5 rounded-full ${x.cls}`} />
+            <span className="num font-semibold text-slate-700">{x.n}</span> {x.label}
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
+function DepartmentChip({ name }) {
+  const hue = useContext(DeptHue)(name);
+  return (
+    <span className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${hue.chip}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hue.dot}`} aria-hidden="true" />
+      <span className="truncate">{name || "General"}</span>
+    </span>
+  );
+}
+
+function JobTile({ job, size = "h-9 w-9 text-xs" }) {
+  const departmentHue = useContext(DeptHue);
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-xl font-bold ${size} ${departmentHue(job.department).tile}`} aria-hidden="true">
+      {initials(job.title)}
+    </span>
+  );
+}
+
 const RUBRIC_STATUS_META = {
   approved: { tone: "green", label: "Rubric approved" },
   draft: { tone: "amber", label: "Rubric needs approval" },
@@ -146,7 +214,15 @@ export function PublishBoardsModal({ job, onClose }) {
           <Skeleton className="h-32 w-full" />
         ) : (
           <div className="space-y-2.5">
-            {boards.map((b) => {
+            {/* Connected first — the ones you can actually post to right now.
+                The rest are folded away rather than sitting there disabled. */}
+            {boards.filter(isConnected).length === 0 && (
+              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-xs text-slate-600">
+                No job board is connected yet. Your careers page still carries this role.{" "}
+                <Link to="/settings?section=integrations" className="font-semibold text-brand-700 hover:underline">Connect a board</Link>
+              </p>
+            )}
+            {boards.filter(isConnected).map((b) => {
               const blocked =
                 !b.enabled || (b.needsCredential && !b.credentialConfigured) || b.validationErrors.length > 0;
               return (
@@ -160,8 +236,10 @@ export function PublishBoardsModal({ job, onClose }) {
                         onChange={(e) => setSelected((s) => ({ ...s, [b.board]: e.target.checked }))}
                         className="h-4 w-4 rounded border-slate-300 text-brand-600"
                       />
+                      <span className={`flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold ring-1 ring-inset ${boardMeta(b.board, b.name).cls}`} aria-hidden="true">
+                        {boardMeta(b.board, b.name).short}
+                      </span>
                       {b.name}
-                      <Badge tone="slate">Tier {b.tier}</Badge>
                     </label>
                     {b.status && <Badge tone={PUB_STATUS_TONE[b.status] || "slate"}>{b.status}</Badge>}
                   </div>
@@ -188,6 +266,33 @@ export function PublishBoardsModal({ job, onClose }) {
                 </div>
               );
             })}
+
+            {boards.some((b) => !isConnected(b)) && (
+              <details className="rounded-xl border border-slate-200 px-3 py-2">
+                <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+                  Not available yet ({boards.filter((b) => !isConnected(b)).length})
+                </summary>
+                <ul className="mt-2 space-y-1.5">
+                  {boards.filter((b) => !isConnected(b)).map((b) => (
+                    <li key={b.board} className="flex items-start gap-2 text-xs text-slate-500">
+                      <span className={`mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold ring-1 ring-inset ${boardMeta(b.board, b.name).cls}`} aria-hidden="true">
+                        {boardMeta(b.board, b.name).short}
+                      </span>
+                      <span>
+                        <span className="font-medium text-slate-700">{b.name}</span> —{" "}
+                        {!b.enabled ? b.reason : "credentials not connected"}
+                        {b.enabled && (
+                          <>
+                            {" "}
+                            <Link to="/settings?section=integrations" className="font-semibold text-brand-700 hover:underline">Connect</Link>
+                          </>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </div>
         )}
 
@@ -206,6 +311,12 @@ export function PublishBoardsModal({ job, onClose }) {
 
 export default function JobList() {
   const { candidatesByJob, refresh: refreshCompanyData } = useCompanyData() || {};
+  const navigate = useNavigate();
+  // Opening a job used to pop a dialog over this list. It now goes to the job's
+  // own workspace, where its sidebar takes over the navigation — so all nine
+  // places on this page that open a job (card view and table view) route
+  // through this one function.
+  const openJob = (job, tab = "overview") => navigate(jobWorkspacePath(job._id, tab === "overview" ? null : tab));
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -267,6 +378,12 @@ export default function JobList() {
   useEffect(() => {
     const targetJobId = params.get("jobId");
     if (!targetJobId) return;
+    // Old ?jobId= links (notifications, emails, bookmarks) forward into the
+    // workspace. `edit=1` keeps its existing behaviour: the edit dialog, here.
+    if (params.get("edit") !== "1") {
+      navigate(jobWorkspacePath(targetJobId, params.get("tab")), { replace: true });
+      return;
+    }
 
     if (jobs.length > 0) {
       const found = jobs.find((j) => j._id === targetJobId);
@@ -611,6 +728,9 @@ export default function JobList() {
   // KPI Metrics Ribbon (Live counts from jobs and candidate data)
   const kpiMetrics = useMemo(() => {
     let totalReqs = jobs.length;
+    const weekAgo = Date.now() - 7 * 86_400_000;
+    const createdThisWeek = jobs.filter((j) => new Date(j.createdAt).getTime() >= weekAgo).length;
+    const rubricsToApprove = jobs.filter((j) => j.status === "published" && j.rubricStatus !== "approved").length;
     let activeApps = 0;
     let inReview = 0;
     let scheduled = 0;
@@ -650,6 +770,8 @@ export default function JobList() {
 
     return {
       totalRequisitions: totalReqs,
+      createdThisWeek,
+      rubricsToApprove,
       activeApplicants: activeApps,
       inReview: inReview,
       interviewsScheduled: scheduled,
@@ -709,7 +831,10 @@ export default function JobList() {
     return next;
   }, { replace: true });
 
+  const departmentHue = useMemo(() => departmentPalette(jobs.map((j) => j.department)), [jobs]);
+
   return (
+    <DeptHue.Provider value={departmentHue}>
     <div className="space-y-6 pb-12">
       {/* ── Page Header ───────────────────────────────────────────────────── */}
       <PageHeader
@@ -751,12 +876,18 @@ export default function JobList() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-100 text-brand-800" aria-hidden="true"><Briefcase className="h-3.5 w-3.5" /></span>
               Total Requisitions
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              +1 this week
-            </span>
+            {/* Was the literal string "+1 this week" whatever had happened.
+                Counted from the jobs' own createdAt now, and drawn only when
+                there is something to say. */}
+            {kpiMetrics.createdThisWeek > 0 && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
+                +{kpiMetrics.createdThisWeek} this week
+              </span>
+            )}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
@@ -767,7 +898,8 @@ export default function JobList() {
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-800" aria-hidden="true"><Users className="h-3.5 w-3.5" /></span>
               Active Applicants
             </span>
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
@@ -783,12 +915,13 @@ export default function JobList() {
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700" aria-hidden="true"><CalendarCheck className="h-3.5 w-3.5" /></span>
               Interviews Scheduled
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              Next today 3:00 PM
-            </span>
+            {/* A "Next today 3:00 PM" chip stood here as a literal string — it
+                announced a 3pm interview on every day, for every workspace.
+                There is no scheduled time in this payload to show instead. */}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
@@ -797,19 +930,27 @@ export default function JobList() {
           </div>
         </div>
 
+        {/* This card used to read "Avg. Time to Screen 1.8d · -65% vs manual"
+            — every character of it a literal, the figure included. It is now a
+            count this page can actually source, and the one a recruiter can act
+            on: live roles that are screening without an approved rubric. */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Avg. Time to Screen
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-800" aria-hidden="true"><ClipboardCheck className="h-3.5 w-3.5" /></span>
+              Rubrics to approve
             </span>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
-              -65% vs manual
-            </span>
+            {kpiMetrics.rubricsToApprove > 0 && (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200/60">
+                Needs action
+              </span>
+            )}
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="num font-display text-3xl font-bold text-slate-900">
-              1.8d
+              {kpiMetrics.rubricsToApprove}
             </span>
+            <span className="text-xs text-slate-500">live roles without one</span>
           </div>
         </div>
       </div>
@@ -919,7 +1060,7 @@ export default function JobList() {
                   value={selectedDepartments[0] || "all"}
                   onChange={(e) => setSelectedDepartments(e.target.value === "all" ? [] : [e.target.value])}
                   aria-label="Filter by department"
-                  className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="all">All Departments</option>
                   {allDepartments.map((dept) => (
@@ -934,7 +1075,7 @@ export default function JobList() {
                 value={workplaceFilter}
                 onChange={(e) => setWorkplaceFilter(e.target.value)}
                 aria-label="Filter by workplace mode"
-                className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
               >
                 <option value="all">All Modes</option>
                 <option value="remote">Remote ({filterCounts.remote})</option>
@@ -947,7 +1088,7 @@ export default function JobList() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   aria-label="Sort requisitions"
-                  className="h-8 rounded-lg border border-slate-200 bg-white pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="newest">Sort: Newest first</option>
                   <option value="oldest">Sort: Oldest first</option>
@@ -1058,20 +1199,8 @@ export default function JobList() {
               {sortedJobs.map((job) => {
                 const rubric = RUBRIC_STATUS_META[job.rubricStatus] || RUBRIC_STATUS_META.none;
                 const applicants = candidatesByJob?.[job._id] || [];
-                const applicantsCount = job.applicationCounts?.total ?? applicants.length;
-                const inReviewCount = job.applicationCounts ? (job.applicationCounts.stages.under_review || 0) : applicants.filter((c) => c.status === "under_review").length;
-                const interviewingCount = job.applicationCounts ? ["interview_scheduled", "interview_queue", "ai_interview_completed", "hr_interview", "technical_interview", "manager_interview"].reduce((sum, stage) => sum + (job.applicationCounts.stages[stage] || 0), 0) : applicants.filter((c) =>
-                  [
-                    "interview_scheduled",
-                    "ai_interview_completed",
-                    "hr_interview",
-                    "technical_interview",
-                    "manager_interview",
-                  ].includes(c.status)
-                ).length;
-                const offersCount = job.applicationCounts ? ["selected", "offer_sent", "offer_accepted", "joined"].reduce((sum, stage) => sum + (job.applicationCounts.stages[stage] || 0), 0) : applicants.filter((c) =>
-                  ["selected", "offer_sent", "offer_accepted", "joined"].includes(c.status)
-                ).length;
+                const funnel = jobFunnel(job, applicants);
+                const hue = departmentHue(job.department);
 
                 const skills = (job.requiredSkills || []).filter(Boolean);
                 const shownSkills = skills.slice(0, 3);
@@ -1081,23 +1210,19 @@ export default function JobList() {
                   <div
                     key={job._id}
                     onClick={() => {
-                      setDrawerTab("overview");
-                      setSelectedJob(job);
+                      openJob(job, "overview");
                     }}
-                    className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-xs hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4.5 pt-5 shadow-xs hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                   >
+                    <span className={`absolute inset-x-0 top-0 h-1 ${hue.stripe}`} aria-hidden="true" />
                     {/* Top: Department Icon & Status Badge */}
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 border border-brand-200/70 text-brand-800 shadow-2xs font-bold text-sm">
-                            <Briefcase className="h-5 w-5 text-brand-700" />
-                          </div>
+                          <JobTile job={job} size="h-10 w-10 text-sm" />
                           <div className="min-w-0">
-                            <span className="block text-[11px] font-bold uppercase tracking-wider text-brand-800 truncate">
-                              {job.department || "General"}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-slate-500 truncate">
+                            <DepartmentChip name={job.department} />
+                            <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-500 truncate">
                               <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
                               {job.location || "Remote / Anywhere"}
                             </span>
@@ -1124,8 +1249,7 @@ export default function JobList() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDrawerTab("overview");
-                            setSelectedJob(job);
+                            openJob(job, "overview");
                           }}
                           className="text-left block text-base font-bold text-slate-900 group-hover:text-brand-700 transition-colors line-clamp-1 cursor-pointer"
                         >
@@ -1142,42 +1266,29 @@ export default function JobList() {
                           {shownSkills.map((s) => (
                             <span
                               key={s}
-                              className="rounded-md bg-slate-100 px-2 py-0.5 text-[10.5px] font-medium text-slate-600 border border-slate-200/50"
+                              className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 border border-slate-200/50"
                             >
                               {s}
                             </span>
                           ))}
                           {restSkills > 0 && (
-                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[10.5px] font-medium text-slate-500">
+                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
                               +{restSkills}
                             </span>
                           )}
                         </div>
                       )}
 
-                      {/* Recruiter ATS Pipeline Snapshot Bar */}
-                      <div className="mt-3.5 rounded-xl bg-[#F6F8F7] p-2.5 border border-slate-200/70 flex items-center justify-between gap-2">
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <Users className="h-3.5 w-3.5 text-brand-700 shrink-0" />
-                            <span className="num">{applicantsCount}</span>{" "}
-                            {applicantsCount === 1 ? "applicant" : "applicants"}
+                      {/* Where this job's applicants are */}
+                      <div className="mt-3.5 rounded-xl border border-slate-200/70 bg-[#F6F8F7] p-2.5">
+                        <div className="mb-1.5 flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1.5 font-bold text-slate-800">
+                            <Users className="h-3.5 w-3.5 shrink-0 text-brand-700" />
+                            <span className="num">{funnel.total}</span> {funnel.total === 1 ? "applicant" : "applicants"}
                           </span>
-                          {applicantsCount > 0 ? (
-                            <span className="text-[10.5px] text-slate-500 truncate mt-0.5">
-                              {inReviewCount} review · {interviewingCount} interview
-                              {offersCount > 0 && ` · ${offersCount} offer`}
-                            </span>
-                          ) : (
-                            <span className="text-[10.5px] text-slate-400 mt-0.5">
-                              Awaiting first applicant
-                            </span>
-                          )}
+                          <span className="text-[11px] font-medium text-slate-400">{timeAgo(job.createdAt)}</span>
                         </div>
-
-                        <span className="text-[10.5px] font-medium text-slate-400 shrink-0">
-                          {timeAgo(job.createdAt)}
-                        </span>
+                        <FunnelBar f={funnel} />
                       </div>
 
                       {/* Rubric Status Pill */}
@@ -1186,8 +1297,7 @@ export default function JobList() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDrawerTab("rubric");
-                            setSelectedJob(job);
+                            openJob(job, "rubric");
                           }}
                           className="inline-flex rounded-full hover:opacity-80 transition-opacity cursor-pointer"
                         >
@@ -1202,20 +1312,8 @@ export default function JobList() {
                     </div>
 
                     {/* Bottom Actions */}
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <Button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDrawerTab("candidates");
-                          setSelectedJob(job);
-                        }}
-                        size="sm"
-                        variant="secondary"
-                        className="flex-1 justify-center shadow-2xs text-xs font-semibold cursor-pointer"
-                      >
-                        <Users className="h-3.5 w-3.5 mr-1" /> View Applicants
-                      </Button>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+
 
                       <div className="flex items-center gap-0.5">
                         <RowAction
@@ -1304,12 +1402,8 @@ export default function JobList() {
             /* ── Dense List / Table View ─────────────────────────────────────── */
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
-                <span className="font-semibold tracking-wide text-slate-600">
-                  Showing <span className="num font-bold text-slate-900">{sortedJobs.length}</span> of{" "}
-                  <span className="num font-bold text-slate-900">{jobs.length}</span> requisitions
-                </span>
-                <span className="text-[11px] text-slate-400 hidden sm:inline">
-                  Click any row to open full candidate pipeline & AI rubric
+                <span className="text-xs text-slate-500 hidden sm:inline">
+                  Click any row to open that job&rsquo;s workspace
                 </span>
               </div>
 
@@ -1321,7 +1415,7 @@ export default function JobList() {
                       <TH padding="compact">Department</TH>
                       <TH padding="compact">Status</TH>
                       <TH padding="compact">Rubric Evaluation</TH>
-                      <TH padding="compact">Applicants Pipeline</TH>
+                      <TH padding="compact">Applicants</TH>
                       <TH padding="compact">Opened</TH>
                       <TH padding="compact" align="right">Actions</TH>
                     </TR>
@@ -1330,7 +1424,7 @@ export default function JobList() {
                     {sortedJobs.map((job) => {
                       const rubric = RUBRIC_STATUS_META[job.rubricStatus] || RUBRIC_STATUS_META.none;
                       const applicants = candidatesByJob?.[job._id] || [];
-                      const applicantsCount = job.applicationCounts?.total ?? applicants.length;
+                      const funnel = jobFunnel(job, applicants);
                       const isSelected = selectedJob?._id === job._id;
                       const reqCode = `#REQ-${job._id ? job._id.slice(-6).toUpperCase() : "2026-009"}`;
 
@@ -1338,8 +1432,7 @@ export default function JobList() {
                         <TR
                           key={job._id}
                           onClick={() => {
-                            setDrawerTab("overview");
-                            setSelectedJob(job);
+                            openJob(job, "overview");
                           }}
                           className={`cursor-pointer transition-all ${
                             isSelected
@@ -1352,16 +1445,13 @@ export default function JobList() {
                               {isSelected && (
                                 <span className="h-8 w-1 rounded-full bg-[#0E3B2E] shrink-0" />
                               )}
+                              <JobTile job={job} />
                               <div className="min-w-0">
-                                <span className="block font-mono text-[10.5px] font-semibold text-slate-400">
-                                  {reqCode}
-                                </span>
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setDrawerTab("overview");
-                                    setSelectedJob(job);
+                                    openJob(job, "overview");
                                   }}
                                   className="text-left font-bold text-slate-900 hover:text-brand-700 transition-colors text-sm cursor-pointer"
                                 >
@@ -1370,12 +1460,13 @@ export default function JobList() {
                                 <span className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                                   <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                                   {job.location || "Remote / Anywhere"}
+                                  <span className="font-mono text-slate-400">· {reqCode}</span>
                                 </span>
                               </div>
                             </div>
                           </TD>
-                          <TD padding="compact" className="font-semibold text-xs text-slate-700">
-                            {job.department || "General"}
+                          <TD padding="compact">
+                            <DepartmentChip name={job.department} />
                           </TD>
                           <TD padding="compact">
                             <Badge
@@ -1396,8 +1487,7 @@ export default function JobList() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setDrawerTab("rubric");
-                                setSelectedJob(job);
+                                openJob(job, "rubric");
                               }}
                               className="inline-flex items-center hover:opacity-80 transition-opacity cursor-pointer"
                             >
@@ -1407,31 +1497,17 @@ export default function JobList() {
                             </button>
                           </TD>
                           <TD padding="compact">
-                            <div className="flex items-center gap-2">
-                              {applicantsCount > 0 && (
-                                <div className="flex -space-x-1.5 overflow-hidden">
-                                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-900 border-2 border-white shadow-2xs">
-                                    {(applicants[0]?.name || "A")[0]}
-                                  </span>
-                                  {applicantsCount > 1 && (
-                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-900 border-2 border-white shadow-2xs">
-                                      {(applicants[1]?.name || "B")[0]}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDrawerTab("candidates");
-                                  setSelectedJob(job);
-                                }}
-                                className="num rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
-                              >
-                                {applicantsCount}
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openJob(job, "candidates");
+                              }}
+                              aria-label={`${funnel.total} applicants — open pipeline`}
+                              className="block w-full rounded-lg p-1 text-left hover:bg-slate-100/70 cursor-pointer"
+                            >
+                              <FunnelBar f={funnel} />
+                            </button>
                           </TD>
                           <TD padding="compact" className="whitespace-nowrap text-xs text-slate-500 font-medium">
                             {timeAgo(job.createdAt)}
@@ -1453,19 +1529,7 @@ export default function JobList() {
                                   <span>Publish</span>
                                 </Button>
                               )}
-                              <Button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDrawerTab("candidates");
-                                  setSelectedJob(job);
-                                }}
-                                size="sm"
-                                variant="outline"
-                                className="h-7 px-2.5 text-xs font-semibold shadow-2xs cursor-pointer"
-                              >
-                                Applicants
-                              </Button>
+
                               <RowAction
                                 onClick={(e) => {
                                   e?.stopPropagation?.();
@@ -1619,5 +1683,6 @@ export default function JobList() {
           )}
         </section>
     </div>
+    </DeptHue.Provider>
   );
 }

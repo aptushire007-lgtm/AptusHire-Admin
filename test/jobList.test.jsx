@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 
 const mockCompanyData = vi.hoisted(() => ({
   candidatesByJob: {},
@@ -69,10 +69,16 @@ vi.mock("../src/context/CompanyDataContext.jsx", () => ({
 
 const { default: JobList } = await import("../src/pages/JobList.jsx");
 
+function Location() {
+  const location = useLocation();
+  return <output data-testid="location">{location.pathname}{location.search}</output>;
+}
+
 function renderJobList(entry = "/jobs") {
   return render(
     <MemoryRouter initialEntries={[entry]}>
       <JobList />
+      <Location />
     </MemoryRouter>
   );
 }
@@ -123,13 +129,13 @@ describe("JobList Recruiter UX & Navigation", () => {
 
     // Applicants count from candidate pipeline
     expect(screen.getAllByText(/applicants/i).length).toBeGreaterThan(0);
-    expect(screen.getByText("1 review · 1 interview")).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: "1 screening, 1 interviewing, 0 at offer" })[0]).toBeInTheDocument();
 
     // Rubric badge
     expect(screen.getByText("Rubric approved")).toBeInTheDocument();
 
-    // Action buttons
-    expect(screen.getAllByRole("button", { name: /View Applicants/i })[0]).toBeInTheDocument();
+    // The separate Applicants button is gone — the applicant bar and the card open the job.
+    expect(screen.queryByRole("button", { name: /View Applicants/i })).toBeNull();
   });
 
   it("restores shared job filters and supports removing one condition", async () => {
@@ -234,7 +240,7 @@ describe("JobList Recruiter UX & Navigation", () => {
     }
   });
 
-  it("renders 4 KPI metric cards, export button, and opens drawer when clicking a job row", async () => {
+  it("renders 4 KPI metric cards, export button, and opens the job's workspace when clicking a job row", async () => {
     renderJobList("/jobs?view=list");
 
     await waitFor(() => {
@@ -245,25 +251,23 @@ describe("JobList Recruiter UX & Navigation", () => {
     expect(screen.getByText("Total Requisitions")).toBeInTheDocument();
     expect(screen.getByText("Active Applicants")).toBeInTheDocument();
     expect(screen.getByText("Interviews Scheduled")).toBeInTheDocument();
-    expect(screen.getByText("Avg. Time to Screen")).toBeInTheDocument();
+    // Replaced "Avg. Time to Screen 1.8d · -65% vs manual", which was literal
+    // text end to end — the figure included — with a count the page can source.
+    expect(screen.getByText("Rubrics to approve")).toBeInTheDocument();
+    expect(screen.queryByText("1.8d")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Next today/)).not.toBeInTheDocument();
 
     // Export CSV
     expect(screen.getByRole("button", { name: /Export CSV/i })).toBeInTheDocument();
 
-    // Clicking a row in table view opens the inspection drawer
+    // Clicking a row used to pop a dialog over this list. It now opens the
+    // job's own workspace, landing on its board — the first thing a recruiter
+    // wants from a role is where its candidates stand. (The editor's tabs and
+    // rubric behaviour are covered directly in jobInspectionDrawer.test.jsx.)
     const row = screen.getByText("Senior Full Stack Engineer").closest("tr");
     fireEvent.click(row);
 
-    expect(screen.getByRole("dialog", { name: /Job Inspection: Senior Full Stack Engineer/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Overview/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /AI Rubric/i })).toBeInTheDocument();
-
-    // Clicking the AI Rubric tab loads the rubric section
-    fireEvent.click(screen.getByRole("tab", { name: /AI Rubric/i }));
-    expect(screen.getByText("AI Screening Rubric")).toBeInTheDocument();
-
-    // Close drawer
-    fireEvent.click(screen.getByRole("button", { name: "Close drawer" }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/jobs/j1/pipeline");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

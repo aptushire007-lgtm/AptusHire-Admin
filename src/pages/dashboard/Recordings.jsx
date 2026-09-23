@@ -70,7 +70,15 @@ export default function Recordings() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Recordings" description="Watch interview recordings or open a candidate’s AI report to review the transcript and findings." />
+      <PageHeader
+        title="Recordings"
+        description="Watch interview recordings or open a candidate’s AI report to review the transcript and findings."
+        steps={[
+          "A candidate completes an AI interview",
+          "Its recording is captured and retained",
+          "Open the report to review the transcript and findings",
+        ]}
+      />
 
       <ChipRow label="Quick filter">
         <Chip active={status === "all"} onClick={() => selectStatus("all")}>

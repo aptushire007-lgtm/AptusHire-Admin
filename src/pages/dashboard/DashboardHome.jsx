@@ -9,13 +9,13 @@ import {
   ChevronRight,
   FilePlus2,
   Layers,
+  Mail,
   Scale,
   TrendingUp,
   Users,
 } from "lucide-react";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { Badge, Card, CardHeader, CardRow, EmptyState, StatCard, StatGrid, Skeleton } from "../../components/ui/Card.jsx";
-import PageHeader from "../../components/ui/PageHeader.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { stageLabel, stageTone } from "../../lib/pipeline.js";
 import { VISUALIZATION_PALETTE } from "../../lib/visualizationColors.js";
@@ -24,6 +24,7 @@ import { recruiterTasks } from "../../lib/recruiterTasks.js";
 
 import { useEffect } from "react";
 import api from "../../api/client.js";
+import { TEMPLATE_CATEGORIES } from "../../lib/templates.js";
 import { getSocket } from "../../lib/socket.js";
 
 
@@ -88,39 +89,79 @@ export default function DashboardHome() {
   const totalJobPages = Math.ceil(jobs.length / jobsPerPage) || 1;
   const paginatedJobs = jobs.slice(jobPage * jobsPerPage, (jobPage + 1) * jobsPerPage);
   const stats = [
-    { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, delta: null, to: "/jobs", accent: "brand" },
-    { label: "Applications",    value: summary.total,      sub: "All roles, including historical applications",                                   icon: Users,     delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
-    { label: "Interview queue",    value: liveQueue.length,            sub: "Queue entries for existing roles",                                                   icon: Layers,    delta: null, to: "/ai-interviews", accent: "orange" },
-    { label: "Shortlisted",   value: summary.shortlisted, sub: "Applications at shortlist stage",        icon: Scale,     delta: null,                  to: "/pipeline",      accent: "brand" },
-    { label: "Hired",         value: summary.joined,      sub: "Applications marked joined",     icon: Users,     delta: null,                  to: "/pipeline",      accent: "orange" },
+    { label: "Open Roles",    value: jobs.filter((job) => job.status === "published").length, sub: `${jobs.filter((job) => job.status === "published").length} published`, icon: Briefcase, iconTone: "brand", delta: null, to: "/jobs", accent: "brand" },
+    { label: "Applications",    value: summary.total,      sub: "All roles, including historical applications",                                   icon: Users,     iconTone: "sky", delta: model.applicantDelta,   to: "/candidates",    accent: "brand" },
+    { label: "Interview queue",    value: liveQueue.length,            sub: "Queue entries for existing roles",                                                   icon: Layers,    iconTone: "violet", delta: null, to: "/ai-interviews", accent: "orange" },
+    { label: "Shortlisted",   value: summary.shortlisted, sub: "Applications at shortlist stage",        icon: Scale,     iconTone: "teal", delta: null,                  to: "/pipeline",      accent: "brand" },
+    { label: "Hired",         value: summary.joined,      sub: "Applications marked joined",     icon: Users,     iconTone: "positive", delta: null,                  to: "/pipeline",      accent: "orange" },
   ];
 
   return (
     <div className="space-y-[18px]">
-      <PageHeader title="Today" description={`${greeting()}${me?.name ? `, ${me.name.split(" ")[0]}` : ""}. Here is what needs your attention.`}
-        action={<Button as={Link} to="/jobs?create=1"><FilePlus2 className="h-4 w-4" aria-hidden="true" />Create job</Button>} />
+      {/* The screen used to open with eleven cards of identical weight — five
+          KPI tiles, two charts, three lists and a queue — so nothing told a
+          recruiter where to start. One focal block does, and the figure it
+          carries is the only one that implies an action: how much is waiting
+          on a human right now. Everything below it is supporting detail.
+
+          The figure obeys the same rule as every other number in this product:
+          a skeleton while it is unknown and an em dash when the request
+          failed — never a confident 0 standing in for "we could not count". */}
+      <section className="panel-hero workspace-panel rounded-2xl px-5 py-5 sm:px-6 sm:py-6">
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-white/70">
+              {greeting()}{me?.name ? `, ${me.name.split(" ")[0]}` : ""}
+            </p>
+            {/* A <div>, not a <p>: the loading branch renders a <Skeleton>, which
+                is a block, and a block inside a <p> is invalid HTML that React
+                warns about and the browser silently reparents — which moves the
+                placeholder out of this row. Card.jsx § StatCard hit the same
+                trap and documents it. */}
+            <div className="mt-3 flex items-baseline gap-3">
+              <span className="num text-[44px] leading-none font-semibold text-white">
+                {loading ? (
+                  <Skeleton className="h-10 w-20 bg-white/20 inline-block align-middle" />
+                ) : loadError ? (
+                  <span title="Could not load this figure">—</span>
+                ) : (
+                  taskTotal
+                )}
+              </span>
+              <span className="text-base font-semibold text-white/90">
+                {taskTotal === 1 ? "item waiting on you" : "items waiting on you"}
+              </span>
+            </div>
+            <p className="prose-wrap mt-2 max-w-md text-sm text-white/70">
+              Recorded workflow states that need a recruiter decision. Nothing here is actioned automatically.
+            </p>
+          </div>
+          {/* Deliberately NOT <Button variant="primary"> here: primary is
+              bg-brand-800, the same forest this panel is filled with, so the
+              button would be invisible on it. On a dark ground the white
+              `secondary` IS the emphatic one. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to="/review-queue"
+              className="inline-flex items-center gap-1.5 rounded-control border border-white/30 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Open review queue
+            </Link>
+            <Button as={Link} to="/jobs?create=1" variant="secondary">
+              <FilePlus2 className="h-4 w-4" aria-hidden="true" />Create job
+            </Button>
+          </div>
+        </div>
+      </section>
       {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
         <span>{loadError} Figures may be incomplete.</span><Button variant="secondary" size="sm" onClick={refresh}>Refresh</Button>
       </div>}
-      <Card padding="none">
-        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Recorded workflow states requiring a recruiter action." aside="No action is taken automatically." />
-        {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
-          visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
-          <ul>{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
-            <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
-            <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
-          </li>)}</ul>}
-        {summary.attentionTotal > 20 && <div className="flex flex-wrap items-center gap-3 p-3">
-          <Button variant="secondary" size="sm" disabled={taskPage === 1} onClick={() => setTaskPage(page => page - 1)}>Previous tasks</Button>
-          <span className="text-xs">Page {taskPage} of {Math.ceil(summary.attentionTotal / 20)}</span>
-          <Button variant="secondary" size="sm" disabled={taskPage >= Math.ceil(summary.attentionTotal / 20)} onClick={() => setTaskPage(page => page + 1)}>Next tasks</Button>
-        </div>}
-      </Card>
       <section aria-label="Key Performance Indicators">
-        <StatGrid min={170}>{stats.map(item => <StatCard key={item.label} as={Link} to={item.to} interactive
+        <StatGrid min={170}>{stats.map((item, index) => <StatCard key={item.label} as={Link} to={item.to} interactive
+          className={index === 0 ? "accent-edge" : ""}
           aria-label={loading ? item.label : `${item.value} ${item.label}`}
           label={item.label} value={loading ? <Skeleton className="h-7 w-16" /> : loadError ? "—" : item.value}
-          note={item.sub} icon={item.icon}
+          note={item.sub} icon={item.icon} iconTone={item.iconTone}
           chip={item.delta == null ? undefined : `${item.delta > 0 ? "+" : ""}${item.delta}%`}
           chipTone={item.delta > 0 ? "green" : item.delta < 0 ? "red" : "slate"}
         />)}</StatGrid>
@@ -140,6 +181,20 @@ export default function DashboardHome() {
           })}</div>
         </Card>
       </section>
+      <Card padding="none">
+        <CardHeader title="Needs attention" count={loading ? undefined : taskTotal} description="Ordered by what blocks a decision first." />
+        {loading ? <div className="p-[18px]"><Skeleton className="h-20" /></div> : loadError ? <p className="p-[18px] text-sm text-slate-600">Refresh to see the current review queue.</p> :
+          visibleTasks.length === 0 ? <p className="p-[18px] text-sm text-slate-600">No pending application reviews, assessment decisions or published-rubric approvals on this page.</p> :
+          <ul className="max-h-[360px] overflow-y-auto overscroll-contain">{visibleTasks.map(task => <li key={task.key} className="rule-b flex flex-wrap items-center justify-between gap-3 px-[18px] py-3">
+            <div className="min-w-0"><p className="text-sm font-bold text-slate-900">{task.title}</p><p className="pt-0.5 text-xs text-slate-500">{task.detail}</p></div>
+            <Button as={Link} to={task.href} variant="pending" size="sm">{task.action}</Button>
+          </li>)}</ul>}
+        {summary.attentionTotal > 20 && <div className="flex flex-wrap items-center gap-3 p-3">
+          <Button variant="secondary" size="sm" disabled={taskPage === 1} onClick={() => setTaskPage(page => page - 1)}>Previous tasks</Button>
+          <span className="text-xs">Page {taskPage} of {Math.ceil(summary.attentionTotal / 20)}</span>
+          <Button variant="secondary" size="sm" disabled={taskPage >= Math.ceil(summary.attentionTotal / 20)} onClick={() => setTaskPage(page => page + 1)}>Next tasks</Button>
+        </div>}
+      </Card>
       <section className="grid items-start gap-[18px] xl:grid-cols-3">
         <Card padding="none"><CardHeader title="Recent candidates" action={<Link to="/candidates" className="text-xs font-semibold text-brand-700 hover:underline">View all</Link>} />
           {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.recent.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No candidates yet.</p> : model.recent.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Application"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
@@ -152,6 +207,54 @@ export default function DashboardHome() {
           {loading ? <div className="p-[18px]"><Skeleton className="h-24" /></div> : model.upcomingInterviews.length === 0 ? <p className="p-[18px] text-sm text-slate-500">No interview activity yet.</p> : model.upcomingInterviews.map(candidate => <Link key={candidate._id} to={`/candidates/${candidate._id}`} className="rule-b flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas"><Monogram name={candidate.basicDetails?.name} /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{candidate.basicDetails?.name || "Candidate"}</span><span className="block truncate text-xs text-slate-500">{candidate.job?.title || "Interview"}</span></span><Badge tone={stageTone(candidate.status)}>{stageLabel(candidate.status)}</Badge></Link>)}
         </Card>
       </section>
+      <TemplatesCard />
     </div>
+  );
+}
+
+const TEMPLATE_TYPE = Object.fromEntries(TEMPLATE_CATEGORIES.map((c) => [c.value, c.label]));
+
+// Saved messages, one click from Home: the recruiter's offer letters and other
+// standard emails. Its own fetch, so a failure here never blanks the dashboard.
+function TemplatesCard() {
+  const [templates, setTemplates] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    api.get("/templates")
+      .then(({ data }) => { if (alive) setTemplates(data.templates || []); })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  return (
+    <Card padding="none">
+      <CardHeader
+        title="Message templates"
+        count={templates?.length || undefined}
+        description="Offer letters and other messages you send again and again."
+        action={<Button as={Link} to="/templates" variant="secondary" size="sm">{templates?.length ? "Manage" : "Create template"}</Button>}
+      />
+      {failed ? (
+        <p className="p-[18px] text-sm text-slate-500">Could not load templates. <Link to="/templates" className="font-semibold text-brand-700 hover:underline">Open templates</Link></p>
+      ) : templates === null ? (
+        <div className="p-[18px]"><Skeleton className="h-12" /></div>
+      ) : templates.length === 0 ? (
+        <p className="p-[18px] text-sm text-slate-500">No templates yet. Save an offer letter once and reuse it every time you send an offer from the pipeline.</p>
+      ) : (
+        <ul className="grid gap-px sm:grid-cols-2 xl:grid-cols-4">
+          {templates.slice(0, 4).map((t) => (
+            <li key={t._id}>
+              <Link to="/templates" className="flex min-w-0 items-center gap-2.5 px-[18px] py-3 hover:bg-canvas">
+                <Mail className="h-4 w-4 shrink-0 text-brand-700" aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-slate-900">{t.name}</span>
+                  <span className="block truncate text-xs text-slate-500">{TEMPLATE_TYPE[t.category] || "Other"}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

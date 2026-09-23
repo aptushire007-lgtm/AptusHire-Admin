@@ -5,14 +5,16 @@ import Modal from "./Modal.jsx";
 import Menu, { MenuGroup, MenuItem, MenuSeparator } from "./Menu.jsx";
 import {
   REJECTED,
-  STAGES,
-  allowedNextStages,
+  DECISIONS,
+  stageDecisions,
   isTerminal,
-  normalizeStage,
   notifiesCandidate,
   stageLabel,
-  stageStep,
 } from "../../lib/pipeline.js";
+
+// The board's own phase names, in pipeline order, so the menu groups moves the
+// way the recruiter already sees them grouped on the board.
+const PHASE_ORDER = ["Assessments", "Interviews", "Offers & Hires"];
 
 /**
  * The candidate stage control — the one place a recruiter moves a person
@@ -38,9 +40,10 @@ import {
  *     "Under Review". CLAUDE.md's rule is that a human owns every adverse
  *     action; this is what owning it looks like at the click.
  *
- * The transition rules themselves are NOT re-derived here. `allowedNextStages`
- * mirrors the backend guard, and the server re-checks anyway — this component
- * only decides how the permitted set is presented.
+ * The transition rules themselves are NOT re-derived here. `stageDecisions`
+ * (pipeline.js) filters every offer through `canTransition`, which mirrors the
+ * backend guard, and the server re-checks anyway — this component only decides
+ * how the permitted decisions are presented.
  *
  * Props:
  *   status  — the candidate's current stage
@@ -49,26 +52,30 @@ import {
  *   onMove  — (stage) => void; the caller owns the request and the refresh
  *   compact — narrow trigger for the pipeline board's 288px columns
  */
+const PHASE_TINT = {
+  Assessments: "!border-rose-200 !bg-rose-50 !text-rose-700 hover:!bg-rose-100",
+  Interviews: "!border-violet-200 !bg-violet-50 !text-violet-700 hover:!bg-violet-100",
+  "Offers & Hires": "!border-emerald-200 !bg-emerald-50 !text-emerald-800 hover:!bg-emerald-100",
+  none: "!border-slate-200 !bg-slate-50 !text-slate-700 hover:!bg-slate-100",
+};
+
 export default function StageMenu({ status, name, busy = false, onMove, compact = false, className = "" }) {
   const [confirming, setConfirming] = useState(null);
+  const [showOther, setShowOther] = useState(false);
   const who = name || "this candidate";
 
-  const { primary, forward, lateral, canReject } = useMemo(() => {
-    const from = normalizeStage(status);
-    const fromIdx = STAGES.indexOf(from);
-    const next = allowedNextStages(from);
-    // Forward vs sideways matters for which move gets promoted to the button.
-    // `allowedNextStages` returns pipeline order, so for a candidate sitting at
-    // Technical Interview its first entry is HR Interview — a legal SIDEWAYS
-    // move, and the wrong thing to offer as "advance".
-    const ahead = next.filter((s) => s !== REJECTED && STAGES.indexOf(s) > fromIdx);
-    const sideways = next.filter((s) => s !== REJECTED && STAGES.indexOf(s) < fromIdx);
-    return { primary: ahead[0] || null, forward: ahead, lateral: sideways, canReject: next.includes(REJECTED) };
-  }, [status]);
+  // Decisions, not stages: see stageDecisions() in pipeline.js. The menu used
+  // to list every later stage by its internal name — up to fourteen, including
+  // "AI Interview Completed", which records an event and must never be chosen.
+  const { next, other, canReject } = useMemo(() => stageDecisions(status), [status]);
+  const primary = next[0] || null;
+  const byPhase = PHASE_ORDER.map((phase) => [phase, next.filter((s) => DECISIONS[s].phase === phase)]).filter(
+    ([, list]) => list.length > 0
+  );
 
   // A candidate at a terminal stage has nowhere to go. Saying so is better than
   // an empty cell, which reads as a control that failed to render.
-  if (!primary && lateral.length === 0 && !canReject) {
+  if (!primary && other.length === 0 && !canReject) {
     return <span className={`text-xs font-medium text-slate-500 ${className}`}>Final stage</span>;
   }
 
@@ -88,40 +95,45 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
 
   const menu = (
     <>
-      {forward.length > 0 && (
-        <MenuGroup label="Advance to">
-          {forward.map((s, i) => (
-            <MenuItem
-              key={s}
-              onSelect={() => request(s)}
-              leading={<Step stage={s} />}
-              trailing={<Consequence stage={s} next={i === 0} />}
-            >
-              {stageLabel(s)}
-            </MenuItem>
-          ))}
-        </MenuGroup>
-      )}
-
-      {lateral.length > 0 && (
-        <>
-          <MenuSeparator />
-          {/* Round-to-round moves are legal in both directions (ROUND_STAGES in
-              pipeline.js) and are not a demotion — a candidate can meet the
-              hiring manager before the technical panel. Grouping them away from
-              "Advance to" stops that from reading as sending someone backwards. */}
-          <MenuGroup label="Other interview rounds">
-            {lateral.map((s) => (
+      {byPhase.map(([phase, list], gi) => (
+        <div key={phase}>
+          {gi > 0 && <MenuSeparator />}
+          <MenuGroup label={phase}>
+            {list.map((s) => (
               <MenuItem
                 key={s}
                 onSelect={() => request(s)}
-                leading={<Step stage={s} />}
-                trailing={<Consequence stage={s} />}
+                trailing={<Consequence stage={s} next={s === primary} />}
               >
-                {stageLabel(s)}
+                {DECISIONS[s].label}
               </MenuItem>
             ))}
           </MenuGroup>
+        </div>
+      ))}
+
+      {other.length > 0 && (
+        <>
+          <MenuSeparator />
+          {/* The unusual moves — skipping ahead, say, to record an offline
+              hire — stay reachable but folded away, so the handful above is
+              the menu. A plain button, not a menuitem: <Menu> closes on any
+              item selection, and this only reveals more of the list. */}
+          <button
+            type="button"
+            onClick={() => setShowOther((v) => !v)}
+            aria-expanded={showOther}
+            className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-canvas"
+          >
+            <span>{showOther ? "Fewer options" : `More options (${other.length})`}</span>
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showOther ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+          {showOther &&
+            other.map((s) => (
+              <MenuItem key={s} onSelect={() => request(s)} trailing={<Consequence stage={s} />}>
+                {DECISIONS[s].label}
+              </MenuItem>
+            ))}
         </>
       )}
     </>
@@ -152,16 +164,20 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
     </>
   );
 
+  // Compact (on a card) the button wears its destination's colour — rose for
+  // an assessment, violet for an interview, the same hues those steps carry
+  // everywhere else — so the next move reads at a glance, and shrinks to fit.
+  const tint = compact ? PHASE_TINT[DECISIONS[primary]?.phase] || PHASE_TINT.none : "";
   const moreTrigger = (
     <Button
       variant="secondary"
       size="sm"
       disabled={busy}
       aria-label={`More stage moves for ${who}`}
-      className={primary ? "rounded-l-none px-2" : ""}
+      className={`${primary ? "rounded-l-none px-2" : ""} ${compact ? `!h-7 !min-h-0 !min-w-0 !px-1.5 ${tint}` : ""}`}
     >
       {!primary && "Move…"}
-      <ChevronDown className="h-4 w-4" aria-hidden="true" />
+      <ChevronDown className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} aria-hidden="true" />
     </Button>
   );
 
@@ -177,12 +193,12 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
             // The visible label goes generic in a kanban column, so the full
             // destination moves into the accessible name rather than being lost:
             // "Advance" alone is not a description of what the button does.
-            aria-label={`Advance ${who} to ${stageLabel(primary)}`}
-            title={`Advance to ${stageLabel(primary)}`}
-            className="rounded-r-none border-r-0"
+            aria-label={`${DECISIONS[primary].label} for ${who}`}
+            title={DECISIONS[primary].label}
+            className={`rounded-r-none border-r-0 ${compact ? `!h-7 !min-h-0 !gap-1 !px-2 text-xs ${tint}` : ""}`}
           >
-            {!busy && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
-            <span aria-hidden="true">{compact ? "Advance" : stageLabel(primary)}</span>
+            {!busy && <ArrowRight className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} aria-hidden="true" />}
+            <span aria-hidden="true">{compact ? DECISIONS[primary].short : DECISIONS[primary].label}</span>
           </Button>
         )}
         <Menu trigger={moreTrigger} footer={footer} label={`Stage moves for ${who}`} align="end">
@@ -211,21 +227,6 @@ export default function StageMenu({ status, name, busy = false, onMove, compact 
         </div>
       </Modal>
     </>
-  );
-}
-
-/**
- * The stage's position in the pipeline, as a fixed-width ordinal. This is the
- * cheapest thing that turns a flat list of destinations back into a sequence —
- * the same job the numbers do in <StepTrack>, which is where the format comes
- * from. `rejected` has no position and gets a spacer, so labels stay aligned.
- */
-function Step({ stage }) {
-  const step = stageStep(stage);
-  return (
-    <span aria-hidden="true" className="w-5 shrink-0 text-[11px] font-semibold num tabular-nums text-slate-400">
-      {step == null ? "" : String(step).padStart(2, "0")}
-    </span>
   );
 }
 

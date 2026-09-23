@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Bot, ExternalLink, Cpu } from "lucide-react";
 import api from "../../api/client.js";
+import { StepStrip } from "../../components/ui/PageHeader.jsx";
 import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { Card, Badge, Avatar, Skeleton, EmptyState } from "../../components/ui/Card.jsx";
 import { RecordCard, RecordGrid } from "../../components/ui/Panels.jsx";
@@ -37,6 +38,13 @@ export default function AIInterviews() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold tracking-[-0.025em] text-slate-900 [overflow-wrap:anywhere]">Interviews</h1>
+        <StepStrip
+          steps={[
+            "A shortlisted candidate is queued",
+            "They complete the interview in their portal",
+            "The scored report lands on their profile",
+          ]}
+        />
         <p className="mt-1 text-sm text-slate-600">Manage candidates waiting for an interview. Review previous attempts from the candidate’s interview evidence.</p>
         <nav aria-label="Interview views" className="mt-4 flex flex-wrap gap-2"><Link aria-current="page" to="/ai-interviews" className="rounded-lg bg-brand-800 px-3 py-2 text-sm font-medium text-white">Queue</Link><Link to="/recordings" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white">Recordings</Link></nav>
       </div>

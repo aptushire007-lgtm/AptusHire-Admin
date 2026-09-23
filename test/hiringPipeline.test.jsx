@@ -145,7 +145,10 @@ describe("Hiring Pipeline — what the board states", () => {
     // for a measurement nobody took.
     expect(within(applied).queryByText("0%")).toBeNull();
     // The genuinely scored one keeps its figure.
-    expect(screen.getByText("78%")).toBeInTheDocument();
+    // The card prints the figure under a "Fit" label now rather than suffixing a
+    // percent sign, so this follows the markup. The reading is unchanged, and
+    // the sr-only "out of 100" carries the unit to a screen reader.
+    expect(screen.getByText("78")).toBeInTheDocument();
   });
 
   it("shows only the occupied stages by default, and says how many it is hiding", () => {
@@ -184,12 +187,13 @@ describe("Hiring Pipeline — what the board states", () => {
     expect(screen.getByText(/0 of 2 reached Shortlisted/)).toBeInTheDocument();
   });
 
-  it("shows a truncated skill set without dropping the remainder from the a11y tree", () => {
+  it("keeps the card to fit, stage evidence and the next decision — skills live in the profile", () => {
     renderBoard();
-    expect(screen.getByText("Python")).toBeInTheDocument();
-    expect(screen.getByText("+1")).toBeInTheDocument();
-    // The overflow count is a layout decision, not an editorial one.
-    expect(screen.getByText(/more skills: Rust/)).toBeInTheDocument();
+    // Skill chips were removed from the board card: with the Fit score and the
+    // per-stage evidence already on it they added height, not a decision, and
+    // the full skill list is one click away in the candidate's profile.
+    expect(screen.queryByText("Python")).not.toBeInTheDocument();
+    expect(screen.getAllByText("CV screening").length).toBeGreaterThan(0);
   });
 
   it("flags a résumé-defense signal as something to review, never as a score", () => {
@@ -230,16 +234,14 @@ describe("Hiring Pipeline — what the board states", () => {
     expect(screen.queryByText(/Avg ATS score/)).toBeNull();
   });
 
-  it("renders the interactive StageNavigator with phase tabs and quick stage buttons", () => {
+  it("renders the phase tabs the move menu also groups its decisions under", () => {
     renderBoard();
-    // Phase tabs
     expect(screen.getByRole("button", { name: /All Stages/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Screening/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Interviews/ })).toBeInTheDocument();
-
-    // Stage buttons with titles
-    expect(screen.getByTitle(/Jump to Applied/)).toBeInTheDocument();
-    expect(screen.getByTitle(/Jump to Under Review/)).toBeInTheDocument();
+    // The row of per-stage "jump" dots is gone: with only occupied stages shown
+    // it duplicated the columns directly beneath it.
+    expect(screen.queryByTitle(/Jump to/)).not.toBeInTheDocument();
   });
 
   it("filters visible columns when a phase tab is clicked and allows resetting", () => {
@@ -261,16 +263,12 @@ describe("Hiring Pipeline — what the board states", () => {
     expect(screen.getByText(/Showing 2 of 16 stages/)).toBeInTheDocument();
   });
 
-  it("supports toggling between comfortable and compact column widths", () => {
+  it("uses one compact column width, with no density toggle to manage", () => {
     renderBoard();
-    const comfortable = screen.getByRole("button", { name: "Comfortable" });
-    const compact = screen.getByRole("button", { name: "Compact" });
-
-    expect(comfortable).toHaveAttribute("aria-pressed", "true");
-    expect(compact).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.click(compact);
-    expect(comfortable).toHaveAttribute("aria-pressed", "false");
-    expect(compact).toHaveAttribute("aria-pressed", "true");
+    // The card is compact by design now, so the Comfortable / Compact toggle
+    // that switched between two widths was removed rather than kept as a
+    // control that no longer changes much.
+    expect(screen.queryByRole("button", { name: "Comfortable" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Compact" })).not.toBeInTheDocument();
   });
 });

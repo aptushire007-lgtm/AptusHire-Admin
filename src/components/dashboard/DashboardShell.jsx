@@ -7,6 +7,7 @@ import {
   KanbanSquare,
   Bot,
   BarChart3,
+  Mail,
   Bell,
   Settings,
   LogOut,
@@ -19,10 +20,8 @@ import {
   Building2,
   Sparkles,
   CreditCard,
-  Zap,
   Search,
   Mic2,
-  Plus,
   FileQuestion,
 } from "lucide-react";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
@@ -34,6 +33,8 @@ import Modal from "../ui/Modal.jsx";
 import NotificationBell from "./NotificationBell.jsx";
 import BrandLogo, { AptusMark } from "../ui/BrandLogo.jsx";
 import CommandPalette from "./CommandPalette.jsx";
+import JobSidebar, { parseJobPath, JOB_SECTIONS } from "./JobSidebar.jsx";
+import { NavItem } from "./NavItem.jsx";
 
 const SIDEBAR_COLLAPSED_KEY = "admin_sidebar_collapsed:v1";
 
@@ -46,48 +47,51 @@ function writeSidebarCollapsed(v) {
   catch { /* ignore */ }
 }
 
-const NAV_GROUPS = [
-  {
-    label: "Recruitment",
-    items: [
-      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-      { to: "/jobs", label: "Jobs", icon: Briefcase },
-      { to: "/candidates", label: "Candidates", icon: Users },
-      { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
-      { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
-    ],
-  },
-  {
-    label: "Screening & Interviews",
-    items: [
-      { to: "/review-queue", label: "Screening reviews", icon: Scale },
-      { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
-      { to: "/recordings", label: "Recordings", icon: Mic2 },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { to: "/reports", label: "Analytics & Reports", icon: BarChart3 },
-      { to: "/notifications", label: "Notifications", icon: Bell },
-    ],
-  },
-  {
-    label: "Workspace",
-    items: [
-      { to: "/settings", label: "Settings", icon: Settings },
-    ],
-  },
+/**
+ * The company-wide sidebar holds ONLY what spans every job.
+ *
+ * It used to carry eleven destinations in four groups. Most of them — the
+ * pipeline, AI interviews, recordings, skills assessments — are about ONE job,
+ * and now live inside that job's own workspace (see JobSidebar.jsx), where a
+ * recruiter actually works them. What is left is what a recruiter needs from
+ * anywhere: where things stand, the roles, the people, what is waiting on
+ * them, and how it is going.
+ *
+ * Notifications is not here because the top bar's bell already is it.
+ */
+const NAV_MAIN = [
+  { to: "/", label: "Home", icon: LayoutDashboard, end: true },
+  { to: "/jobs", label: "Jobs", icon: Briefcase },
+  { to: "/candidates", label: "Talent Pool", icon: Users },
+  { to: "/review-queue", label: "Review queue", icon: Scale, countKey: "reviews" },
+  { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/templates", label: "Templates", icon: Mail },
 ];
+const NAV_SETTINGS = { to: "/settings", label: "Settings", icon: Settings };
+const NAV_PLATFORM = { to: "/platform", label: "Platform administration", icon: Building2 };
 
-function getNavGroups(user) {
-  if (user?.role !== "super_admin") return NAV_GROUPS;
+/**
+ * Everything reachable, for Ctrl+K search.
+ *
+ * Kept separate from the sidebar ON PURPOSE. The palette used to be fed the
+ * sidebar's own list, so trimming the sidebar would have silently removed the
+ * company-wide AI Interviews, Recordings and Assessments pages from search as
+ * well — stranding them. Moving a page out of the sidebar is a layout choice;
+ * making it unfindable would be a regression.
+ */
+function getPaletteGroups(user) {
+  const workspace = [...NAV_MAIN, NAV_SETTINGS];
+  if (user?.role === "super_admin") workspace.push(NAV_PLATFORM);
   return [
-    ...NAV_GROUPS,
+    { label: "Workspace", items: workspace },
     {
-      label: "Administration",
+      label: "Across all jobs",
       items: [
-        { to: "/platform", label: "Platform administration", icon: Building2 },
+        { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
+        { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
+        { to: "/recordings", label: "Recordings", icon: Mic2 },
+        { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
+        { to: "/notifications", label: "Notifications", icon: Bell },
       ],
     },
   ];
@@ -118,26 +122,33 @@ function getBreadcrumbs(pathname) {
       { label: "Job post", current: true },
     ];
   }
-  if (pathname.startsWith("/jobs/") && pathname.includes("/candidates")) {
+  // Inside a job workspace the sidebar already names the job, so the crumb
+  // only has to say which part of it you are on.
+  const jobPath = parseJobPath(pathname);
+  if (jobPath) {
+    const section = JOB_SECTIONS.find((s) => s.key === jobPath.section);
     return [
       { to: "/jobs", label: "Jobs" },
-      { label: "Candidates", current: true },
+      { label: section?.label || "Job", current: true },
     ];
   }
   return null;
 }
 
-function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
-  const { me } = useCompanyData();
+function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }) {
   const { user } = useAdminAuth();
-  const navGroups = getNavGroups(user);
+  const { pathname } = useLocation();
+  // Inside a job, the job's own navigation replaces this one. Same shell, same
+  // mount — only the list changes — so opening a job never refetches the
+  // workspace or reconnects the socket.
+  const jobPath = parseJobPath(pathname);
 
   return (
     <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div>
-        {/* ── Brand Header ─────────────────────────────────────── */}
+        {/* ── Brand ─────────────────────────────────────────────── */}
         <div
-          className={`flex h-16 shrink-0 items-center border-b border-[#E4E4E7] px-4 ${
+          className={`flex h-16 shrink-0 items-center border-b border-hairline px-4 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
@@ -148,110 +159,64 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
           )}
         </div>
 
-        {/* ── Workspace Capsule ─────────────────────────────────── */}
-        {!collapsed && (
-          <div className="mx-3 mb-1 mt-4 flex items-center gap-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#176B45] text-white">
-              <Building2 className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-bold text-[#17221C]">
-                {me?.company?.name || "Aptus Workspace"}
-              </p>
-            </div>
-          </div>
+        {jobPath ? (
+          <JobSidebar
+            jobId={jobPath.id}
+            section={jobPath.section}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        ) : (
+          <nav aria-label="Dashboard Navigation" className={`mt-4 flex flex-col gap-0.5 ${collapsed ? "px-2" : "px-3"}`}>
+            {NAV_MAIN.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                icon={item.icon}
+                label={item.label}
+                collapsed={collapsed}
+                onClick={onNavigate}
+                count={item.countKey ? counts[item.countKey] : null}
+              />
+            ))}
+          </nav>
         )}
-
-        {/* ── Navigation ────────────────────────────────────────── */}
-        <nav
-          aria-label="Dashboard Navigation"
-          className="mt-3 flex flex-1 flex-col gap-5 px-3"
-        >
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              {!collapsed && (
-                <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-widest text-[#9BAAA1]">
-                  {group.label}
-                </p>
-              )}
-              <div className="flex flex-col gap-px">
-                {group.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    onClick={onNavigate}
-                    title={collapsed ? item.label : undefined}
-                    className={({ isActive }) =>
-                      `group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E3B2E] ${
-                        collapsed ? "justify-center px-2.5" : "px-3"
-                      } ${
-                        isActive
-                          ? "bg-[#EAF5EF] font-semibold text-[#0E3B2E] border border-[#CDE5D6] shadow-2xs"
-                          : "text-slate-600 hover:bg-white/80 hover:text-slate-900 border border-transparent"
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <item.icon
-                          className={`h-4 w-4 shrink-0 transition-colors ${
-                            isActive ? "text-[#0E3B2E]" : "text-slate-400 group-hover:text-[#0E3B2E]"
-                          }`}
-                          aria-hidden="true"
-                        />
-                        {!collapsed && (
-                          <span className="truncate">{item.label}</span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
       </div>
 
-      {/* ── Sidebar Footer ────────────────────────────────────────── */}
-      <div className="space-y-2 border-t border-[#E4E4E7] p-3">
-        {!collapsed && (
-          <div className="rounded-xl border border-[#E5EBE7] bg-[#F1F7F3] p-3.5">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#176B45]">
-                <Zap className="h-3.5 w-3.5 text-[#176B45]" /> Aptus Intelligence
-              </span>
-              <span className="rounded-full bg-[#176B45] px-2 py-0.5 text-[10px] font-bold text-white">
-                Live
-              </span>
-            </div>
-            <p className="mt-1.5 text-[11px] leading-4 text-[#64736A]">
-              Rubric scoring and live interview engine active.
-            </p>
-            <NavLink
-              to="/settings"
-              onClick={onNavigate}
-              className="mt-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-[#E5EBE7] bg-white py-1.5 text-xs font-semibold text-[#176B45] transition-colors hover:bg-[#F8FAF9]"
-            >
-              <CreditCard className="h-3.5 w-3.5" />
-              <span>Workspace Plan</span>
-            </NavLink>
-          </div>
+      {/* ── Footer: settings, admin, collapse ───────────────────────── */}
+      <div className={`flex flex-col gap-0.5 border-t border-hairline py-3 ${collapsed ? "px-2" : "px-3"}`}>
+        <NavItem
+          to={NAV_SETTINGS.to}
+          icon={NAV_SETTINGS.icon}
+          label={NAV_SETTINGS.label}
+          collapsed={collapsed}
+          onClick={onNavigate}
+        />
+        {user?.role === "super_admin" && (
+          <NavItem
+            to={NAV_PLATFORM.to}
+            icon={NAV_PLATFORM.icon}
+            label={NAV_PLATFORM.label}
+            collapsed={collapsed}
+            onClick={onNavigate}
+          />
         )}
-
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium text-[#9BAAA1] transition-colors hover:bg-[#F1F7F3] hover:text-[#64736A]"
+            className={`mt-1 flex h-9 items-center gap-2.5 rounded-lg text-sm font-medium text-slate-600 transition-colors hover:bg-canvas hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800 ${
+              collapsed ? "justify-center" : "px-3"
+            }`}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             ) : (
               <>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 <span>Collapse sidebar</span>
               </>
             )}
@@ -330,15 +295,6 @@ function TopNav({ onMenuClick, onOpenSearch }) {
 
       {/* Right */}
       <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate("/jobs?create=1")}
-          className="hidden sm:flex items-center gap-1.5 rounded-lg bg-[#0E3B2E] hover:bg-[#154d3d] text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Create Job</span>
-        </button>
-
         <button
           type="button"
           aria-label="Search workspace"
@@ -472,7 +428,15 @@ function ShellInner({ children }) {
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname]);
 
-  const navGroups = getNavGroups(user);
+  const paletteGroups = getPaletteGroups(user);
+
+  // The review badge comes from the workspace context, like every other figure
+  // in the shell: the shell itself fetches nothing, so it never has its own
+  // loading or failure state to get wrong.
+  const { reviewCount } = useCompanyData();
+  // A zero is a real count, but an empty queue does not need a badge shouting
+  // "0" beside it — only a non-zero count is drawn.
+  const counts = { reviews: reviewCount > 0 ? reviewCount : null };
 
   return (
     <div className="admin-portal flex min-h-screen flex-col bg-[#F6F8F7] text-slate-900">
@@ -499,14 +463,18 @@ function ShellInner({ children }) {
 
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar — softly tinted surface */}
+        {/* Solid white, no backdrop-blur. It was bg-[#F0F4F1]/90 with a
+            backdrop blur — translucency over nothing, which forces a
+            compositing layer that can soften the text inside it. */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#E2E8E4] bg-[#F0F4F1]/90 backdrop-blur-xs transition-[width] duration-200 lg:flex ${
+          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-hairline bg-white transition-[width] duration-200 lg:flex ${
             collapsed ? "w-[4.5rem]" : "w-[236px]"
           }`}
         >
           <SidebarContent
             collapsed={collapsed}
             onToggleCollapse={toggleCollapsed}
+            counts={counts}
           />
         </aside>
 
@@ -516,7 +484,7 @@ function ShellInner({ children }) {
           onClose={() => setMobileOpen(false)}
           placement="left"
           label="Navigation menu"
-          panelClassName="w-72 border-r border-[#E5EBE7] bg-[#F0F4F1]"
+          panelClassName="w-72 border-r border-hairline bg-white"
         >
           <button
             className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45]"
@@ -525,7 +493,7 @@ function ShellInner({ children }) {
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
-          <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} />
+          <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} counts={counts} />
         </Modal>
 
         {/* Main content */}
@@ -543,7 +511,7 @@ function ShellInner({ children }) {
         </div>
       </div>
 
-      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} groups={navGroups} />
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} groups={paletteGroups} />
     </div>
   );
 }

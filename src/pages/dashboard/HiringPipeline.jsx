@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import CandidateLink from "../../components/candidate/CandidateLink.jsx";
 import CandidateDrawer from "../../components/candidate/CandidateDrawer.jsx";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import OfferDialog from "../../components/candidate/OfferDialog.jsx";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowDownUp,
   ArrowRight,
@@ -21,6 +22,7 @@ import {
   FileText,
   Flag,
   KanbanSquare,
+  MoreHorizontal,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -39,7 +41,7 @@ import { useCompanyData } from "../../context/CompanyDataContext.jsx";
 import { bulkStageMove } from "../../lib/bulkStageMove.js";
 import { bulkErase } from "../../lib/bulkErase.js";
 import { Avatar, Badge, EmptyState } from "../../components/ui/Card.jsx";
-import Menu, { MenuGroup, MenuItem } from "../../components/ui/Menu.jsx";
+import Menu, { MenuGroup, MenuItem, MenuSeparator } from "../../components/ui/Menu.jsx";
 import StageMenu from "../../components/ui/StageMenu.jsx";
 import Modal from "../../components/ui/Modal.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
@@ -62,6 +64,9 @@ import {
   scoreOf,
 } from "../../lib/pipelineMetrics.js";
 import { downloadFile } from "../../lib/download.js";
+import { stageEvidence } from "../../lib/stageEvidence.js";
+import { EvidenceChip } from "../../components/ui/Evidence.jsx";
+import { HUES, STEP_HUE } from "../../lib/featureHues.js";
 
 const SORTS = {
   score_desc: { label: "Match Score (High → Low)", compare: (a, b) => byScore(b) - byScore(a) },
@@ -97,7 +102,7 @@ export const PIPELINE_PHASES = [
     label: "Offers & Hires",
     stages: ["selected", "offer_sent", "offer_accepted", "joined"],
   },
-  { id: "rejected", label: "Off-ramp", stages: [REJECTED] },
+  { id: "rejected", label: "Rejected", stages: [REJECTED] },
 ];
 
 function byScore(candidate) {
@@ -109,35 +114,12 @@ function figure(value, suffix = "") {
   return value == null ? "—" : `${value}${suffix}`;
 }
 
-const AVATAR_GRADIENTS = [
-  "from-indigo-500 to-purple-600",
-  "from-blue-600 to-cyan-600",
-  "from-emerald-500 to-teal-700",
-  "from-violet-600 to-purple-800",
-  "from-amber-500 to-rose-600",
-  "from-teal-600 to-blue-700",
-  "from-emerald-600 to-green-700",
-  "from-slate-500 to-slate-700",
-];
-
-const EX_COMPANIES = [
-  "Ex-Kakao",
-  "Ex-Retool",
-  "Ex-Alan",
-  "Ex-Nubank",
-  "Ex-Miro",
-  "Ex-Personio",
-  "Ex-Gusto",
-  "Ex-Stripe",
-  "Ex-Figma",
-];
-
-function getExCompany(candidate, idx = 0) {
-  if (candidate.company) return `Ex-${candidate.company}`;
-  if (candidate.basicDetails?.company) return `Ex-${candidate.basicDetails.company}`;
-  const charCode = (candidate.basicDetails?.name || "A").charCodeAt(0) + idx;
-  return EX_COMPANIES[charCode % EX_COMPANIES.length];
-}
+// REMOVED: EX_COMPANIES / getExCompany().
+// It displayed a PREVIOUS EMPLOYER the candidate never gave us — when
+// `candidate.company` was empty it picked one from a hardcoded list of real
+// companies by `name.charCodeAt(0) + idx`. Every card without a company field
+// asserted "Ex-Stripe" or "Ex-Figma" about a real applicant. There is no
+// honest fallback for this field, so the chip is gone rather than reworded.
 
 function getAvatarInitials(name) {
   if (!name) return "C";
@@ -175,7 +157,7 @@ function getStageGlowClass(stage) {
 function getStageDotColor(stage) {
   const s = normalizeStage(stage);
   if (s === "applied") return "bg-slate-500";
-  if (s === "ats_passed") return "bg-[#4b41e1] shadow-sm shadow-[#4b41e1]/40";
+  if (s === "ats_passed") return "bg-teal-400 shadow-sm shadow-teal-400/40";
   if (
     [
       "interview_scheduled",
@@ -189,355 +171,181 @@ function getStageDotColor(stage) {
       "assessment_completed",
     ].includes(s)
   ) {
-    return "bg-[#645efb] shadow-sm shadow-[#645efb]/40";
+    return "bg-brand-400 shadow-sm shadow-brand-400/40";
   }
   if (["selected", "offer_sent", "offer_accepted", "joined"].includes(s)) {
-    return "bg-[#059669] shadow-sm shadow-[#059669]/40";
+    return "bg-brand-800 shadow-sm shadow-brand-800/40";
   }
   return "bg-slate-400";
 }
 
-function getCandidateHighlight(candidate, score) {
-  if (score != null && score >= 94) {
-    return { text: "Top 5% Technical Architecture", target: "$195k Target" };
-  }
-  if (score != null && score >= 90) {
-    return { text: "Top 8% Product Operations", target: "$175k Target" };
-  }
-  if (score != null && score >= 80) {
-    return { text: "Automated 40+ RevOps flows", target: "$180k Target" };
-  }
-  if (candidate.status === "under_review" || candidate.status === "shortlisted") {
-    return { text: "Final Exec Panel Ready", target: "$170k Target" };
-  }
-  if (candidate.status === "offer_sent" || candidate.status === "selected") {
-    return { text: "Offer: $185k + Equity", target: "Final Step" };
-  }
-  return { text: "Resume & Portfolio Scored", target: "$165k Target" };
-}
-
-function getContextualStatusTag(candidate) {
-  const status = normalizeStage(candidate.status);
-  switch (status) {
-    case "applied":
-      return { text: "Pending intake", color: "text-amber-700 bg-amber-50 border border-amber-200/60" };
-    case "ats_passed":
-      return { text: "Ready for review", color: "text-cyan-700 bg-cyan-50 border border-cyan-200/60" };
-    case "under_review":
-      return { text: "Ready for Panel", color: "text-[#4b41e1] bg-[#4b41e1]/10 border border-[#4b41e1]/20 font-bold" };
-    case "shortlisted":
-      return { text: "High Intent", color: "text-emerald-700 bg-emerald-50 border border-emerald-200 font-semibold" };
-    case "offer_sent":
-    case "selected":
-      return { text: "Final Step", color: "text-emerald-700 bg-emerald-50 border border-emerald-200 font-bold" };
-    case "joined":
-      return { text: "Hired 🎉", color: "text-emerald-800 bg-emerald-100 border border-emerald-300 font-bold" };
-    case REJECTED:
-      return { text: "Archived", color: "text-slate-500 bg-slate-100 border border-slate-200 font-medium" };
-    default:
-      return { text: "Active", color: "text-slate-600 bg-slate-100 border border-slate-200 font-medium" };
-  }
-}
-
-function getAdvanceAction(candidate) {
-  const status = normalizeStage(candidate.status);
-  if (status === "applied") {
-    return { label: "Advance to Screened", nextStage: "ats_passed", isHired: false };
-  }
-  if (status === "ats_passed") {
-    return { label: "Move to Interview", nextStage: "under_review", isHired: false };
-  }
-  if (["under_review", "shortlisted", "interview_scheduled", "assessment_completed"].includes(status)) {
-    return { label: "Extend Offer", nextStage: "offer_sent", isHired: false };
-  }
-  if (["offer_sent", "selected"].includes(status)) {
-    return { label: "Mark as Hired 🎉", nextStage: "joined", isHired: true };
-  }
-  const nextAllowed = allowedNextStages(candidate.status).filter((s) => s !== REJECTED);
-  if (nextAllowed.length > 0) {
-    return { label: `Advance to ${stageLabel(nextAllowed[0])}`, nextStage: nextAllowed[0], isHired: false };
-  }
-  return null;
-}
+// REMOVED: getCandidateHighlight().
+// It returned invented strings keyed off the ATS score — "Top 5% Technical
+// Architecture", "Automated 40+ RevOps flows", "$195k Target", "Offer: $185k +
+// Equity" — and rendered them as candidate intelligence. None of it came from
+// any stored field; a candidate scoring 94 was told to have a $195k target
+// because 94 >= 94. Replaced by stageEvidence(), which reports only what the
+// application record actually holds.
 
 /**
  * 3D Tactile Candidate Card
  */
 function CandidateCard({
   candidate,
-  idx = 0,
   isSelected,
   onToggleSelect,
   onMove,
-  onQuickReject,
   onDelete,
   onPreviewResume,
   onInspect,
   busy,
+  showRole = true,
 }) {
-  const [isAdvancing, setIsAdvancing] = useState(false);
   const score = scoreOf(candidate);
-  const caveat = scoreCaveat(candidate);
   const resumeSignals = resumeFlagCount(candidate);
   const inStage = daysInStage(candidate);
-  const skills = [...new Set((candidate.skills || []).filter(Boolean).map((skill) => skill.trim()))];
-  const shownSkills = skills.slice(0, 3);
-  const overflowCount = skills.length - shownSkills.length;
-  const isTopPick = score != null && score >= 90;
-  const isUnderReview = candidate.status === "under_review";
-  const isOfferSent = candidate.status === "offer_sent";
-  const isOverdue =
+  const waitingLong =
     !["joined", REJECTED].includes(normalizeStage(candidate.status)) && inStage != null && inStage >= 14;
-
-  const advanceAction = getAdvanceAction(candidate);
-  const exCompany = getExCompany(candidate, idx);
   const initials = getAvatarInitials(candidate.basicDetails?.name);
-  const avatarGradient = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-  const highlight = getCandidateHighlight(candidate, score);
-  const statusTag = getContextualStatusTag(candidate);
+  const evidence = stageEvidence(candidate);
+  const name = candidate.basicDetails?.name || "Unnamed applicant";
 
-  const handleAdvanceClick = async (e) => {
-    e.stopPropagation();
-    if (!advanceAction || busy) return;
-    setIsAdvancing(true);
-    setTimeout(async () => {
-      await onMove(candidate, advanceAction.nextStage);
-      setIsAdvancing(false);
-    }, 240);
-  };
-
+  // The card used to carry eleven things: a checkbox, a gradient avatar, the
+  // name, the role, the Fit score, an evidence box, up to four skill chips and
+  // an overflow, a caveat strip, a résumé-signal strip, an "In stage" line with
+  // a status tag, and a row of SIX controls — view, résumé, quick reject, a
+  // separate advance button, the stage menu and delete. It is now who, how well
+  // they fit, what has happened, and the one thing to do next. Everything else
+  // is in the profile, or behind the ⋯ menu.
   return (
-    <div
-      className={`candidate-card card-tactile-3d bg-white rounded-2xl p-4 border flex flex-col gap-3 relative overflow-hidden group select-none transition-all ${
-        isAdvancing ? "anim-advancing" : ""
-      } ${
+    <article
+      className={`candidate-card group relative rounded-xl border bg-white p-3.5 transition-all duration-150 ${
         isSelected
-          ? "ring-2 ring-[#4b41e1] border-[#4b41e1] shadow-md bg-indigo-50/20"
-          : isTopPick
-          ? "border-2 border-[#4b41e1]/30 ring-1 ring-[#4b41e1]/20 shadow-md"
-          : isUnderReview
-          ? "border-amber-300/80 ring-1 ring-amber-200/50 shadow-xs"
-          : "border-slate-200/80 hover:border-slate-300"
+          ? "border-brand-700 ring-1 ring-brand-700/30"
+          : "border-hairline hover:-translate-y-px hover:border-slate-300 hover:shadow-sm"
       }`}
       data-candidate-id={candidate._id}
       data-name={candidate.basicDetails?.name || ""}
-      data-score={score ?? 0}
+      // Absent when unscored — never an unmeasured candidate written as 0.
+      data-score={score ?? undefined}
     >
-      {/* Glow ribbon for Top Pick */}
-      {isTopPick && candidate.status !== REJECTED && (
-        <div className="absolute -right-8 top-2 bg-gradient-to-r from-[#4b41e1] to-[#645efb] text-[9px] font-extrabold text-white uppercase tracking-wider py-0.5 px-8 rotate-45 shadow-sm pointer-events-none">
-          Top Pick
-        </div>
-      )}
-
-      {/* 3D Card Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onToggleSelect}
-            aria-label={`Select candidate ${candidate.basicDetails?.name}`}
-            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer candidate-checkbox shrink-0"
-          />
-          <div
-            className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient} text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 shrink-0`}
+      <div className="flex items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onToggleSelect}
+          aria-label={`Select candidate ${name}`}
+          className="candidate-checkbox mt-2.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 accent-brand-800"
+        />
+        <span
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-xs font-bold text-brand-800"
+          aria-hidden="true"
+        >
+          {initials}
+        </span>
+        <div className="min-w-0 flex-1">
+          <CandidateLink
+            candidateId={candidate._id}
+            className="candidate-name block truncate text-sm font-semibold text-slate-900 hover:text-brand-800"
+            title={name}
           >
-            {initials}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <CandidateLink
-                candidateId={candidate._id}
-                className="candidate-name font-bold text-[15px] text-slate-900 group-hover:text-[#4b41e1] transition-colors truncate block"
-                title={candidate.basicDetails?.name}
-              >
-                {candidate.basicDetails?.name || "Unnamed applicant"}
-              </CandidateLink>
-              <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded shrink-0">
-                {exCompany}
+            {name}
+          </CandidateLink>
+          {/* Inside a job every card is for that job, so the role is not
+              repeated on each; the company-wide board still shows it. */}
+          <p className="mt-0.5 truncate text-xs text-slate-500">
+            {showRole && <span>{candidate.job?.title || "Role unavailable"} · </span>}
+            {inStage != null ? (
+              <span className={waitingLong ? "font-medium text-amber-700" : ""}>
+                {inStage}d in stage{waitingLong ? " — waiting" : ""}
               </span>
-            </div>
-            <p className="text-[12px] text-slate-500 font-medium truncate" title={candidate.job?.title}>
-              {candidate.job?.title || "Product & Ops Lead"} • {inStage != null ? `${inStage}d stage` : "Active"}
-            </p>
-          </div>
+            ) : (
+              "Stage age unknown"
+            )}
+          </p>
         </div>
-
-        {/* AI Match Score 3D Badge */}
-        <div className="flex flex-col items-end shrink-0">
-          {score == null ? (
-            <span className="text-[10.5px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
-              Not scored
-            </span>
-          ) : (
-            <span className="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-extrabold px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5 shrink-0">
-              <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
-              {score}%
-              {score >= 60 && <span className="sr-only"> Match</span>}
-            </span>
-          )}
-        </div>
+        {score == null ? (
+          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
+            Not scored
+          </span>
+        ) : (
+          <span className="flex shrink-0 flex-col items-end leading-none">
+            <span className="text-[10px] font-semibold tracking-wide text-slate-500 uppercase">Fit</span>
+            <span className="num pt-0.5 text-lg font-semibold text-emerald-700">{score}</span>
+            <span className="sr-only">out of 100</span>
+          </span>
+        )}
       </div>
 
-      {candidate.pendingInterviewReviews?.length > 0 && (
-        <p className="text-xs font-medium text-amber-800 bg-amber-50/80 px-2 py-1 rounded-md border border-amber-200/60">
-          Interview review pending · {candidate.pendingInterviewReviews.length} attempt(s)
+      {/* What has happened, one line per stage. The dot is the step's colour
+          (lib/featureHues.js) — identity only; the chip beside it carries the
+          verdict in the verdict colours, so the two never share a mark. */}
+      <ul className="mt-3 space-y-1.5 border-t border-rule pt-2.5">
+        {evidence.map((row) => (
+          <li key={row.key} className="flex items-center gap-2 text-xs">
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${HUES[STEP_HUE[row.key]].dot}`} aria-hidden="true" />
+            <span className={`min-w-0 flex-1 truncate ${row.state === "absent" ? "text-slate-500" : "text-slate-700"}`}>
+              {row.label}
+            </span>
+            <EvidenceChip state={row.state} className="shrink-0">
+              {row.note || "Not run"}
+            </EvidenceChip>
+          </li>
+        ))}
+      </ul>
+
+      {resumeSignals > 0 && (
+        <p className="mt-2.5 rounded-md bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800">
+          {resumeSignals} résumé signal{resumeSignals === 1 ? "" : "s"} to review
         </p>
       )}
 
-      {/* High-Signal Candidate Intelligence Box */}
-      <div className="bg-[#eff4ff]/70 rounded-xl p-2.5 border border-[#c6c6cd]/20 flex flex-col gap-1.5 text-xs">
-        <div className="flex items-center justify-between text-slate-600 text-[11px]">
-          <span className="flex items-center gap-1 font-medium text-slate-700 truncate mr-2">
-            <Sparkles className="w-3 h-3 text-[#4b41e1] shrink-0" />
-            <span className="truncate">{highlight.text}</span>
-          </span>
-          <span className="font-semibold text-slate-900 shrink-0">{highlight.target}</span>
-        </div>
-
-        {/* Skills Chips */}
-        {skills.length > 0 && (
-          <div className="flex items-center gap-1 flex-wrap mt-0.5">
-            {shownSkills.map((skill) => (
-              <span
-                key={skill}
-                className="px-1.5 py-0.5 rounded bg-white text-slate-600 font-medium text-[10px] border border-[#c6c6cd]/30"
-              >
-                {skill}
-              </span>
-            ))}
-            {overflowCount > 0 && (
-              <span
-                className="px-1.5 py-0.5 rounded bg-slate-50 text-slate-400 font-medium text-[10px] border border-[#c6c6cd]/30 cursor-help"
-                title={`More skills: ${skills.slice(3).join(", ")}`}
-              >
-                +{overflowCount}
-                <span className="sr-only"> more skills: {skills.slice(3).join(", ")}</span>
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Score Caveat / Legacy Note */}
-      {caveat && (
-        <div className="text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md">
-          {caveat}
-        </div>
-      )}
-
-      {resumeSignals > 0 && (
-        <div className="text-[10px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-          {resumeSignals} résumé signal{resumeSignals === 1 ? "" : "s"} to review
-        </div>
-      )}
-
-      {/* Footer Status & Evaluation */}
-      <div className="flex items-center justify-between text-slate-500 text-[11px] pt-0.5">
-        <span className="flex items-center gap-1">
-          <Clock className="w-3 h-3 text-slate-400" />
-          {inStage != null && inStage >= 14 ? (
-            <span className="font-semibold text-rose-700 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              {inStage}d (Overdue)
-            </span>
-          ) : (
-            <span>In stage {inStage != null ? `${inStage}d` : "0d"}</span>
-          )}
-        </span>
-        <span className={`px-2 py-0.5 rounded text-[10.5px] ${statusTag.color}`}>{statusTag.text}</span>
-      </div>
-
-      {/* 1-Click Stage Progression Action & Controls */}
-      <div className="pt-2 border-t border-[#c6c6cd]/20 flex items-center gap-2">
-        {advanceAction && candidate.status !== REJECTED ? (
-          <button
-            type="button"
-            onClick={handleAdvanceClick}
-            disabled={busy || isAdvancing}
-            className={`btn-advance-action btn-3d-advance flex-1 h-8 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1 tracking-wide transition-all ${
-              advanceAction.isHired
-                ? "bg-gradient-to-r from-emerald-600 to-teal-700"
-                : "bg-[#4b41e1] hover:bg-[#4338ca]"
-            }`}
-          >
-            <span>{advanceAction.label}</span>
-            {advanceAction.isHired ? (
-              <CheckCheck className="w-3.5 h-3.5" />
-            ) : (
-              <ArrowRight className="w-3.5 h-3.5" />
-            )}
-          </button>
-        ) : (
-          <div className="flex-1" />
-        )}
-
-        {/* Inspect candidate drawer */}
-        {onInspect && (
-          <button
-            type="button"
-            onClick={() => onInspect(candidate._id)}
-            className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-500 hover:text-[#4b41e1] flex items-center justify-center transition-colors"
-            title="Inspect candidate drawer"
-            aria-label={`Inspect candidate ${candidate.basicDetails?.name}`}
-          >
-            <Eye className="w-3.5 h-3.5" />
-          </button>
-        )}
-
-        {/* Quick View Resume 📄 */}
-        <button
-          type="button"
-          onClick={() => onPreviewResume(candidate)}
-          className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors"
-          title="Quick View Resume"
-          aria-label={`Preview resume for ${candidate.basicDetails?.name}`}
-        >
-          📄
-        </button>
-
-        {/* Quick Reject / Archive ✕ */}
-        {candidate.status !== REJECTED && (
-          <button
-            type="button"
-            onClick={() => onQuickReject(candidate)}
-            disabled={busy}
-            className="btn-reject-action btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-400 hover:text-rose-600 hover:border-rose-300 flex items-center justify-center transition-colors"
-            title="Archive / Pass candidate"
-            aria-label={`Reject ${candidate.basicDetails?.name}`}
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-
+      <div className="mt-3 flex items-center justify-between gap-2">
+        {/* The single next decision, and the menu of the rest — one rule for
+            both (stageDecisions in pipeline.js). The card used to have its own
+            separate advance button with a hand-written rule that could jump a
+            candidate still awaiting their interview straight to "Offer sent",
+            emailing them an offer in one click. */}
         <StageMenu
           compact
           status={candidate.status}
           name={candidate.basicDetails?.name}
           busy={busy}
           onMove={(stage) => onMove(candidate, stage)}
+          className="min-w-0"
         />
-
-        {/* Permanent delete — distinct from Quick Reject, which only archives */}
-        <button
-          type="button"
-          onClick={() => onDelete(candidate)}
-          disabled={busy}
-          className="btn-3d-secondary w-8 h-8 rounded-xl bg-white border border-[#c6c6cd]/30 text-slate-400 hover:text-rose-700 hover:border-rose-300 flex items-center justify-center transition-colors"
-          title="Delete permanently"
-          aria-label={`Delete ${candidate.basicDetails?.name} permanently`}
+        <Menu
+          label={`More actions for ${name}`}
+          align="end"
+          width={220}
+          trigger={
+            <button
+              type="button"
+              aria-label={`More actions for ${name}`}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+            </button>
+          }
         >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+          {onInspect && (
+            <MenuItem onSelect={() => onInspect(candidate._id)} leading={<Eye className="h-4 w-4 text-slate-500" />}>
+              View profile
+            </MenuItem>
+          )}
+          <MenuItem onSelect={() => onPreviewResume(candidate)} leading={<FileText className="h-4 w-4 text-slate-500" />}>
+            Preview résumé
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem tone="danger" onSelect={() => onDelete(candidate)} leading={<Trash2 className="h-4 w-4" />}>
+            Delete permanently
+          </MenuItem>
+        </Menu>
       </div>
-    </div>
+    </article>
   );
 }
 
-/**
- * 3D Kanban Column Component
- */
 const StageColumn = forwardRef(function StageColumn(
   {
     stage,
@@ -546,13 +354,11 @@ const StageColumn = forwardRef(function StageColumn(
     selectedIds,
     onToggleSelect,
     onMove,
-    onQuickReject,
     onDelete,
     onPreviewResume,
     busyId,
-    isHighlighted,
-    columnDensity,
     onInspect,
+    showRole,
   },
   ref
 ) {
@@ -571,55 +377,59 @@ const StageColumn = forwardRef(function StageColumn(
     <section
       ref={ref}
       aria-label={`${stageLabel(stage)} — ${candidates.length} candidate${candidates.length === 1 ? "" : "s"}`}
-      className={`stage-column flex flex-col column-tray-3d p-3.5 rounded-2xl min-h-[680px] shrink-0 ${glowClass} transition-all ${
-        columnDensity === "compact" ? "w-64" : "w-80"
-      } ${isHighlighted ? "ring-2 ring-[#4b41e1] shadow-lg" : ""}`}
+      className={`stage-column flex flex-col column-tray-3d p-3 rounded-2xl min-h-[420px] shrink-0 ${glowClass} transition-all ${
+        // One width: the card is compact now, so the density toggle that
+        // switched between two went with it.
+        "w-72"
+      }`}
       data-stage={stage}
       data-stage-name={stageLabel(stage)}
     >
-      {/* Column Header */}
-      <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#c6c6cd]/20 shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotColor}`} />
-          {step && (
-            <span className="text-[10px] font-bold text-slate-400 font-mono">
-              {String(step).padStart(2, "0")}
-            </span>
-          )}
-          <h2 className="font-bold text-slate-900 tracking-wide uppercase text-xs truncate">
-            {stageLabel(stage)}
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="stage-count bg-white border border-[#c6c6cd]/30 text-slate-800 font-bold text-xs px-2 py-0.5 rounded-full shadow-xs">
-            {candidates.length} / {totalCount}
+      {/* Header: which stage, where it sits, how many, and who has waited
+          longest — two quiet lines where there were two bordered rows. The name
+          is sentence case: an all-caps column title shouts, and eight of them
+          side by side shout over the candidates. */}
+      <div className="mb-2.5 shrink-0 px-1">
+        <div className="flex items-center gap-2">
+          <span className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} aria-hidden="true" />
+          {step && <span className="num text-[11px] font-semibold text-slate-400">{String(step).padStart(2, "0")}</span>}
+          <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">{stageLabel(stage)}</h2>
+          {/* One number when the whole stage is on this page; "shown of total"
+              only when it is not. "1 / 1" asked the reader to do arithmetic. */}
+          <span className="stage-count num rounded-md bg-white px-1.5 py-0.5 text-xs font-semibold text-slate-700 shadow-2xs">
+            {candidates.length === totalCount ? totalCount : `${candidates.length} of ${totalCount}`}
           </span>
         </div>
-      </div>
-
-      {/* Longest waiting indicator */}
-      <div className="flex items-center justify-between px-1 mb-2 text-[10px] text-slate-400 shrink-0">
-        <span>Longest on this page</span>
-        <span className="font-semibold text-slate-700">{oldest >= 0 ? `${oldest}d` : "—"}</span>
+        {candidates.length > 0 && (
+          <p className="mt-1 flex items-center gap-1 pl-4 text-[11px] text-slate-500">
+            <span>Longest on this page</span>
+            <span className="num font-semibold text-slate-700">{oldest >= 0 ? `${oldest}d` : "—"}</span>
+          </p>
+        )}
       </div>
 
       {/* Cards Container */}
-      <div className="candidate-cards-container flex flex-col gap-3.5 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
+      <div className="candidate-cards-container flex flex-col gap-2.5 flex-1 overflow-y-auto pr-0.5 [scrollbar-width:thin]">
         {candidates.length === 0 ? (
-          <div className="py-12 text-center text-xs text-slate-400 font-medium">
-            No candidates in this stage
+          <div className="rounded-xl border border-dashed border-hairline px-3 py-10 text-center">
+            <p className="text-xs font-medium text-slate-500">
+              No candidates in {stageLabel(stage)}
+            </p>
+            {/* It used to say "Drag a card here to move a candidate." — but
+                this board has no drag-and-drop, so that was a promise it could
+                not keep. Candidates are moved from a card's action button. */}
+            <p className="pt-1 text-[11px] text-slate-500">Candidates appear here when they reach this stage.</p>
           </div>
         ) : (
           candidates.map((c, idx) => (
             <CandidateCard
               key={c._id}
+              showRole={showRole}
               candidate={c}
               idx={idx}
               isSelected={selectedIds.has(c._id)}
               onToggleSelect={() => onToggleSelect(c._id)}
               onMove={onMove}
-              onQuickReject={onQuickReject}
               onDelete={onDelete}
               onPreviewResume={onPreviewResume}
               onInspect={onInspect}
@@ -632,12 +442,12 @@ const StageColumn = forwardRef(function StageColumn(
         {isOfferStage && (
           <div
             id="offer-drop-slot"
-            className="border-2 border-dashed border-[#c6c6cd]/40 hover:border-[#4b41e1]/60 rounded-2xl p-4 flex flex-col items-center justify-center text-center text-slate-500 min-h-[105px] bg-white/40 hover:bg-[#4b41e1]/5 transition-all cursor-pointer group shrink-0 mt-1"
+            className="border-2 border-dashed border-[#c6c6cd]/40 hover:border-brand-700/60 rounded-2xl p-4 flex flex-col items-center justify-center text-center text-slate-500 min-h-[105px] bg-white/40 hover:bg-brand-50 transition-all cursor-pointer group shrink-0 mt-1"
           >
-            <div className="w-8 h-8 rounded-full bg-white border border-[#c6c6cd]/40 flex items-center justify-center text-[#4b41e1] mb-1 shadow-xs group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 rounded-full bg-white border border-[#c6c6cd]/40 flex items-center justify-center text-brand-700 mb-1 shadow-xs group-hover:scale-110 transition-transform">
               <ArrowRight className="w-4 h-4 rotate-90" />
             </div>
-            <span className="text-xs font-semibold text-slate-800 group-hover:text-[#4b41e1] transition-colors">
+            <span className="text-xs font-semibold text-slate-800 group-hover:text-brand-800 transition-colors">
               Drop candidate here to prepare offer
             </span>
             <span className="text-[10px] text-slate-400 mt-0.5">
@@ -669,6 +479,7 @@ export default function HiringPipeline() {
     );
 
   const [busyId, setBusyId] = useState(null);
+  const [offerFor, setOfferFor] = useState(null);
   const bulkRunning = useRef(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkResult, setBulkResult] = useState("");
@@ -677,14 +488,34 @@ export default function HiringPipeline() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showEmpty, setShowEmpty] = useState(false);
-  const density = params.get("view") === "list" ? "list" : "board";
+  // The ROUTER's location, not the global `window.location`: the two agree in
+  // a browser, but only this one is correct under a MemoryRouter or during a
+  // navigation that has not reached the address bar yet.
+  const location = useLocation();
+  // Pipeline and All candidates are one page in two views. An explicit ?view=
+  // always wins; otherwise the URL section picks the default, so the job
+  // sidebar's "All candidates" opens as a list and "Pipeline" as a board.
+  const onCandidatesSection = /\/candidates\/?$/.test(location.pathname);
+  const density = (params.get("view") ?? (onCandidatesSection ? "list" : "board")) === "list" ? "list" : "board";
   const setDensity = (value) => setFilter("view", value);
-  const [columnDensity, setColumnDensity] = useState("comfortable");
   const query = params.get("q") || "";
   const setQuery = (value) => setFilter("q", value);
-  const jobId = params.get("job") || "all";
+  // Two entry points, one board. `/pipeline` is the company-wide board where
+  // the role is a filter you can change; `/jobs/:id/pipeline` is THAT role's
+  // board, where the role comes from the path and is therefore fixed — it
+  // survives a refresh, it can be pasted to a colleague, and it is the
+  // destination the Job detail's Pipeline tab points at.
+  const { id: routeJobId } = useParams();
+  const jobScoped = Boolean(routeJobId);
+  const jobId = routeJobId || params.get("job") || "all";
   const setJobId = (value) => {
     setSelectedIds(new Set());
+    // On the job-scoped route the role is the URL, so changing it means going
+    // to another URL rather than editing a query param this page ignores.
+    if (jobScoped) {
+      navigate(value && value !== "all" ? `/jobs/${value}/pipeline` : "/pipeline");
+      return;
+    }
     setFilter("job", value);
   };
   const sort = Object.hasOwn(SORTS, params.get("sort")) ? params.get("sort") : "score_desc";
@@ -728,7 +559,6 @@ export default function HiringPipeline() {
     setSelectedIds(new Set());
   }, [query, jobId, phase, page]);
 
-  const [highlightedStage, setHighlightedStage] = useState(null);
   const [previewCandidate, setPreviewCandidate] = useState(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -744,6 +574,7 @@ export default function HiringPipeline() {
   const effectiveJob = selectedJob || (publishedJobs.length === 1 ? publishedJobs[0] : null);
   const viewConsolidated = params.get("consolidated") === "true";
   const showJobCardsDeck =
+    !jobScoped &&
     publishedJobs.length > 1 &&
     (!params.get("job") || params.get("job") === "all") &&
     !viewConsolidated;
@@ -832,15 +663,22 @@ export default function HiringPipeline() {
   }, []);
 
   // Move candidate to target stage
-  async function handleMove(candidate, toStage) {
+  // Sending an offer stops at the offer dialog first, so the recruiter can pick
+  // a saved template; the dialog calls back here with the message.
+  async function handleMove(candidate, toStage, offerMessage) {
     if (bulkRunning.current || busyId || loading || loadError) return;
     if (!activeApplications.some((item) => item._id === candidate._id)) {
       toast.error("This application is no longer in the active pipeline. Refresh to see its current state.");
       return;
     }
+    if (toStage === "offer_sent" && !offerFor) {
+      setOfferFor(candidate);
+      return;
+    }
     setBusyId(candidate._id);
     try {
-      await api.patch(`/candidates/${candidate._id}/stage`, { stage: toStage });
+      await api.patch(`/candidates/${candidate._id}/stage`, { stage: toStage, offerMessage });
+      setOfferFor(null);
       toast.success(`${candidate.basicDetails?.name || "Candidate"} → ${stageLabel(toStage)}`);
       await refresh();
     } catch (err) {
@@ -848,18 +686,6 @@ export default function HiringPipeline() {
     } finally {
       setBusyId(null);
     }
-  }
-
-  // Quick reject candidate
-  async function handleQuickReject(candidate) {
-    if (
-      !window.confirm(
-        `Are you sure you want to reject ${candidate.basicDetails?.name || "this candidate"}?`
-      )
-    ) {
-      return;
-    }
-    await handleMove(candidate, REJECTED);
   }
 
   async function runBulk(targetFor) {
@@ -967,15 +793,6 @@ export default function HiringPipeline() {
     }
   };
 
-  const jumpToStage = (stage) => {
-    setShowEmpty(true);
-    window.setTimeout(() => {
-      columnRefs.current?.[stage]?.scrollIntoView?.({ behavior: "smooth", inline: "center" });
-      setHighlightedStage(stage);
-      window.setTimeout(() => setHighlightedStage(null), 1200);
-    }, 0);
-  };
-
   useEffect(() => {
     const el = boardRef.current;
     if (!el) return;
@@ -1032,6 +849,9 @@ export default function HiringPipeline() {
 
   return (
     <div className="flex flex-col min-w-0 bg-mesh-canvas -mx-4 sm:-mx-6 -mt-[22px] -mb-12 min-h-[calc(100vh-57px)]">
+      {/* No job tab strip here: inside a job, the sidebar IS the job's
+          navigation (see JobSidebar.jsx), so a second row of the same links
+          above the board would only compete with it. */}
       {loading && (
         <p role="status" className="shrink-0 bg-white px-6 py-2 text-sm text-slate-600 border-b border-slate-200">
           Updating pipeline… Previous results remain visible; stage actions are paused.
@@ -1045,7 +865,7 @@ export default function HiringPipeline() {
       {historicalCount > 0 && (
         <p className="sr-only">
           {historicalCount} historical applications are outside the active pipeline.{" "}
-          <Link to="/candidates" className="font-semibold text-[#4b41e1] underline underline-offset-4">
+          <Link to="/candidates" className="font-semibold text-brand-800 underline underline-offset-4">
             View candidate history
           </Link>
         </p>
@@ -1108,7 +928,7 @@ export default function HiringPipeline() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/60 group-hover:bg-emerald-100 transition">
                         <Briefcase className="h-5 w-5 text-emerald-700" />
                       </div>
-                      <Badge tone="green" className="text-[10.5px] font-semibold">
+                      <Badge tone="green" className="text-[11px] font-semibold">
                         • Published
                       </Badge>
                     </div>
@@ -1147,94 +967,46 @@ export default function HiringPipeline() {
         </section>
       ) : (
         <>
-          {/* ── 1. Role Hero Header (Prominent Title, context, KPI chips, Add Candidate) ── */}
-          <section className="px-6 py-4 border-b border-slate-200/90 bg-white shrink-0">
-            {/* Top Breadcrumb & Metadata line */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-2.5">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
-                {publishedJobs.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedIds(new Set());
-                        setParams((prev) => {
-                          const next = new URLSearchParams(prev);
-                          next.set("job", "all");
-                          next.delete("consolidated");
-                          return next;
-                        });
-                      }}
-                      className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                      <span>Back to All Roles</span>
-                    </button>
-                    <span className="text-slate-300">/</span>
-                  </>
+          {/* ── Header ──────────────────────────────────────────────────────────
+              Two rows, where there used to be four stacked bands: a job meta
+              line and a strip of four KPI chips, a large title row, a "Phase
+              View" bar, and a toolbar of eight controls ending in a row of
+              stage dots. Inside a job the sidebar already names the job, its
+              status and its openings, so none of that is repeated here, and
+              the KPIs — analytics, not board work — fold into "Pipeline stats"
+              rather than competing with the candidates for attention. */}
+          <section className="shrink-0 space-y-3 border-b border-hairline bg-white px-6 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+                {!jobScoped && publishedJobs.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedIds(new Set());
+                      setParams((prev) => {
+                        const next = new URLSearchParams(prev);
+                        next.set("job", "all");
+                        next.delete("consolidated");
+                        return next;
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                    <span>Back to All Roles</span>
+                  </button>
                 )}
-                <span className="flex items-center gap-1.5 text-slate-700 font-medium">
-                  <Briefcase className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>{effectiveJob?.department || "General"}</span>
-                </span>
-                {effectiveJob?.location && (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <span>{effectiveJob.location}</span>
-                  </>
-                )}
-                {Number(effectiveJob?.numberOfOpenings) > 0 && (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <span>{effectiveJob.numberOfOpenings} {effectiveJob.numberOfOpenings === 1 ? "opening" : "openings"}</span>
-                  </>
-                )}
-                <Badge tone="green" className="text-[10px] font-semibold py-0 px-2">
-                  • Published
-                </Badge>
-              </div>
-
-              {/* KPI Badges Strip */}
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 font-medium">Active in pipeline</span>
-                  <span className="font-bold text-slate-900">{kpis.active}</span>
-                  <span className="text-[10px] text-slate-400">Of {kpis.total} applications on record</span>
-                </div>
-                <div className="hidden sm:block h-3 w-px bg-slate-200" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-500">Avg ATS score {kpis.avgScore != null ? `${kpis.avgScore}%` : "—"} across {kpis.scoredCount} scored</span>
-                </div>
-                <div className="hidden sm:block h-3 w-px bg-slate-200" />
-                <div className="hidden md:flex items-center gap-1.5">
-                  <span className="text-slate-400">Stage Velocity:</span>
-                  <span className="font-bold text-slate-900">{kpis.avgDaysInStage != null ? `${kpis.avgDaysInStage}d avg` : "—"}</span>
-                </div>
-                <div className="hidden sm:block h-3 w-px bg-slate-200" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400">Pass-through:</span>
-                  <span className="font-bold text-emerald-700">{kpis.passThroughPct != null ? `${kpis.passThroughPct}%` : "—"}</span>
-                  <span className="text-[10px] text-slate-400">({kpis.shortlisted} of {kpis.total} reached Shortlisted)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Role Title & Action Row */}
-            <div className="flex items-center justify-between gap-4 flex-wrap pt-1">
-              <div className="flex items-center gap-3 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight" title={currentRoleTitle}>
-                  {currentRoleTitle}
+                <h1 className="truncate font-display text-xl font-semibold text-slate-900" title={currentRoleTitle}>
+                  {jobScoped ? "Pipeline" : currentRoleTitle}
                 </h1>
-
                 <span
                   id="total-candidate-badge"
-                  className="bg-emerald-50 text-emerald-800 border border-emerald-200/70 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 shadow-2xs"
+                  className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700"
                 >
-                  {filtered.length} {filtered.length === 1 ? "candidate" : "candidates"}
+                  {/* Only the figure takes the numeral face; the word does not. */}
+                  <span className="num">{filtered.length}</span> {filtered.length === 1 ? "candidate" : "candidates"}
                 </span>
-
-                {/* Switch Job Dropdown */}
-                <Menu
+                {!jobScoped && <Menu
                   align="start"
                   width={280}
                   label="Filter by requisition"
@@ -1292,32 +1064,85 @@ export default function HiringPipeline() {
                       </MenuItem>
                     ))}
                   </MenuGroup>
-                </Menu>
+                </Menu>}
               </div>
 
-              {/* Add Candidate Button */}
-              <button
-                type="button"
-                id="btn-add-candidate"
-                onClick={() => navigate("/jobs?create=1")}
-                className="h-9 px-4 rounded-xl bg-[#0E3B2E] hover:bg-[#154d3d] text-white text-xs font-semibold flex items-center gap-2 shadow-sm hover:shadow transition cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4 text-emerald-400" />
-                <span>Add Candidate</span>
-              </button>
-            </div>
-          </section>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex items-center">
+                  <Search className="pointer-events-none absolute left-2.5 h-4 w-4 text-slate-400" aria-hidden="true" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search candidates"
+                    aria-label="Search pipeline"
+                    className="h-9 w-48 rounded-lg border border-hairline bg-white py-0 pr-7 pl-8 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-700 focus:outline-none"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="absolute right-2 text-slate-400 hover:text-slate-700"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
 
-          {/* ── 2. Unified Controls & Stage Navigator Toolbar ── */}
-          <section className="px-6 py-2.5 bg-slate-50/90 border-b border-slate-200/80 shrink-0 flex flex-wrap items-center justify-between gap-3 text-xs">
-            {/* Left: Phase Tabs Bar */}
-            <div className="flex items-center gap-1.5 font-medium flex-wrap">
-              {/* Mobile Phase Select */}
-              <label className="flex w-full items-center gap-2 py-1 sm:hidden">
-                <span className="font-bold text-slate-500">Phase:</span>
+                <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-canvas p-0.5">
+                  {[
+                    { id: "board", label: "Board", icon: KanbanSquare },
+                    { id: "list", label: "List", icon: Rows3 },
+                  ].map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      id={`view-${v.id}-btn`}
+                      onClick={() => setDensity(v.id)}
+                      aria-pressed={density === v.id}
+                      className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium transition-colors ${
+                        density === v.id ? "bg-white text-slate-900 shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <v.icon className="h-4 w-4" aria-hidden="true" />
+                      <span>{v.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <select
+                  value={sort}
+                  aria-label="Sort pipeline"
+                  onChange={(e) => setSort(e.target.value)}
+                  className="h-9 rounded-lg border border-hairline bg-white py-0 pr-8 pl-3 text-sm font-medium text-slate-700"
+                >
+                  {Object.entries(SORTS).map(([k, item]) => (
+                    <option key={k} value={k}>
+                      Sort: {item.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  id="btn-add-candidate"
+                  onClick={() => navigate("/jobs?create=1")}
+                  className="flex h-9 items-center gap-1.5 rounded-lg bg-brand-800 px-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+                >
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  <span>Add candidate</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Mobile: one select instead of a wrapping row of tabs. */}
+              <label className="flex w-full items-center gap-2 sm:hidden">
+                <span className="text-xs font-semibold text-slate-600">Phase</span>
                 <select
                   aria-label="Pipeline phase"
-                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs"
+                  className="min-w-0 flex-1 rounded-lg border border-hairline bg-white px-2.5 py-1 text-sm"
                   value={phase}
                   onChange={(event) => setPhase(event.target.value)}
                 >
@@ -1329,29 +1154,25 @@ export default function HiringPipeline() {
                 </select>
               </label>
 
-              <div className="hidden sm:flex items-center gap-1.5 font-medium flex-wrap">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
-                  Phase View:
-                </span>
+              {/* The same four phases the move menu groups its decisions under. */}
+              <div className="hidden flex-wrap items-center gap-1 sm:flex">
                 {phase !== "all" && <span className="sr-only">Phase:</span>}
                 {PIPELINE_PHASES.map((p) => {
-                  const count = p.stages.reduce((acc, s) => acc + (stageCounts[s] || 0), 0);
+                  const count = p.stages.reduce((acc, st) => acc + (stageCounts[st] || 0), 0);
                   const isSelected = phase === p.id;
                   return (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => setPhase(p.id)}
-                      className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs ${
-                        isSelected
-                          ? "bg-[#0E3B2E] text-white font-semibold shadow-xs"
-                          : "text-slate-600 bg-white hover:bg-slate-200/60 border border-slate-200/60"
+                      className={`flex h-8 items-center gap-1.5 rounded-lg px-3 text-sm transition-colors ${
+                        isSelected ? "bg-brand-800 font-semibold text-white" : "text-slate-600 hover:bg-canvas hover:text-slate-900"
                       }`}
                     >
                       <span>{p.label}</span>
                       <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums ${
-                          isSelected ? "bg-[#185342] text-emerald-100" : "bg-slate-100 text-slate-700"
+                        className={`num rounded-md px-1.5 text-xs font-semibold ${
+                          isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {count}
@@ -1364,172 +1185,69 @@ export default function HiringPipeline() {
                     type="button"
                     aria-label="Clear Phase filter"
                     onClick={() => setPhase("all")}
-                    className="px-2 py-1 text-xs text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
+                    className="px-2 text-sm font-medium text-slate-500 hover:text-slate-900"
                   >
                     Clear
                   </button>
                 )}
               </div>
-            </div>
 
-            {/* Right: Search, View Mode, Density, Empty Stages, Sort, Jump Dots */}
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Live Search Input */}
-              <div className="relative flex items-center">
-                <Search className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Filter candidates..."
-                  aria-label="Search pipeline"
-                  className="h-8 w-40 sm:w-48 pl-7 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-2xs"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery("")}
-                    className="absolute right-2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    title="Clear filter"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-
-              {/* View Switcher (Board vs List) */}
-              <div className="bg-white p-0.5 rounded-lg flex items-center gap-0.5 border border-slate-200 shadow-2xs">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <button
                   type="button"
-                  id="view-board-btn"
-                  onClick={() => setDensity("board")}
-                  aria-pressed={density === "board"}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    density === "board"
-                      ? "bg-slate-100 text-slate-900 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
+                  onClick={() => setScoreFilter((v) => (v === "90+" ? "all" : "90+"))}
+                  aria-pressed={scoreFilter === "90+"}
+                  className={`rounded-md px-2 py-1 font-medium transition-colors ${
+                    scoreFilter === "90+" ? "bg-emerald-50 text-emerald-800" : "hover:bg-canvas hover:text-slate-900"
                   }`}
                 >
-                  <KanbanSquare className={`w-3.5 h-3.5 ${density === "board" ? "text-emerald-700" : ""}`} />
-                  <span>Board</span>
+                  Fit 90+
                 </button>
-                <button
-                  type="button"
-                  id="view-list-btn"
-                  onClick={() => setDensity("list")}
-                  aria-pressed={density === "list"}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    density === "list"
-                      ? "bg-slate-100 text-slate-900 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <Rows3 className={`w-3.5 h-3.5 ${density === "list" ? "text-emerald-700" : ""}`} />
-                  <span>List</span>
-                </button>
-              </div>
-
-              {/* Density toggle (Comfortable vs Compact) */}
-              {density === "board" && (
-                <div className="hidden md:flex bg-white p-0.5 rounded-lg items-center gap-0.5 border border-slate-200 shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => setColumnDensity("comfortable")}
-                    aria-pressed={columnDensity === "comfortable"}
-                    className={`px-2 py-1 rounded-md text-xs font-semibold transition ${
-                      columnDensity === "comfortable"
-                        ? "bg-slate-100 text-slate-900 font-bold"
-                        : "text-slate-500 hover:text-slate-900"
-                    }`}
-                  >
-                    Comfortable
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setColumnDensity("compact")}
-                    aria-pressed={columnDensity === "compact"}
-                    className={`px-2 py-1 rounded-md text-xs font-semibold transition ${
-                      columnDensity === "compact"
-                        ? "bg-slate-100 text-slate-900 font-bold"
-                        : "text-slate-500 hover:text-slate-900"
-                    }`}
-                  >
-                    Compact
-                  </button>
-                </div>
-              )}
-
-              {/* Quick Score Filter (All vs 90%+) */}
-              <div className="hidden xl:flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => setScoreFilter("all")}
-                  className={`px-2 py-1 rounded-md text-xs font-semibold transition ${
-                    scoreFilter === "all"
-                      ? "bg-slate-100 text-slate-900 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setScoreFilter("90+")}
-                  className={`px-2 py-1 rounded-md text-xs font-semibold transition ${
-                    scoreFilter === "90+"
-                      ? "bg-emerald-50 text-emerald-800 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  Top 90%+
-                </button>
-              </div>
-
-              {/* Toggle empty stages */}
-              {!loading && (hiddenCount > 0 || showEmpty) && (
-                <button
-                  type="button"
-                  onClick={() => setShowEmpty((v) => !v)}
-                  aria-label={showEmpty ? "Hide empty stages" : `Show ${hiddenCount} empty stages`}
-                  className="h-8 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-2.5 rounded-lg flex items-center gap-1.5 shadow-2xs transition cursor-pointer"
-                >
-                  {showEmpty ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  <span className="hidden sm:inline">{showEmpty ? "Hide empty" : `Show ${hiddenCount} empty`}</span>
-                </button>
-              )}
-
-              {/* Sort selector */}
-              <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 h-8 shadow-2xs">
-                <select
-                  value={sort}
-                  aria-label="Sort pipeline"
-                  onChange={(e) => setSort(e.target.value)}
-                  className="bg-transparent border-0 text-xs font-semibold text-slate-600 hover:text-slate-900 focus:ring-0 cursor-pointer pr-4 py-1"
-                >
-                  {Object.entries(SORTS).map(([k, item]) => (
-                    <option key={k} value={k}>
-                      Sort: {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Stage dots navigator */}
-              <div className="hidden lg:flex text-[11px] text-slate-400 items-center gap-2 pl-2 border-l border-slate-200">
                 <span>
                   Showing {visibleStages.length} of {ALL_STAGES.length} stages
                 </span>
-                {occupied.map((stage) => (
+                {!loading && (hiddenCount > 0 || showEmpty) && (
                   <button
-                    key={stage}
                     type="button"
-                    title={`Jump to ${stageLabel(stage)}`}
-                    onClick={() => jumpToStage(stage)}
-                    className="h-2 w-2 rounded-full bg-slate-300 hover:bg-[#4b41e1] transition-colors cursor-pointer"
+                    onClick={() => setShowEmpty((v) => !v)}
+                    aria-label={showEmpty ? "Hide empty stages" : `Show ${hiddenCount} empty stages`}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 font-medium hover:bg-canvas hover:text-slate-900"
                   >
-                    <span className="sr-only">Jump to {stageLabel(stage)}</span>
+                    {showEmpty ? <EyeOff className="h-3.5 w-3.5" aria-hidden="true" /> : <Eye className="h-3.5 w-3.5" aria-hidden="true" />}
+                    <span>{showEmpty ? "Hide empty" : `Show ${hiddenCount} empty`}</span>
                   </button>
-                ))}
+                )}
+                {/* Native <details>: the four board KPIs are one click away, and
+                    kept with their denominators, but no longer sit above every
+                    card competing with the candidates for attention. */}
+                <details className="relative">
+                  <summary className="cursor-pointer list-none rounded-md px-2 py-1 font-medium hover:bg-canvas hover:text-slate-900">
+                    Pipeline stats
+                  </summary>
+                  <div className="absolute right-0 z-20 mt-2 w-72 space-y-2 rounded-xl border border-hairline bg-white p-4 text-sm text-slate-600 shadow-lift">
+                    <p>
+                      <span className="text-slate-500">Active in pipeline</span>{" "}
+                      <span className="num font-semibold text-slate-900">{kpis.active}</span>{" "}
+                      <span className="text-xs">Of {kpis.total} applications on record</span>
+                    </p>
+                    <p>
+                      Avg ATS score {kpis.avgScore != null ? `${kpis.avgScore}%` : "—"} across {kpis.scoredCount} scored
+                    </p>
+                    <p>
+                      <span className="text-slate-500">Stage velocity</span>{" "}
+                      <span className="num font-semibold text-slate-900">
+                        {kpis.avgDaysInStage != null ? `${kpis.avgDaysInStage}d avg` : "—"}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-slate-500">Pass-through</span>{" "}
+                      <span className="num font-semibold text-emerald-700">
+                        {kpis.passThroughPct != null ? `${kpis.passThroughPct}%` : "—"}
+                      </span>{" "}
+                      <span className="text-xs">({kpis.shortlisted} of {kpis.total} reached Shortlisted)</span>
+                    </p>
+                  </div>
+                </details>
               </div>
             </div>
           </section>
@@ -1588,7 +1306,7 @@ export default function HiringPipeline() {
                             if (e.target.checked) setSelectedIds(new Set(sortedFlat.map((c) => c._id)));
                             else setSelectedIds(new Set());
                           }}
-                          className="h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer"
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-brand-800 focus:ring-0 cursor-pointer"
                         />
                       </th>
                       <th className="p-3">Candidate</th>
@@ -1607,7 +1325,7 @@ export default function HiringPipeline() {
                         <tr
                           key={c._id}
                           className={`hover:bg-slate-50/80 transition-colors ${
-                            isSelected ? "bg-[#4b41e1]/5" : ""
+                            isSelected ? "bg-brand-50" : ""
                           }`}
                         >
                           <td className="p-3">
@@ -1616,19 +1334,16 @@ export default function HiringPipeline() {
                               checked={isSelected}
                               onChange={() => toggleSelect(c._id)}
                               aria-label={`Select candidate ${c.basicDetails?.name}`}
-                              className="h-3.5 w-3.5 rounded border-slate-300 text-[#4b41e1] focus:ring-0 cursor-pointer"
+                              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-800 focus:ring-0 cursor-pointer"
                             />
                           </td>
                           <td className="p-3">
                             <CandidateLink
                               candidateId={c._id}
-                              className="font-bold text-slate-900 hover:text-[#4b41e1] transition-colors"
+                              className="font-bold text-slate-900 hover:text-brand-800 transition-colors"
                             >
                               {c.basicDetails?.name || "Unnamed applicant"}
                             </CandidateLink>
-                            <span className="ml-2 text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
-                              {getExCompany(c, idx)}
-                            </span>
                           </td>
                           <td className="p-3 text-slate-600">{c.job?.title || "No job assigned"}</td>
                           <td className="p-3">
@@ -1699,7 +1414,7 @@ export default function HiringPipeline() {
               type="button"
               onClick={() => handleScroll("left")}
               aria-label="Scroll pipeline left"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#4b41e1] hover:scale-105 active:scale-95 transition-all"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-800 hover:scale-105 active:scale-95 transition-all"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -1710,7 +1425,7 @@ export default function HiringPipeline() {
               type="button"
               onClick={() => handleScroll("right")}
               aria-label="Scroll pipeline right"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#4b41e1] hover:scale-105 active:scale-95 transition-all"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lift border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-brand-800 hover:scale-105 active:scale-95 transition-all"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -1725,6 +1440,9 @@ export default function HiringPipeline() {
             {visibleStages.map((stage) => (
               <StageColumn
                 key={stage}
+                // The role is repeated on every card only on the company-wide
+                // board; inside a job every card is for that job.
+                showRole={!jobScoped}
                 ref={(el) => {
                   if (columnRefs.current) columnRefs.current[stage] = el;
                 }}
@@ -1734,12 +1452,9 @@ export default function HiringPipeline() {
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelect}
                 onMove={handleMove}
-                onQuickReject={handleQuickReject}
                 onDelete={openDeleteCandidate}
                 onPreviewResume={setPreviewCandidate}
                 busyId={busyId}
-                isHighlighted={highlightedStage === stage}
-                columnDensity={columnDensity}
                 onInspect={selectCandidate}
               />
             ))}
@@ -1767,7 +1482,7 @@ export default function HiringPipeline() {
             type="button"
             onClick={handleBulkAdvance}
             disabled={bulkBusy || !selectedIds.size}
-            className="btn-3d-advance text-xs bg-[#4b41e1] hover:bg-[#4338ca] text-white font-semibold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap shadow-xs"
+            className="btn-3d-advance text-xs bg-brand-800 hover:bg-brand-700 text-white font-semibold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap shadow-xs"
           >
             Advance Selected →
           </button>
@@ -1997,6 +1712,13 @@ export default function HiringPipeline() {
         </Modal>
       )}
 
+      {offerFor && (
+        <OfferDialog
+          candidate={offerFor}
+          onClose={() => setOfferFor(null)}
+          onSend={(message) => handleMove(offerFor, "offer_sent", message)}
+        />
+      )}
       <CandidateDrawer
         candidateId={selectedCandidateId}
         reviewIds={sortedFlat.map((item) => item._id)}
