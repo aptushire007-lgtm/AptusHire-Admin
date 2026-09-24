@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Building2, User, Mail, Phone, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope, CreditCard, ChevronRight } from "lucide-react";
+import { Building2, User, Bot, ShieldCheck, BellRing, Palette, Save, AlertTriangle, Globe2, Copy, Microscope, CreditCard, ChevronRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import api from "../../api/client.js";
@@ -10,6 +10,9 @@ import { Input, Select, Label, FormGroup } from "../../components/ui/Field.jsx";
 import Button from "../../components/ui/Button.jsx";
 import { useToast } from "../../components/ui/Toast.jsx";
 import EmailHealth from "../../components/settings/EmailHealth.jsx";
+import CompanyLogoUploader from "../../components/settings/CompanyLogoUploader.jsx";
+import EditableUserProfileCard from "../../components/settings/EditableUserProfileCard.jsx";
+import CompanyProfileCard from "../../components/settings/CompanyProfileCard.jsx";
 
 // A small inline switch — the UI kit has no toggle, and a checkbox reads poorly for on/off policy.
 function Toggle({ checked, onChange, disabled, label }) {
@@ -431,26 +434,7 @@ export default function SettingsPage() {
       <section hidden={section !== "organization"} aria-label="Profile and organization" className="space-y-4">
         <div className="grid gap-4 xl:grid-cols-2">
           <Card>
-            <div className="flex items-center gap-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-800 text-lg font-bold text-white" aria-hidden="true">
-                {initialsOf(user?.name)}
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Your profile</p>
-                <h2 className="truncate text-lg font-bold text-slate-900">{user?.name || "—"}</h2>
-                <Badge tone="brand" className="mt-1 capitalize">{user?.role || "member"}</Badge>
-              </div>
-            </div>
-            <dl className="mt-5 grid gap-3 border-t border-hairline pt-4 text-sm sm:grid-cols-2">
-              <div className="min-w-0">
-                <dt className="flex items-center gap-1.5 text-xs text-slate-500"><Mail className="h-3.5 w-3.5" aria-hidden="true" /> Email</dt>
-                <dd className="mt-0.5 truncate font-medium text-slate-800" title={user?.email}>{user?.email || "—"}</dd>
-              </div>
-              <div className="min-w-0">
-                <dt className="flex items-center gap-1.5 text-xs text-slate-500"><Phone className="h-3.5 w-3.5" aria-hidden="true" /> Phone</dt>
-                <dd className="mt-0.5 truncate font-medium text-slate-800">{user?.phone || "Not added"}</dd>
-              </div>
-            </dl>
+            <EditableUserProfileCard user={user} />
           </Card>
 
           <Card>
@@ -459,8 +443,12 @@ export default function SettingsPage() {
             ) : (
               <>
                 <div className="flex items-center gap-4">
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-lg font-bold text-teal-800" aria-hidden="true">
-                    {initialsOf(company?.name)}
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-teal-100 text-lg font-bold text-teal-800" aria-hidden="true">
+                    {company?.logoPath ? (
+                      <img src={company.logoPath} alt="" className="h-full w-full object-contain p-1" />
+                    ) : (
+                      initialsOf(company?.name)
+                    )}
                   </span>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Organization</p>
@@ -503,6 +491,8 @@ export default function SettingsPage() {
             )}
           </Card>
         </div>
+
+        <CompanyProfileCard />
 
         <div>
           <h2 className="text-sm font-bold text-slate-900">How your workspace is set up</h2>
@@ -684,8 +674,16 @@ export default function SettingsPage() {
           </Card>
 
           </section>
-          <section hidden={section !== "branding"} aria-label="Branding settings">
+          <section hidden={section !== "branding"} aria-label="Branding settings" className="space-y-4">
           {/* Branding */}
+          <Card>
+            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
+              <Palette className="h-4.5 w-4.5 text-brand-600" /> Logo
+            </h2>
+            <p className="mb-3 text-sm text-slate-500">Shown next to your jobs on the public listings and job detail page candidates see.</p>
+            <CompanyLogoUploader />
+          </Card>
+
           <Card>
             <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Palette className="h-4.5 w-4.5 text-brand-600" /> Branding

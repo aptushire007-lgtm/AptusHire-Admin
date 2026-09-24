@@ -316,8 +316,12 @@ function TopNav({ onMenuClick, onOpenSearch }) {
             aria-haspopup="true"
             aria-label="Account options"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#176B45] text-[11px] font-bold text-white">
-              {(user?.name || "A")[0].toUpperCase()}
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#176B45] text-[11px] font-bold text-white">
+              {user?.photoPath ? (
+                <img src={user.photoPath} alt="" className="h-full w-full object-cover" />
+              ) : (
+                (user?.name || "A")[0].toUpperCase()
+              )}
             </span>
             <span className="hidden max-w-[7rem] truncate sm:block">
               {user?.name || "Recruiter"}

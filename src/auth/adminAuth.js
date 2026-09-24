@@ -43,6 +43,20 @@ export function updateAdminTokens({ token, refreshToken }) {
   window.dispatchEvent(new Event("admin-auth-changed"));
 }
 
+// Merge a patch (e.g. a saved name/phone edit) into the persisted user, so
+// every consumer of useAdminAuth() picks it up immediately rather than
+// showing stale data until the next login.
+export function updateAdminUser(patch) {
+  const current = getAdminAuth();
+  if (!current) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, user: { ...current.user, ...patch } }));
+  } catch (err) {
+    console.error("Failed to update admin user", err);
+  }
+  window.dispatchEvent(new Event("admin-auth-changed"));
+}
+
 export function clearAdminAuth() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(LEGACY_STORAGE_KEY);

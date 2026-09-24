@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState, useCallback } from "r
 import CandidateLink from "../../components/candidate/CandidateLink.jsx";
 import CandidateDrawer from "../../components/candidate/CandidateDrawer.jsx";
 import OfferDialog from "../../components/candidate/OfferDialog.jsx";
+import AddCandidateModal from "../../components/candidate/AddCandidateModal.jsx";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowDownUp,
@@ -480,6 +481,7 @@ export default function HiringPipeline() {
 
   const [busyId, setBusyId] = useState(null);
   const [offerFor, setOfferFor] = useState(null);
+  const [addCandidateOpen, setAddCandidateOpen] = useState(false);
   const bulkRunning = useRef(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkResult, setBulkResult] = useState("");
@@ -1127,7 +1129,7 @@ export default function HiringPipeline() {
                 <button
                   type="button"
                   id="btn-add-candidate"
-                  onClick={() => navigate("/jobs?create=1")}
+                  onClick={() => setAddCandidateOpen(true)}
                   className="flex h-9 items-center gap-1.5 rounded-lg bg-brand-800 px-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
                 >
                   <Plus className="h-4 w-4" aria-hidden="true" />
@@ -1725,6 +1727,16 @@ export default function HiringPipeline() {
         onClose={closeDrawer}
         onSelectCandidate={selectCandidate}
         onCandidateUpdated={() => remote.refresh()}
+      />
+      <AddCandidateModal
+        open={addCandidateOpen}
+        onClose={() => setAddCandidateOpen(false)}
+        job={selectedJob || effectiveJob || null}
+        jobOptions={jobs.filter((j) => !["closed", "filled", "archived"].includes(j.status))}
+        onAdded={async (candidate) => {
+          await refresh();
+          if (candidate?._id) selectCandidate(candidate._id);
+        }}
       />
     </div>
   );
