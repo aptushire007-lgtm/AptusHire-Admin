@@ -32,12 +32,12 @@ export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count,
       title={collapsed ? label : undefined}
       className={({ isActive }) => {
         const active = forceActive ?? isActive;
-        return `group flex h-9 items-center gap-2.5 rounded-lg text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800 ${
+        return `group flex h-[38px] items-center gap-2.5 rounded-lg text-[13px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800 ${
           collapsed ? "justify-center px-0" : "px-3"
         } ${
           active
-            ? "bg-brand-800 font-semibold text-white"
-            : "font-medium text-slate-700 hover:bg-canvas hover:text-slate-900"
+            ? "bg-[#EAF5FF] font-semibold text-[#123B6D]"
+            : "font-medium text-[#123B6D] hover:bg-[#F4FAFF]"
         }`;
       }}
     >
@@ -47,7 +47,7 @@ export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count,
           <>
             {Icon && (
               <Icon
-                className={`h-4 w-4 shrink-0 ${active ? "text-white" : iconClass || "text-slate-500 group-hover:text-slate-700"}`}
+                className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[#2F9CF4]" : iconClass || "text-[#55708F] group-hover:text-[#123B6D]"}`}
                 aria-hidden="true"
               />
             )}
@@ -59,7 +59,7 @@ export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count,
                 {count != null && (
                   <span
                     className={`num rounded-md px-1.5 py-0.5 text-xs font-semibold ${
-                      active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      active ? "bg-white text-[#2F9CF4]" : "bg-[#F4FAFF] text-[#55708F]"
                     }`}
                   >
                     {count}
@@ -68,9 +68,9 @@ export function NavItem({ to, end, icon: Icon, label, collapsed, onClick, count,
                 {status && (
                   <span
                     className={`shrink-0 text-xs font-semibold ${
-                      // On the dark active pill every tone reads as plain white;
-                      // colour on forest would fail contrast and add nothing.
-                      active ? "text-white/85" : STATUS_TONE[status.tone] || STATUS_TONE.off
+                      // The active pill is now a light sky tint (not a solid dark
+                      // fill), so status tones stay legible on it same as inactive.
+                      active ? "text-[#123B6D]/85" : STATUS_TONE[status.tone] || STATUS_TONE.off
                     }`}
                   >
                     {status.text}

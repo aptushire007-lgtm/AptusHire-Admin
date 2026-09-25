@@ -2,150 +2,180 @@
 @import "./styles/modals.css";
 
 @theme {
+  /* ===========================================================================
+     NAVY / SKY-BLUE REBRAND — 26 September 2026
+
+     Replaces the forest/lime/teal ("AptusHire Flow") palette with the navy +
+     sky-blue + beige system, token VALUES only — every token NAME below is
+     unchanged from before, because hundreds of components already reach for
+     these names (bg-brand-500, text-slate-900, bg-emerald-100, var(--aptus-*),
+     etc.). Repointing the values here re-skins the whole app without touching
+     a single component file, which is what keeps this a pure visual change —
+     no functionality, route, or API behaviour is affected.
+     =========================================================================== */
+
   /* Compatibility aliases for newer workflow components, using the original design. */
-  --color-primary: #0E3B2E;
-  --color-data-purple: #0C7D5F;
-  --color-data-blue: #12B98A;
-  --color-data-green: #2FBE62;
-  --color-data-amber: #E8A317;
-  --color-data-red: #D4534A;
-  --radius-card: 0.75rem;
+  --color-primary: #123B6D;
+  --color-data-purple: #6B52D4;
+  --color-data-blue: #2F9CF4;
+  --color-data-green: #35B779;
+  --color-data-amber: #F5B942;
+  --color-data-red: #E45C5C;
+  --radius-card: 0.875rem;
   --radius-control: 0.5rem;
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Lexend", "Inter", system-ui, sans-serif;
 
   /* ---- Core Official AptusHire Brand Tokens ------------------------------ */
-  --aptus-lime: #7CDE4A;
-  --aptus-lime-bright: #D4F056;
-  --aptus-green: #2FBE62;
-  --aptus-teal: #12B98A;
-  --aptus-forest: #0E3B2E;
-  --aptus-ink: #0C1F1B;
-  --aptus-night: #081210;
-  --aptus-cream: #F3F7F1;
-  --aptus-paper: #FAFCF8;
+  --aptus-lime: #2F9CF4;
+  --aptus-lime-bright: #6DB8F5;
+  --aptus-green: #2F9CF4;
+  --aptus-teal: #8067E8;
+  --aptus-forest: #123B6D;
+  --aptus-ink: #0C2A50;
+  --aptus-night: #081D38;
+  --aptus-cream: #FFF9EC;
+  --aptus-paper: #F4FAFF;
   --aptus-white: #FFFFFF;
-  --aptus-cloud: #E3EBE4;
-  --aptus-mist: #C5D2C8;
-  --aptus-slate: #5B6B63;
-  --aptus-body: #24332E;
+  --aptus-cloud: #EAF5FF;
+  --aptus-mist: #DCEAF5;
+  --aptus-slate: #55708F;
+  --aptus-body: #123B6D;
 
-  /* ---- Brand Scale (Official Aptus Ramp) ------------------------------ */
-  --color-brand-50:  #F4FDE8;
-  --color-brand-100: #E4F8C6;
-  --color-brand-200: #D4F056;
-  --color-brand-300: #B6E84A;
-  --color-brand-400: #7CDE4A;
-  --color-brand-500: #2FBE62;
-  --color-brand-600: #1A9A4F;
-  --color-brand-700: #147A40;
-  --color-brand-800: #0E3B2E;
-  --color-brand-900: #0C1F1B;
-  --color-brand-950: #081210;
+  /* ---- Brand Scale (Navy + Sky Blue Ramp) ------------------------------ */
+  --color-brand-50:  #F4FAFF;
+  --color-brand-100: #EAF5FF;
+  --color-brand-200: #D3EAFC;
+  --color-brand-300: #A8D4F8;
+  --color-brand-400: #6DB8F5;
+  --color-brand-500: #2F9CF4;
+  --color-brand-600: #1D82DB;
+  --color-brand-700: #1560A8;
+  --color-brand-800: #123B6D;
+  --color-brand-900: #0C2A50;
+  --color-brand-950: #081D38;
 
-  /* ---- AI Copilot / Intelligence Scale ---------------------------------- */
-  --color-ai-50: #f5f3ff;
-  --color-ai-100: #ede9fe;
-  --color-ai-200: #ddd6fe;
-  --color-ai-300: #c4b5fd;
-  --color-ai-400: #818cf8;
-  --color-ai-500: #6366f1;
-  --color-ai-600: #4f46e5;
-  --color-ai-700: #4338ca;
-  --color-ai-800: #3730a3;
-  --color-ai-900: #312e81;
+  /* ---- Sky ramp, pinned to the exact spec hex ---------------------------
+     Tailwind v4 ships its own default `sky-*` scale; IconTile's "sky" tone
+     (bg-sky-100 text-sky-700) and other call sites relied on that default,
+     which is close to but not exactly #2F9CF4/#EAF5FF. Pinning it here keeps
+     every `sky-*` utility on the exact navy-rebrand blue instead of Tailwind's
+     stock cyan-leaning sky. */
+  --color-sky-50: #F4FAFF;
+  --color-sky-100: #EAF5FF;
+  --color-sky-200: #D3EAFC;
+  --color-sky-300: #A8D4F8;
+  --color-sky-400: #6DB8F5;
+  --color-sky-500: #2F9CF4;
+  --color-sky-600: #1D82DB;
+  --color-sky-700: #1560A8;
+  --color-sky-800: #123B6D;
+  --color-sky-900: #0C2A50;
+  --color-sky-950: #081D38;
+
+  /* ---- AI Copilot / Intelligence Scale (Purple) -------------------------- */
+  --color-ai-50: #F1EEFF;
+  --color-ai-100: #E5DFFD;
+  --color-ai-200: #CBC0FB;
+  --color-ai-300: #AC9BF7;
+  --color-ai-400: #9683F0;
+  --color-ai-500: #8067E8;
+  --color-ai-600: #6B52D4;
+  --color-ai-700: #5641AE;
+  --color-ai-800: #423389;
+  --color-ai-900: #2E2461;
 
   /* ---- Elevation Shadows ------------------------------------------------ */
-  --shadow-elevation-low: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --shadow-elevation-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
-  --shadow-elevation-drawer: -4px 0 24px -2px rgba(15, 23, 42, 0.08), -2px 0 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-elevation-low: 0 1px 2px 0 rgba(18, 59, 109, 0.05);
+  --shadow-elevation-card: 0 2px 8px 0 rgba(18, 59, 109, 0.05);
+  --shadow-elevation-drawer: -4px 0 24px -2px rgba(18, 59, 109, 0.10), -2px 0 8px -2px rgba(18, 59, 109, 0.05);
 
-  /* ---- Accent Scale (Teal Intelligence) ---------------------------------- */
-  --color-accent-50: #E8FBF5;
-  --color-accent-100: #C7F4E6;
-  --color-accent-200: #8BE8CB;
-  --color-accent-300: #4DD6B0;
-  --color-accent-400: #12B98A;
-  --color-accent-500: #0E9A74;
-  --color-accent-600: #0C7D5F;
-  --color-accent-700: #0A624B;
-  --color-accent-800: #084538;
-  --color-accent-900: #062E26;
-  --color-accent-950: #041F1A;
+  /* ---- Accent Scale (Sky Blue "computed" Intelligence) ------------------- */
+  --color-accent-50: #F4FAFF;
+  --color-accent-100: #EAF5FF;
+  --color-accent-200: #D3EAFC;
+  --color-accent-300: #A8D4F8;
+  --color-accent-400: #2F9CF4;
+  --color-accent-500: #1D82DB;
+  --color-accent-600: #1560A8;
+  --color-accent-700: #114D89;
+  --color-accent-800: #0D3A69;
+  --color-accent-900: #0A2C50;
+  --color-accent-950: #061D35;
 
-  /* ---- Green-cast Neutrals (Paper, Cream, Cloud, Mist, Slate, Ink, Night) - */
-  --color-slate-50: #FAFCF8;
-  --color-slate-100: #F3F7F1;
-  --color-slate-200: #E3EBE4;
-  --color-slate-300: #C5D2C8;
-  --color-slate-400: #667970; /* was #8FA396, 2.68:1 on white — failed AA across 193 text sites */
-  --color-slate-500: #5B6B63;
-  --color-slate-600: #3E4E46;
-  --color-slate-700: #24332E;
-  --color-slate-800: #162420;
-  --color-slate-900: #0C1F1B;
-  --color-slate-950: #081210;
+  /* ---- Green-cast Neutrals renamed in spirit only: now navy-cast --------- */
+  --color-slate-50: #F4FAFF;
+  --color-slate-100: #EAF5FF;
+  --color-slate-200: #DCEAF5;
+  --color-slate-300: #C4D9EA;
+  --color-slate-400: #9AAABD;
+  --color-slate-500: #7C91A8;
+  --color-slate-600: #55708F;
+  --color-slate-700: #3A5578;
+  --color-slate-800: #1E3F63;
+  --color-slate-900: #123B6D;
+  --color-slate-950: #0A2647;
 
   /* ---- Outcomes / Hiring Semantics --------------------------------------- */
-  --color-verdict-positive: #2FBE62;
-  --color-verdict-positive-tint: #EAF8E4;
-  --color-verdict-pending: #E8A317;
-  --color-verdict-pending-tint: #FFF6E0;
-  --color-verdict-negative: #D4534A;
-  --color-verdict-negative-tint: #FDECEC;
+  --color-verdict-positive: #35B779;
+  --color-verdict-positive-tint: #E7F8EF;
+  --color-verdict-pending: #F5B942;
+  --color-verdict-pending-tint: #FFF6DE;
+  --color-verdict-negative: #E45C5C;
+  --color-verdict-negative-tint: #FFF0F0;
 
   /* ---- Secondary Accent Scale (Indigo & Violet Intelligence) ------------ */
-  --color-indigo-50: #EEF2FF;
-  --color-indigo-100: #E0E7FF;
-  --color-indigo-200: #C7D2FE;
-  --color-indigo-300: #A5B4FC;
-  --color-indigo-400: #818CF8;
-  --color-indigo-500: #6366F1;
-  --color-indigo-600: #4F46E5;
-  --color-indigo-700: #4338CA;
-  --color-indigo-800: #3730A3;
-  --color-indigo-900: #312E81;
-  --color-indigo-950: #1E1B4B;
+  --color-indigo-50: #F4FAFF;
+  --color-indigo-100: #EAF5FF;
+  --color-indigo-200: #D3EAFC;
+  --color-indigo-300: #A8D4F8;
+  --color-indigo-400: #6DB8F5;
+  --color-indigo-500: #2F9CF4;
+  --color-indigo-600: #1D82DB;
+  --color-indigo-700: #1560A8;
+  --color-indigo-800: #123B6D;
+  --color-indigo-900: #0C2A50;
+  --color-indigo-950: #081D38;
 
-  --color-violet-50: #F5F3FF;
-  --color-violet-100: #EDE9FE;
-  --color-violet-200: #DDD6FE;
-  --color-violet-300: #C4B5FD;
-  --color-violet-400: #A78BFA;
-  --color-violet-500: #8B5CF6;
-  --color-violet-600: #7C3AED;
-  --color-violet-700: #6D28D9;
-  --color-violet-800: #5B21B6;
-  --color-violet-900: #4C1D95;
-  --color-violet-950: #2E1065;
+  --color-violet-50: #F1EEFF;
+  --color-violet-100: #E5DFFD;
+  --color-violet-200: #CBC0FB;
+  --color-violet-300: #AC9BF7;
+  --color-violet-400: #9683F0;
+  --color-violet-500: #8067E8;
+  --color-violet-600: #6B52D4;
+  --color-violet-700: #5641AE;
+  --color-violet-800: #423389;
+  --color-violet-900: #2E2461;
+  --color-violet-950: #1C1640;
 
   /* ---- Layered Surfaces -------------------------------------------------- */
-  --color-surface-base: #F6F8F7;
-  --color-surface-workspace: #EFF3F0;
+  --color-surface-base: #F4FAFF;
+  --color-surface-workspace: #EAF5FF;
   --color-surface-card: #FFFFFF;
-  --color-section-neutral: #F2F5F3;
-  --color-section-ai: #F5F3FF;
-  --color-section-indigo: #F0F4FA;
-  --color-section-emerald: #EDF7F1;
-  --color-section-amber: #FFF9ED;
+  --color-section-neutral: #F4FAFF;
+  --color-section-ai: #F1EEFF;
+  --color-section-indigo: #EAF5FF;
+  --color-section-emerald: #E7F8EF;
+  --color-section-amber: #FFF6DE;
 
   /* Canvas */
-  --color-canvas: #FAFCF8;
-  --color-canvas-deep: #F3F7F1;
+  --color-canvas: #F4FAFF;
+  --color-canvas-deep: #EAF5FF;
 
-  /* Elevation & Tinted Shadows */
-  --shadow-2xs: 0 1px 2px rgba(12, 31, 27, 0.04);
-  --shadow-xs: 0 1px 3px rgba(12, 31, 27, 0.06), 0 1px 2px rgba(12, 31, 27, 0.04);
-  --shadow-sm: 0 2px 6px -1px rgba(12, 31, 27, 0.08), 0 1px 4px -1px rgba(12, 31, 27, 0.04);
-  --shadow-md: 0 4px 14px -2px rgba(12, 31, 27, 0.09), 0 2px 6px -1px rgba(12, 31, 27, 0.04);
-  --shadow-lg: 0 10px 25px -3px rgba(12, 31, 27, 0.10), 0 4px 10px -2px rgba(12, 31, 27, 0.05);
-  --shadow-xl: 0 20px 40px -6px rgba(12, 31, 27, 0.14), 0 8px 16px -4px rgba(12, 31, 27, 0.06);
-  --shadow-card: 0 1px 3px rgba(12, 31, 27, 0.05), 0 1px 2px rgba(12, 31, 27, 0.03);
-  --shadow-soft: 0 4px 20px -2px rgba(12, 31, 27, 0.07), 0 2px 6px -1px rgba(12, 31, 27, 0.03);
-  --shadow-lift: 0 12px 30px -4px rgba(12, 31, 27, 0.11), 0 6px 12px -2px rgba(12, 31, 27, 0.04);
-  --shadow-deep: 0 24px 50px -12px rgba(12, 31, 27, 0.16);
-  --shadow-brand-cta: 0 4px 14px rgba(14, 59, 46, 0.18);
-  --shadow-ai: 0 4px 14px rgba(99, 102, 241, 0.15);
+  /* Elevation & Tinted Shadows — navy-tinted, same intensity curve as before */
+  --shadow-2xs: 0 1px 2px rgba(18, 59, 109, 0.04);
+  --shadow-xs: 0 1px 3px rgba(18, 59, 109, 0.06), 0 1px 2px rgba(18, 59, 109, 0.04);
+  --shadow-sm: 0 2px 6px -1px rgba(18, 59, 109, 0.08), 0 1px 4px -1px rgba(18, 59, 109, 0.04);
+  --shadow-md: 0 4px 14px -2px rgba(18, 59, 109, 0.08), 0 2px 6px -1px rgba(18, 59, 109, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(18, 59, 109, 0.10), 0 4px 10px -2px rgba(18, 59, 109, 0.05);
+  --shadow-xl: 0 20px 40px -6px rgba(18, 59, 109, 0.14), 0 8px 16px -4px rgba(18, 59, 109, 0.06);
+  --shadow-card: 0 2px 8px rgba(18, 59, 109, 0.05);
+  --shadow-soft: 0 4px 20px -2px rgba(18, 59, 109, 0.07), 0 2px 6px -1px rgba(18, 59, 109, 0.03);
+  --shadow-lift: 0 12px 30px -4px rgba(18, 59, 109, 0.11), 0 6px 12px -2px rgba(18, 59, 109, 0.04);
+  --shadow-deep: 0 24px 50px -12px rgba(18, 59, 109, 0.16);
+  --shadow-brand-cta: 0 4px 14px rgba(47, 156, 244, 0.22);
+  --shadow-ai: 0 4px 14px rgba(128, 103, 232, 0.15);
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -178,8 +208,8 @@
   /* canvas / canvas-deep are already declared in the brand block above and are
      deliberately NOT repeated here — a second declaration of the same property
      is exactly the shape of the bug this file's header describes. */
-  --color-hairline: #E3EBE4;
-  --color-rule: #F0F4EF;
+  --color-hairline: #DCEAF5;
+  --color-rule: #E8EEF3;
 
   /* ---- Type scale --------------------------------------------------------
      The reference is dense on purpose: a recruiter scanning forty candidates
@@ -233,56 +263,56 @@
    -------------------------------------------------------------------------- */
 @theme {
   --color-emerald-50: #F3FBF7;
-  --color-emerald-100: #EAF8E4;
-  --color-emerald-200: #C9EEBC;
-  --color-emerald-300: #9FE28A;
-  --color-emerald-400: #7CDE4A;
-  --color-emerald-500: #2FBE62;
-  --color-emerald-600: #1A9A4F;
-  --color-emerald-700: #147A40;
-  --color-emerald-800: #0E3B2E;
-  --color-emerald-900: #0C1F1B;
-  --color-emerald-950: #081210;
+  --color-emerald-100: #E7F8EF;
+  --color-emerald-200: #BEEBD3;
+  --color-emerald-300: #8FDCB4;
+  --color-emerald-400: #5CC998;
+  --color-emerald-500: #35B779;
+  --color-emerald-600: #269A63;
+  --color-emerald-700: #1E7B4F;
+  --color-emerald-800: #185F3E;
+  --color-emerald-900: #124730;
+  --color-emerald-950: #0B2E1F;
 
   --color-amber-50: #FFFBF0;
-  --color-amber-100: #FFF6E0;
-  --color-amber-200: #FCE7B4;
-  --color-amber-300: #F5CE73;
-  --color-amber-400: #E8A317;
-  --color-amber-500: #C98C0F;
-  --color-amber-600: #A8730B;
-  --color-amber-700: #8A5E09;
-  --color-amber-800: #6B4907;
-  --color-amber-900: #4A3205;
-  --color-amber-950: #2A1D03;
+  --color-amber-100: #FFF6DE;
+  --color-amber-200: #FDE7B0;
+  --color-amber-300: #FBD87F;
+  --color-amber-400: #F8C862;
+  --color-amber-500: #F5B942;
+  --color-amber-600: #D89A28;
+  --color-amber-700: #B37D1F;
+  --color-amber-800: #8C6118;
+  --color-amber-900: #664711;
+  --color-amber-950: #3D2A0A;
 
   --color-red-50: #FFF8F7;
-  --color-red-100: #FDECEC;
-  --color-red-200: #F5C9C5;
-  --color-red-300: #E89A93;
-  --color-red-400: #D4534A;
-  --color-red-500: #C2453C;
-  --color-red-600: #B23B33;
-  --color-red-700: #96302A;
-  --color-red-800: #7A2722;
-  --color-red-900: #5C1D19;
-  --color-red-950: #3A1210;
+  --color-red-100: #FFF0F0;
+  --color-red-200: #FBCFCF;
+  --color-red-300: #F5A3A3;
+  --color-red-400: #EC7D7D;
+  --color-red-500: #E45C5C;
+  --color-red-600: #C94747;
+  --color-red-700: #A33A3A;
+  --color-red-800: #7D2D2D;
+  --color-red-900: #571F1F;
+  --color-red-950: #331212;
 
   /* Teal reads as the intelligence/system voice in the reference — the "this
-     was computed" colour, distinct from the "this was decided" green. Aliased
-     onto the accent ramp so the handful of `teal-*` sites stop being a fourth
-     hue nobody chose. */
-  --color-teal-50: #E8FBF5;
-  --color-teal-100: #C7F4E6;
-  --color-teal-200: #8BE8CB;
-  --color-teal-300: #4DD6B0;
-  --color-teal-400: #12B98A;
-  --color-teal-500: #0E9A74;
-  --color-teal-600: #0C7D5F;
-  --color-teal-700: #0A624B;
-  --color-teal-800: #084538;
-  --color-teal-900: #062E26;
-  --color-teal-950: #041F1A;
+     was computed" colour, distinct from the "this was decided" green. Now
+     repointed to the spec's Purple (#8067E8), which is the same semantic
+     role the new palette assigns to AI/interview-related features. */
+  --color-teal-50: #F1EEFF;
+  --color-teal-100: #E5DFFD;
+  --color-teal-200: #CBC0FB;
+  --color-teal-300: #AC9BF7;
+  --color-teal-400: #9683F0;
+  --color-teal-500: #8067E8;
+  --color-teal-600: #6B52D4;
+  --color-teal-700: #5641AE;
+  --color-teal-800: #423389;
+  --color-teal-900: #2E2461;
+  --color-teal-950: #1C1640;
 
   /* ---- Chart marks -------------------------------------------------------
      THESE WERE MISSING AND THE ABSENCE WAS INVISIBLE. Ten call sites across
@@ -314,11 +344,11 @@
      lighter than some of the surfaces it had to be read against. A chart mark
      has to be visible before it can be tasteful. The ring stays as an edge for
      definition, one step darker than the fill. */
-  --color-chart-positive: #2FBE62;
-  --color-chart-negative: #D4534A;
-  --color-chart-pending: #E8A317;
-  --color-chart-brand: #12B98A;
-  --color-chart-neutral: #8FA396;
+  --color-chart-positive: #35B779;
+  --color-chart-negative: #E45C5C;
+  --color-chart-pending: #F5B942;
+  --color-chart-brand: #2F9CF4;
+  --color-chart-neutral: #9AAABD;
 }
 
 /* ---------------------------------------------------------------------------
@@ -344,11 +374,11 @@
    drawers, toasts, and the modal, all of which genuinely float over content.
    -------------------------------------------------------------------------- */
 @theme {
-  --radius-xl: 0.625rem;  /* 10px — inputs, nav rows */
-  --radius-2xl: 0.75rem;  /* 12px — the container radius */
+  --radius-xl: 0.5rem;    /* 8px — inputs, buttons, nav rows (navy rebrand spec) */
+  --radius-2xl: 0.75rem;  /* 12px — metric cards / the container radius */
   --radius-3xl: 1rem;     /* 16px — modals and full-bleed panels only */
 
-  --shadow-card: 0 1px 3px rgba(12, 31, 27, 0.05), 0 1px 2px rgba(12, 31, 27, 0.03);
+  --shadow-card: 0 2px 8px rgba(18, 59, 109, 0.05);
 }
 
 @layer base {
@@ -397,16 +427,16 @@
 @layer utilities {
   .bg-grid {
     background-image:
-      linear-gradient(to right, rgba(14, 59, 46, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(14, 59, 46, 0.04) 1px, transparent 1px);
+      linear-gradient(to right, rgba(18, 59, 109, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(18, 59, 109, 0.04) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .bg-aurora {
     background-image:
-      radial-gradient(58rem 32rem at 12% -10%, rgba(124, 222, 74, 0.14), transparent 62%),
-      radial-gradient(46rem 28rem at 92% 6%, rgba(18, 185, 138, 0.12), transparent 64%),
-      radial-gradient(52rem 34rem at 50% 108%, rgba(227, 235, 228, 0.5), transparent 66%);
+      radial-gradient(58rem 32rem at 12% -10%, rgba(47, 156, 244, 0.14), transparent 62%),
+      radial-gradient(46rem 28rem at 92% 6%, rgba(128, 103, 232, 0.12), transparent 64%),
+      radial-gradient(52rem 34rem at 50% 108%, rgba(234, 245, 255, 0.5), transparent 66%);
   }
 
   /* Flat tints, not gradients. Every tinted surface in the reference is one
@@ -415,19 +445,19 @@
      panel is measured against a different ground at the bottom. It also reads
      as a light source, and this system has none. */
   .surface-brand {
-    background-color: #F3FBF7;
+    background-color: #F0F8FF;
   }
 
   .surface-ember {
-    background-color: #FFF6E0;
+    background-color: #FFF6DE;
   }
 
   .fill-brand {
-    background-image: linear-gradient(150deg, #0E3B2E 0%, #081210 100%);
+    background-image: linear-gradient(150deg, #123B6D 0%, #081D38 100%);
   }
 
   .fill-ember {
-    background-image: linear-gradient(150deg, #D4F056 0%, #7CDE4A 100%);
+    background-image: linear-gradient(150deg, #FCECC8 0%, #F5B942 100%);
   }
 
   .tap-target {
@@ -507,14 +537,14 @@
    `surface-accent` is the quiet brand wash for toolbars and grouping strips.
    `accent-edge` marks the leading item of a row without adding a fourth hue. */
 .panel-hero {
-  background-image: linear-gradient(145deg, #0E3B2E 0%, #0C1F1B 62%, #081210 100%);
-  color: #FFFFFF;
-  border: 1px solid rgba(124, 222, 74, 0.20);
-  box-shadow: 0 10px 30px -12px rgba(12, 31, 27, 0.45);
+  background-image: linear-gradient(120deg, #F2FAFF 0%, #EAF6FF 45%, #FFF9EC 100%);
+  color: #123B6D;
+  border: 1px solid #D7EAF8;
+  box-shadow: 0 2px 8px rgba(18, 59, 109, 0.05);
 }
 .panel-hero .num { letter-spacing: -0.04em; }
 
-.surface-accent { background-color: #EAF5EF; }
+.surface-accent { background-color: #EAF5FF; }
 
 .accent-edge { box-shadow: inset 3px 0 0 var(--color-brand-400); }
 
@@ -538,38 +568,38 @@
    is what buys separation without reintroducing forty light sources; the
    flat-card decision above still stands. */
 .admin-workspace {
-  --color-canvas: #F6F8F7;
-  --color-canvas-deep: #EEF2F0;
-  --color-hairline: #DDE5E0;
+  --color-canvas: #F4FAFF;
+  --color-canvas-deep: #EAF5FF;
+  --color-hairline: #DCEAF5;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 0.9375rem;
-  --radius-card: 0.625rem;
+  --radius-card: 0.875rem;
   font-size: 14px;
   line-height: 1.5;
 }
 .admin-workspace .num { font-family: var(--font-sans); font-variant-numeric: tabular-nums; letter-spacing: normal; }
 .admin-workspace :where(button, a, input, select, textarea):focus-visible {
-  outline: 2px solid #0E3B2E;
+  outline: 2px solid #123B6D;
   outline-offset: 3px;
 }
 .admin-workspace :where(input:not([type='checkbox']):not([type='radio']):not([type='color']), select, textarea) { border-radius: 8px; box-shadow: none; }
-.admin-workspace .workspace-nav-item.is-active:focus-visible { outline-color: #0E3B2E; }
+.admin-workspace .workspace-nav-item.is-active:focus-visible { outline-color: #123B6D; }
 .admin-workspace .workspace-page-header h1 { font-size: 24px; line-height: 1.3; font-family: var(--font-display); font-weight: 600; }
 /* Two layers, both gentle: a 1px contact shadow that seats the card on the
    ground, and a wide -4px spread that gives it thickness. Total opacity is
    still under 10%, so a forty-row list does not turn into forty light
    sources — the objection that flattened this in the first place. */
-.admin-workspace .workspace-panel { border-radius: 12px; box-shadow: 0 1px 2px rgba(12, 31, 27, 0.05), 0 4px 12px -4px rgba(12, 31, 27, 0.08); }
+.admin-workspace .workspace-panel { border-radius: 14px; box-shadow: 0 1px 2px rgba(18, 59, 109, 0.05), 0 4px 12px -4px rgba(18, 59, 109, 0.08); }
 .admin-workspace.command-palette { padding: 0; border-radius: 12px; }
 .admin-workspace .workspace-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--color-hairline); border-radius: 10px; background: white; }
 .admin-workspace .workspace-table { font-size: 13px; }
-.admin-workspace .workspace-table thead { position: sticky; top: 0; z-index: 1; background: #EDF2EF; }
-.admin-workspace .workspace-table th { white-space: nowrap; background: #EDF2EF; }
+.admin-workspace .workspace-table thead { position: sticky; top: 0; z-index: 1; background: #EAF5FF; }
+.admin-workspace .workspace-table th { white-space: nowrap; background: #EAF5FF; }
 .admin-workspace .workspace-table td { vertical-align: middle; }
-.admin-workspace .workspace-table tr:focus-within { background: #F5F7F6; }
+.admin-workspace .workspace-table tr:focus-within { background: #F4FAFF; }
 .admin-workspace .workspace-table[data-density='compact'] td { padding-top: 8px; padding-bottom: 8px; }
-.admin-workspace .workspace-settings-nav a[aria-current='page'] { background: #EDF2EF; color: #0E3B2E; font-weight: 600; }
+.admin-workspace .workspace-settings-nav a[aria-current='page'] { background: #EAF5FF; color: #123B6D; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .admin-workspace *, .admin-workspace *::before, .admin-workspace *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
@@ -583,19 +613,19 @@
    the brand's lime/teal/forest, so the board belongs to the same product as
    every other screen. */
 .bg-mesh-canvas {
-  background-color: #F6F8F7;
+  background-color: #F4FAFF;
   background-image:
-    radial-gradient(at 0% 0%, rgba(124, 222, 74, 0.10) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(18, 185, 138, 0.10) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(227, 235, 228, 0.45) 0px, transparent 70%),
-    radial-gradient(at 80% 100%, rgba(14, 59, 46, 0.06) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(47, 156, 244, 0.10) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(128, 103, 232, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(234, 245, 255, 0.45) 0px, transparent 70%),
+    radial-gradient(at 80% 100%, rgba(18, 59, 109, 0.06) 0px, transparent 50%);
 }
 
 .card-tactile-3d {
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 4px 12px -2px rgba(15, 23, 42, 0.06),
-    0 10px 24px -4px rgba(14, 59, 46, 0.08),
+    0 10px 24px -4px rgba(18, 59, 109, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -2px 0 rgba(203, 213, 225, 0.4);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -607,22 +637,22 @@
   box-shadow:
     0 3px 6px rgba(15, 23, 42, 0.04),
     0 12px 28px -4px rgba(15, 23, 42, 0.12),
-    0 20px 32px -8px rgba(14, 59, 46, 0.14),
+    0 20px 32px -8px rgba(18, 59, 109, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -2px 0 rgba(205, 229, 214, 0.7);
+    inset 0 -2px 0 rgba(211, 234, 252, 0.7);
 }
 
 .card-tactile-3d:active {
   transform: translateY(-1px) scale(0.998);
   box-shadow:
     0 2px 4px rgba(15, 23, 42, 0.06),
-    0 6px 14px -2px rgba(14, 59, 46, 0.10),
+    0 6px 14px -2px rgba(18, 59, 109, 0.10),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     inset 0 -1px 0 rgba(203, 213, 225, 0.6);
 }
 
 .column-tray-3d {
-  background: linear-gradient(180deg, rgba(234, 245, 239, 0.85) 0%, rgba(240, 245, 242, 0.65) 100%);
+  background: linear-gradient(180deg, rgba(234, 245, 255, 0.85) 0%, rgba(240, 247, 253, 0.65) 100%);
   box-shadow:
     inset 0 2px 4px rgba(15, 23, 42, 0.03),
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -632,27 +662,27 @@
 
 .btn-3d-advance {
   box-shadow:
-    0 2px 4px rgba(14, 59, 46, 0.28),
-    0 4px 10px rgba(14, 59, 46, 0.22),
+    0 2px 4px rgba(18, 59, 109, 0.28),
+    0 4px 10px rgba(18, 59, 109, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -2px 0 rgba(8, 18, 16, 0.34);
+    inset 0 -2px 0 rgba(8, 29, 56, 0.34);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-3d-advance:hover {
   transform: translateY(-1px);
   box-shadow:
-    0 4px 8px rgba(14, 59, 46, 0.34),
-    0 8px 16px rgba(14, 59, 46, 0.26),
+    0 4px 8px rgba(18, 59, 109, 0.34),
+    0 8px 16px rgba(18, 59, 109, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -2px 0 rgba(8, 18, 16, 0.38);
+    inset 0 -2px 0 rgba(8, 29, 56, 0.38);
 }
 
 .btn-3d-advance:active {
   transform: translateY(1px);
   box-shadow:
-    0 1px 2px rgba(14, 59, 46, 0.22),
-    inset 0 1px 2px rgba(8, 18, 16, 0.42);
+    0 1px 2px rgba(18, 59, 109, 0.22),
+    inset 0 1px 2px rgba(8, 29, 56, 0.42);
 }
 
 .btn-3d-secondary {
@@ -682,11 +712,11 @@
    and more saturated as the stage gets closer to a hire, so the ordering is
    legible from the edge alone. Slate at both ends: an untouched inbox and an
    archived column are both "not in play". */
-.stage-glow-inbox { border-top: 3px solid #8FA396; }
-.stage-glow-screened { border-top: 3px solid #12B98A; box-shadow: inset 0 2px 8px -2px rgba(18, 185, 138, 0.22); }
-.stage-glow-interviewing { border-top: 3px solid #7CDE4A; box-shadow: inset 0 2px 8px -2px rgba(124, 222, 74, 0.25); }
-.stage-glow-offer { border-top: 3px solid #0E3B2E; box-shadow: inset 0 2px 8px -2px rgba(14, 59, 46, 0.25); }
-.stage-glow-archived { border-top: 3px solid #C5D2C8; }
+.stage-glow-inbox { border-top: 3px solid #9AAABD; }
+.stage-glow-screened { border-top: 3px solid #8067E8; box-shadow: inset 0 2px 8px -2px rgba(128, 103, 232, 0.22); }
+.stage-glow-interviewing { border-top: 3px solid #2F9CF4; box-shadow: inset 0 2px 8px -2px rgba(47, 156, 244, 0.25); }
+.stage-glow-offer { border-top: 3px solid #123B6D; box-shadow: inset 0 2px 8px -2px rgba(18, 59, 109, 0.25); }
+.stage-glow-archived { border-top: 3px solid #DCEAF5; }
 
 @keyframes advanceSlideOut {
   0% { transform: scale(1) translateX(0); opacity: 1; }

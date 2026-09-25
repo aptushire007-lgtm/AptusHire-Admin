@@ -55,18 +55,18 @@ export function BrandLogo({
   className = "",
   onClick,
 }) {
-  let textColor ="text-[#0C1F1B]";
-  let taglineColor ="text-[#5B6B63]";
-  let hireColor ="text-[#1A9A4F]";
+  let textColor ="text-[#123B6D]";
+  let taglineColor ="text-[#55708F]";
+  let hireColor ="text-[#2F9CF4]";
 
   if (theme === "dark") {
     textColor = "text-white";
     taglineColor = "text-slate-300";
-    hireColor = "text-[#7CDE4A]";
+    hireColor = "text-[#6DB8F5]";
   } else if (theme === "light") {
-    textColor = "text-[#0C1F1B]";
-    taglineColor = "text-[#5B6B63]";
-    hireColor = "text-[#1A9A4F]";
+    textColor = "text-[#123B6D]";
+    taglineColor = "text-[#55708F]";
+    hireColor = "text-[#2F9CF4]";
   }
 
   const iconSizes = {

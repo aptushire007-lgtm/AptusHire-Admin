@@ -148,7 +148,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }
       <div>
         {/* ── Brand ─────────────────────────────────────────────── */}
         <div
-          className={`flex h-16 shrink-0 items-center border-b border-hairline px-4 ${
+          className={`flex h-[60px] shrink-0 items-center border-b border-[#DCEAF5] px-5 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
@@ -208,7 +208,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }
             onClick={onToggleCollapse}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={`mt-1 flex h-9 items-center gap-2.5 rounded-lg text-sm font-medium text-slate-600 transition-colors hover:bg-canvas hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800 ${
+            className={`mt-1 flex h-9 items-center gap-2.5 rounded-lg text-[13px] font-medium text-[#55708F] transition-colors hover:bg-[#F4FAFF] hover:text-[#123B6D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-800 ${
               collapsed ? "justify-center" : "px-3"
             }`}
           >
@@ -255,11 +255,11 @@ function TopNav({ onMenuClick, onOpenSearch }) {
   }, [profileOpen]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center justify-between gap-3 border-b border-[#DCEAF5] bg-white px-4 shadow-[0_1px_4px_rgba(18,59,109,0.04)] sm:px-6">
       {/* Left */}
       <div className="flex min-w-0 items-center gap-3">
         <button
-          className="tap-target inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#DDECE3] hover:text-[#176B45] lg:hidden"
+          className="tap-target inline-flex items-center justify-center rounded-lg text-[#55708F] hover:bg-[#EAF5FF] hover:text-[#123B6D] lg:hidden"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
         >
@@ -270,13 +270,13 @@ function TopNav({ onMenuClick, onOpenSearch }) {
           <nav aria-label="Workspace breadcrumb" className="flex items-center gap-2 text-xs font-medium">
             {breadcrumbs.map((b, i) => (
               <span key={i} className="flex items-center gap-2">
-                {i > 0 && <span className="text-slate-400">/</span>}
+                {i > 0 && <span className="text-[#9AAABD]">/</span>}
                 {b.current ? (
-                  <span aria-current="page" className="font-semibold text-slate-900">
+                  <span aria-current="page" className="font-semibold text-[#123B6D]">
                     {b.label}
                   </span>
                 ) : (
-                  <NavLink to={b.to} className="text-slate-500 hover:text-slate-900 transition-colors">
+                  <NavLink to={b.to} className="text-[#55708F] hover:text-[#123B6D] transition-colors">
                     {b.label}
                   </NavLink>
                 )}
@@ -285,8 +285,8 @@ function TopNav({ onMenuClick, onOpenSearch }) {
           </nav>
         ) : (
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-[#09090B]">{companyName}</h2>
-            <p className="truncate text-[11px] tabular-nums text-[#9BAAA1]">
+            <h2 className="truncate text-[15px] font-semibold leading-[20px] text-[#0B2F57]">{companyName}</h2>
+            <p className="truncate text-[11px] leading-[16px] tabular-nums text-[#7C91A8]">
               {me?.company?.companyCode || "APT-01"}
             </p>
           </div>
@@ -294,47 +294,56 @@ function TopNav({ onMenuClick, onOpenSearch }) {
       </div>
 
       {/* Right */}
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-3">
         <button
           type="button"
           aria-label="Search workspace"
           onClick={onOpenSearch}
-          className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-slate-50/80 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shadow-2xs"
+          className="flex h-9 items-center gap-2 rounded-full border border-[#D7E8F6] bg-white px-3.5 text-[13px] text-[#55708F] transition-colors hover:border-[#BFDDF5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgba(47,156,244,0.30)] sm:w-[260px]"
         >
-          <Search className="h-3.5 w-3.5 text-slate-400" />
+          <Search className="h-[17px] w-[17px] shrink-0 text-[#55708F]" strokeWidth={1.8} />
           <span className="hidden sm:inline">Search workspace…</span>
-          <kbd className="hidden sm:inline rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">Ctrl K</kbd>
+          <span className="ml-auto hidden shrink-0 rounded-[5px] border border-[#E0EDF7] bg-[#F1F7FC] px-[7px] py-1 text-[10px] font-medium text-[#55708F] sm:inline">
+            Ctrl K
+          </span>
         </button>
 
         <NotificationBell />
 
-        <div className="relative" ref={profileRef}>
+        <div className="relative ml-1" ref={profileRef}>
           <button
             onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs font-medium text-[#18181B] shadow-sm transition-colors hover:bg-[#F4F4F5]"
+            className="flex items-center gap-3 rounded-full border border-[#DCEAF5] bg-white py-1 pl-1 pr-3 text-[13px] font-semibold text-[#123B6D] shadow-sm transition-colors hover:bg-[#F4FAFF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgba(47,156,244,0.30)]"
             aria-expanded={profileOpen}
             aria-haspopup="true"
             aria-label="Account options"
           >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#176B45] text-[11px] font-bold text-white">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#FFF3D6] text-[12px] font-semibold text-[#8A6415]">
               {user?.photoPath ? (
                 <img src={user.photoPath} alt="" className="h-full w-full object-cover" />
               ) : (
-                (user?.name || "A")[0].toUpperCase()
+                String(user?.name || "Admin")
+                  .trim()
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()
               )}
             </span>
-            <span className="hidden max-w-[7rem] truncate sm:block">
+            <span className="hidden max-w-[10rem] truncate sm:block">
               {user?.name || "Recruiter"}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 text-[#9BAAA1]" />
+            <ChevronDown className="h-4 w-4 text-[#55708F]" />
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-[#E4E4E7] bg-white p-1.5 shadow-lift">
-              <div className="border-b border-[#E5EBE7] px-3 py-2.5">
-                <p className="truncate text-[13px] font-bold text-[#17221C]">{user?.name}</p>
-                <p className="truncate text-[11px] text-[#64736A]">{user?.email}</p>
-                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#E8F2EC] px-2 py-0.5 text-[10px] font-semibold text-[#176B45]">
+            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-[#DCEAF5] bg-white p-1.5 shadow-lift">
+              <div className="border-b border-[#E8EEF3] px-3 py-2.5">
+                <p className="truncate text-[13px] font-bold text-[#123B6D]">{user?.name}</p>
+                <p className="truncate text-[11px] text-[#7C91A8]">{user?.email}</p>
+                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#F1EEFF] px-2 py-0.5 text-[10px] font-semibold text-[#6B52D4]">
                   <Sparkles className="h-2.5 w-2.5" />
                   {roleName}
                 </span>
@@ -344,30 +353,30 @@ function TopNav({ onMenuClick, onOpenSearch }) {
                 <button
                   role="menuitem"
                   onClick={() => { setProfileOpen(false); navigate("/subscription"); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[#55708F] transition-colors hover:bg-[#EAF5FF] hover:text-[#123B6D]"
                 >
-                  <CreditCard className="h-4 w-4 text-[#9BAAA1]" />
+                  <CreditCard className="h-4 w-4 text-[#9AAABD]" />
                   Plan and billing
                 </button>
                 <button
                   role="menuitem"
                   onClick={() => { setProfileOpen(false); navigate("/settings"); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[#55708F] transition-colors hover:bg-[#EAF5FF] hover:text-[#123B6D]"
                 >
-                  <Settings className="h-4 w-4 text-[#9BAAA1]" />
+                  <Settings className="h-4 w-4 text-[#9AAABD]" />
                   Workspace Settings
                 </button>
                 <button
                   role="menuitem"
                   onClick={() => { setProfileOpen(false); navigate("/ai-interviews"); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[#55708F] transition-colors hover:bg-[#EAF5FF] hover:text-[#123B6D]"
                 >
-                  <Bot className="h-4 w-4 text-[#9BAAA1]" />
+                  <Bot className="h-4 w-4 text-[#9AAABD]" />
                   AI Interviews
                 </button>
               </div>
 
-              <div className="border-t border-[#E5EBE7] pt-1">
+              <div className="border-t border-[#E8EEF3] pt-1">
                 <button
                   onClick={() => {
                     const refreshToken = getAdminRefreshToken();
@@ -375,7 +384,7 @@ function TopNav({ onMenuClick, onOpenSearch }) {
                     clearAdminAuth();
                     navigate("/login");
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-[#C95C5C] transition-colors hover:bg-[#F8EAEA]"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-semibold text-[#E45C5C] transition-colors hover:bg-[#FFF0F0]"
                 >
                   <LogOut className="h-4 w-4" />
                   Log Out
@@ -443,16 +452,16 @@ function ShellInner({ children }) {
   const counts = { reviews: reviewCount > 0 ? reviewCount : null };
 
   return (
-    <div className="admin-portal flex min-h-screen flex-col bg-[#F6F8F7] text-slate-900">
+    <div className="admin-portal flex min-h-screen flex-col bg-[#F4FAFF] text-slate-900">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#0E3B2E] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#123B6D] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
       >
         Skip to main content
       </a>
 
       {viewAs && (
-        <div className="flex items-center justify-between gap-3 bg-[#0E3B2E] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
+        <div className="flex items-center justify-between gap-3 bg-[#123B6D] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(18,59,109,0.15)]">
           <span>
             Viewing as tenant <span className="font-bold">{viewAs.name}</span> — read-only mode.
           </span>
@@ -471,8 +480,8 @@ function ShellInner({ children }) {
             backdrop blur — translucency over nothing, which forces a
             compositing layer that can soften the text inside it. */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-hairline bg-white transition-[width] duration-200 lg:flex ${
-            collapsed ? "w-[4.5rem]" : "w-[236px]"
+          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#DCEAF5] bg-white transition-[width] duration-200 lg:flex ${
+            collapsed ? "w-[4.5rem]" : "w-[255px]"
           }`}
         >
           <SidebarContent
@@ -491,7 +500,7 @@ function ShellInner({ children }) {
           panelClassName="w-72 border-r border-hairline bg-white"
         >
           <button
-            className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45]"
+            className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-[#55708F] hover:bg-[#EAF5FF] hover:text-[#123B6D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#123B6D]"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
@@ -508,7 +517,7 @@ function ShellInner({ children }) {
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 bg-[#F6F8F7] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 bg-[#F4FAFF] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
           >
             {children}
           </main>

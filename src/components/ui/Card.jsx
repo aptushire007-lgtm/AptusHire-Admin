@@ -6,6 +6,8 @@
  * ("keep the two frontends' UI kits identical").
  */
 
+import { ChevronRight } from "lucide-react";
+
 /**
  * Card tones.
  *
@@ -198,6 +200,14 @@ const tileTones = {
   ai: "bg-violet-100 text-violet-800",
   sky: "bg-sky-100 text-sky-700",
   teal: "bg-teal-100 text-teal-700",
+  // Exact-hex stat-tile tones — kept separate from the named Tailwind tones
+  // above because the reference pairs a specific icon colour against a
+  // specific chip colour per metric (e.g. cream background with sky-blue
+  // icon on "Hired"), which no single named hue reproduces.
+  statSky: "bg-[#EAF5FF] text-[#2F8FF3]",
+  statAmber: "bg-[#FFF4DD] text-[#B9821B]",
+  statViolet: "bg-[#F1EEFF] text-[#7564D8]",
+  statCream: "bg-[#FFF4DD] text-[#2F8FF3]",
 };
 
 const tileSizes = {
@@ -299,6 +309,9 @@ export function StatCard({
   note,
   chip,
   chipTone = "slate",
+  chipClassName = "",
+  chevron = false,
+  chevronClassName = "text-slate-300",
   action,
   className = "",
   ...props
@@ -306,25 +319,19 @@ export function StatCard({
   const t = toneText(tone);
   const stacked = tone !== "default";
   return (
-    <Card tone={tone} className={className} {...props}>
-      <div className="flex items-center gap-2">
+    <Card tone={tone} className={`!min-h-[140px] !rounded-[12px] !p-[18px] ${className}`} {...props}>
+      <div className="flex h-9 items-center gap-2.5">
+        {/* `iconTone` gives a metric its subject's colour (interviews are
+            violet wherever they appear) without tinting the whole card — a
+            tinted card would read as a verdict, and it is only a figure. */}
+        {Icon && <IconTile icon={Icon} tone={iconTone || t.tile} size="sm" className="shrink-0 [&>svg]:!h-[18px] [&>svg]:!w-[18px]" />}
         {/* On a violet fill this is white/90, not the /70–/75 that reads as
             "secondary" in a mock — those land at 3.8:1 and 4.4:1. On a coral
             fill it is solid ink for the same reason. Either way the hierarchy
             comes from weight and size, because opacity is spending contrast the
             small text does not have to give. */}
-        <p className={`min-w-0 flex-1 text-xs font-semibold ${t.soft}`}>{label}</p>
-        {/* The chip is the trend/delta slot, and it sits on the LABEL row
-            rather than under the figure. That is the reference's arrangement
-            and it is the load-bearing part of this tile: a "+12%" placed below
-            a number reads as part of the number, and at a glance a reader takes
-            the pair as one quantity. Above it, on the label's line, it reads as
-            a qualifier of the label — which is what it is. */}
-        {chip && <Badge tone={chipTone} className="shrink-0">{chip}</Badge>}
-        {/* `iconTone` gives a metric its subject's colour (interviews are
-            violet wherever they appear) without tinting the whole card — a
-            tinted card would read as a verdict, and it is only a figure. */}
-        {Icon && !chip && <IconTile icon={Icon} tone={iconTone || t.tile} size="sm" className="shrink-0" />}
+        <p className={`min-w-0 flex-1 truncate text-[13px] leading-[18px] font-semibold ${stacked ? t.soft : "text-[#123B6D]"}`}>{label}</p>
+        {chevron && <ChevronRight className={`h-[18px] w-[18px] shrink-0 ${chevronClassName}`} aria-hidden="true" />}
       </div>
       {/* `.num` — mono, tabular, tight. These tiles are read as a ROW of
           figures, and the row only lines up if the digits do. See index.css
@@ -333,10 +340,18 @@ export function StatCard({
           is loading, and a skeleton is a block — nesting one inside a <p>
           is invalid HTML that React warns about and browsers silently
           reparent, which moved the placeholder OUT of the tile. */}
-      <div className={`num pt-2.5 pb-1 text-[27px] leading-none font-semibold [overflow-wrap:anywhere] ${t.strong}`}>
-        {value}
+      {/* The chip moved here from the title row: pinned next to the icon and
+          label it collided with "Applications" the moment the card narrowed
+          even slightly. Beside the figure it describes, it never competes
+          with the title for width and reads just as clearly as a qualifier
+          of the number. */}
+      <div className="flex flex-wrap items-baseline gap-2 pt-2.5 pb-1">
+        <div className={`num text-[32px] leading-[38px] font-bold [overflow-wrap:anywhere] ${stacked ? t.strong : "text-[#0B2F57]"}`}>
+          {value}
+        </div>
+        {chip && <Badge tone={chipTone} className={`shrink-0 !text-[12px] !leading-[16px] font-semibold ${chipClassName}`}>{chip}</Badge>}
       </div>
-      {note && <p className={`prose-wrap text-xs ${stacked ? t.soft : "text-slate-500"}`}>{note}</p>}
+      {note && <p className={`prose-wrap text-[12px] leading-[17px] ${stacked ? t.soft : "text-[#607B96]"}`}>{note}</p>}
       {action && <div className="pt-3">{action}</div>}
     </Card>
   );
@@ -359,10 +374,21 @@ export function StatCard({
  * colliding on the longest labels in the product ("Median time to first
  * response").
  */
-export function StatGrid({ children, min = 210, className = "" }) {
+export function StatGrid({ children, min = 210, columns, className = "" }) {
+  // `columns` pins an exact column count at each breakpoint instead of
+  // letting `auto-fit` wrap wherever the `min` width stops fitting — for a
+  // fixed-size row (this dashboard's 5 KPI tiles) staying on one line at
+  // desktop widths matters more than never going below `min`.
+  if (columns) {
+    return (
+      <div className={`grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:[grid-template-columns:repeat(var(--stat-cols),1fr)] ${className}`} style={{ "--stat-cols": columns }}>
+        {children}
+      </div>
+    );
+  }
   return (
     <div
-      className={`grid gap-3 ${className}`}
+      className={`grid gap-3.5 ${className}`}
       style={{ gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))` }}
     >
       {children}

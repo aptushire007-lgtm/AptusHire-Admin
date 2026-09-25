@@ -1,12 +1,12 @@
 // The only colours used for data-bearing lines, bars, and chart segments.
 // Keep this ordered palette shared across every admin visualization.
 export const VISUALIZATION_COLORS = Object.freeze({
-  // Existing keys remain compatible; values follow the original admin chart palette.
-  purple: "#0C7D5F",
-  blue: "#12B98A",
-  green: "#2FBE62",
-  amber: "#E8A317",
-  red: "#D4534A",
+  // Existing keys remain compatible; values follow the navy/sky-blue rebrand palette.
+  purple: "#8067E8",
+  blue: "#2F9CF4",
+  green: "#35B779",
+  amber: "#F5B942",
+  red: "#E45C5C",
 });
 
 export const VISUALIZATION_PALETTE = Object.freeze([
