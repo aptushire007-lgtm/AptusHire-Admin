@@ -84,7 +84,7 @@ export default function RegisterCompany() {
           </p>
         </div>
 
-        <Card className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-soft sm:p-8">
+        <Card className="rounded-3xl border border-slate-200/90 bg-surface p-6 shadow-soft sm:p-8">
           {error && (
             <p className="mb-4 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">{error}</p>
           )}

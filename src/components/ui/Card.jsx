@@ -26,7 +26,7 @@ const cardTones = {
   // card border and the divider inside a card are now two named tokens that
   // must not be confused, and naming the one used here is what keeps them
   // apart. See index.css § Surfaces.
-  default: { border:"border-hairline", surface:"bg-white" },
+  default: { border:"border-hairline", surface:"bg-surface" },
   brand: { border:"border-emerald-200", surface:"surface-brand" },
   ember: { border:"border-amber-200", surface:"surface-ember" },
   ai: { border: "border-violet-200/80", surface: "bg-violet-50/40 text-slate-900" },

@@ -30,7 +30,7 @@ const variants = {
   primary:
     `bg-brand-800 text-white hover:bg-brand-700 shadow-2xs hover:shadow-xs hover:shadow-emerald-950/20 active:translate-y-0 hover:-translate-y-0.5 focus-visible:ring-brand-500 ${DISABLED_FILL}`,
   secondary:
-    "bg-white text-slate-800 border border-hairline hover:border-slate-300 hover:text-slate-900 shadow-2xs hover:shadow-xs active:translate-y-0 hover:-translate-y-0.5 focus-visible:ring-brand-500 disabled:opacity-50",
+    "bg-surface text-slate-800 border border-hairline hover:border-slate-300 hover:text-slate-900 shadow-2xs hover:shadow-xs active:translate-y-0 hover:-translate-y-0.5 focus-visible:ring-brand-500 disabled:opacity-50",
   outline:
     "bg-transparent text-slate-700 border border-hairline hover:bg-canvas-deep active:translate-y-0 hover:-translate-y-0.5 focus-visible:ring-slate-400 disabled:opacity-50",
   ghost:

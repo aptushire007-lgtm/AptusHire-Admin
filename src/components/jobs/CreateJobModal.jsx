@@ -56,7 +56,7 @@ const PRIORITY_TIERS = {
   critical: {
     key: "critical",
     label: "Must Have",
-    badgeClass: "bg-red-50 text-red-600 border-red-200",
+    badgeClass: "bg-red-50 text-red-700 border-red-200",
     borderClass: "border-l-red-500",
     dotClass: "bg-red-500",
     bars: 4,
@@ -67,7 +67,7 @@ const PRIORITY_TIERS = {
   important: {
     key: "important",
     label: "Very Important",
-    badgeClass: "bg-amber-50 text-amber-600 border-amber-200",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
     borderClass: "border-l-amber-500",
     dotClass: "bg-amber-500",
     bars: 3,
@@ -78,7 +78,7 @@ const PRIORITY_TIERS = {
   helpful: {
     key: "helpful",
     label: "Important",
-    badgeClass: "bg-emerald-50 text-emerald-600 border-emerald-200",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
     borderClass: "border-l-emerald-500",
     dotClass: "bg-emerald-500",
     bars: 2,
@@ -535,7 +535,7 @@ function StepHeader({ title, onBack, onClose, position, total }) {
               <span key={i} className={`h-1 flex-1 rounded-full ${i < position ? "bg-brand-700" : "bg-slate-200"}`} />
             ))}
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-[12px] font-medium text-slate-700">
             Step {position} of {total}
           </p>
         </div>
@@ -1297,9 +1297,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <div>
               <label
                 htmlFor="job-title-input"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-[13px] font-semibold text-slate-800 mb-1.5"
               >
-                Job Title <span className="text-slate-400 font-normal">(visible to candidates)</span>
+                Job Title <span className="text-slate-600 font-normal">(visible to candidates)</span>
               </label>
               <input
                 id="job-title-input"
@@ -1308,16 +1308,16 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 placeholder="e.g. AI Specialist"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full rounded-xl border border-brand-700 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-4 focus:ring-emerald-100/70 transition placeholder:text-slate-400"
+                className="w-full rounded-xl border border-brand-700 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-4 focus:ring-emerald-100/70 transition placeholder:text-slate-500"
               />
             </div>
 
             <div>
               <label
                 htmlFor="project-name-input"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-[13px] font-semibold text-slate-800 mb-1.5"
               >
-                Internal name <span className="text-slate-500 font-normal">(only your team sees this)</span>
+                Internal name <span className="text-slate-600 font-normal">(only your team sees this)</span>
               </label>
               <input
                 id="project-name-input"
@@ -1327,15 +1327,15 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 onChange={(e) => handleProjectNameChange(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition"
               />
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[12px] text-slate-600">
                 Auto-filled from Job Title — edit if you want.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="job-location-input" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Location <span className="text-slate-400 font-normal">(optional)</span>
+                <label htmlFor="job-location-input" className="block text-[13px] font-semibold text-slate-800 mb-1.5">
+                  Location <span className="text-slate-600 font-normal">(optional)</span>
                 </label>
                 <input
                   id="job-location-input"
@@ -1347,8 +1347,8 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 />
               </div>
               <div>
-                <label htmlFor="job-department-input" className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Department <span className="text-slate-400 font-normal">(optional)</span>
+                <label htmlFor="job-department-input" className="block text-[13px] font-semibold text-slate-800 mb-1.5">
+                  Department <span className="text-slate-600 font-normal">(optional)</span>
                 </label>
                 <input
                   id="job-department-input"
@@ -1362,7 +1362,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             </div>
 
             <div>
-              <label htmlFor="job-openings-input" className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label htmlFor="job-openings-input" className="block text-[13px] font-semibold text-slate-800 mb-1.5">
                 Number of openings
               </label>
               <input
@@ -1375,7 +1375,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 onChange={(e) => setNumberOfOpenings(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 shadow-xs focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 transition sm:w-40"
               />
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[12px] text-slate-600">
                 The role closes automatically once this many offers are accepted.
               </p>
             </div>
@@ -1390,7 +1390,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               <button
                 type="submit"
                 disabled={!title.trim()}
-                className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-xs font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="rounded-full bg-brand-800 hover:bg-brand-700 text-white px-7 py-2 text-[13px] font-bold shadow-xs transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Continue
               </button>
@@ -1464,7 +1464,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       Recommended
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-[13px] text-slate-700 mt-0.5">
                     Richest starting point — most accurate output
                   </p>
                 </div>
@@ -1477,10 +1477,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <button
                         type="button"
                         onClick={() => setJdTab("upload")}
-                        className={`rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                        className={`rounded-full px-3.5 py-1 text-[13px] font-semibold transition cursor-pointer ${
                           jdTab === "upload"
                             ? "bg-white text-slate-900 shadow-2xs"
-                            : "text-slate-600 hover:text-slate-900"
+                            : "text-slate-700 hover:text-slate-900"
                         }`}
                       >
                         Upload JD
@@ -1488,10 +1488,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <button
                         type="button"
                         onClick={() => setJdTab("enter")}
-                        className={`rounded-full px-3.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                        className={`rounded-full px-3.5 py-1 text-[13px] font-semibold transition cursor-pointer ${
                           jdTab === "enter"
                             ? "bg-white text-slate-900 shadow-2xs"
-                            : "text-slate-600 hover:text-slate-900"
+                            : "text-slate-700 hover:text-slate-900"
                         }`}
                       >
                         Enter Your JD
@@ -1505,7 +1505,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         setJdText(SAMPLE_JD);
                         toast.info("Sample loaded — edit it to describe your actual role before continuing.");
                       }}
-                      className="text-xs font-semibold text-brand-800 hover:underline cursor-pointer inline-flex items-center gap-1"
+                      className="text-[13px] font-semibold text-brand-800 hover:underline cursor-pointer inline-flex items-center gap-1"
                     >
                       Don't have a JD? Try with a sample →
                     </button>
@@ -1523,11 +1523,11 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         className="hidden"
                         onChange={handleFileUpload}
                       />
-                      <UploadCloud className="mx-auto h-7 w-7 text-slate-400 mb-2" />
-                      <p className="text-xs font-bold text-slate-700">
+                      <UploadCloud className="mx-auto h-7 w-7 text-slate-500 mb-2" />
+                      <p className="text-[13px] font-bold text-slate-800">
                         {uploadedFileName || "Upload JD file"}
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-600 mt-0.5">
                         (e.g. PDF, Docx, TXT)
                       </p>
                     </div>
@@ -1540,9 +1540,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                         placeholder="Paste your job description here (responsibilities, qualifications, requirements)..."
                         value={jdText}
                         onChange={(e) => setJdText(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-800 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 leading-relaxed transition"
+                        className="w-full rounded-xl border border-slate-200 p-3 text-[13px] text-slate-900 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-emerald-50 leading-relaxed transition"
                       />
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1">
+                      <div className="flex justify-between items-center text-[11px] text-slate-600 mt-1">
                         <span>Include core responsibilities for optimal rubric compilation.</span>
                         <span>{jdText.length} characters</span>
                       </div>
@@ -1578,20 +1578,20 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       <Sparkles className="h-3 w-3" /> AI Powered
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-[13px] text-slate-700 mt-0.5">
                     AI generates from this title alone (less specific, still usable):{" "}
-                    <span className="font-semibold text-slate-800">{title || "Job Title"}</span>
+                    <span className="font-semibold text-slate-900">{title || "Job Title"}</span>
                   </p>
                 </div>
               </label>
 
               {setupMode === "title" && (
                 <div className="mt-4 pl-7 border-t border-slate-100 pt-3">
-                  <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3.5 text-xs text-violet-900 flex items-start gap-2.5">
+                  <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3.5 text-[13px] text-violet-900 flex items-start gap-2.5">
                     <Sparkles className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Instant AI Job Description:</span>
-                      <p className="mt-0.5 text-slate-600 text-[11px] leading-relaxed">
+                      <p className="mt-0.5 text-slate-700 text-[12px] leading-relaxed">
                         Clicking Continue will immediately synthesize role responsibilities, essential qualifications, required skills, and screening criteria based on <strong>"{title}"</strong>.
                       </p>
                     </div>
@@ -1621,7 +1621,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                 />
                 <div className="flex-1">
                   <span className="text-sm font-bold text-slate-900">Duplicate a previous job</span>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-[13px] text-slate-700 mt-0.5">
                     Start from a copy of an existing job.
                   </p>
                 </div>
@@ -1995,10 +1995,10 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               starting point the recruiter edits and a calibration they trust. */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 p-2.5 px-3.5 text-xs">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-200/80 text-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-200/80 text-slate-800 px-2 py-0.5 text-[12px] font-bold uppercase tracking-wider">
                 Suggested for {title || "this role"}
               </span>
-              <span className="text-[11px] text-slate-600">
+              <span className="text-[12px] text-slate-700">
                 A starting point matched to the role title — edit it. The scoring rubric
                 is compiled from your job description after the project is created.
               </span>
@@ -2006,7 +2006,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleAutoGenerateCriteria}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[12px] font-semibold text-slate-800 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
             >
               <span>Reset to suggestions</span>
             </button>
@@ -2030,7 +2030,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       value={c.label}
                       onChange={(e) => handleUpdateCriterion(idx, "label", e.target.value)}
                       placeholder="Criterion Title"
-                      className="font-bold text-xs text-slate-900 border-none p-0 focus:outline-none focus:ring-0 w-full"
+                      className="font-bold text-[13px] text-slate-900 border-none p-0 focus:outline-none focus:ring-0 w-full"
                     />
 
                     {/* Priority Badge & Delete */}
@@ -2067,9 +2067,9 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                       value={c.description}
                       onChange={(e) => handleUpdateCriterion(idx, "description", e.target.value)}
                       placeholder="Explain what satisfactory performance looks like for this criterion..."
-                      className="w-full text-xs text-slate-600 border border-slate-100 rounded-lg p-2 focus:border-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-100 resize-none"
+                      className="w-full text-[13px] text-slate-800 border border-slate-100 rounded-lg p-2 focus:border-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-100 resize-none"
                     />
-                    <div className="flex justify-end text-[10px] text-slate-400">
+                    <div className="flex justify-end text-[11px] text-slate-600">
                       <span>{c.description?.length || 0}/200 characters</span>
                     </div>
                   </div>
@@ -2077,7 +2077,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   {/* Floating Priority Selector Popup (media_1789123155041.png) */}
                   {isPickerOpen && (
                     <div className="absolute right-4 top-12 z-20 w-64 rounded-xl bg-white p-2.5 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-100">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2 px-1">
                         Select Priority Level
                       </p>
                       <div className="grid grid-cols-2 gap-1.5">
@@ -2098,7 +2098,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                                 {pTier.label}
                               </span>
                             </div>
-                            <span className="text-[11px] text-slate-500 leading-tight">
+                            <span className="text-[12px] text-slate-700 leading-tight">
                               {pTier.subtitle}
                             </span>
                           </button>
@@ -2114,7 +2114,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
             <button
               type="button"
               onClick={handleAddCriterion}
-              className="w-full rounded-xl border-2 border-dashed border-slate-200 py-3 text-center text-xs font-semibold text-slate-600 hover:border-brand-700 hover:text-brand-800 transition cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full rounded-xl border-2 border-dashed border-slate-200 py-3 text-center text-[13px] font-semibold text-slate-700 hover:border-brand-700 hover:text-brand-800 transition cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus className="h-4 w-4" /> Add criterion
             </button>
@@ -2412,7 +2412,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
               >
                 Creating your job…
               </h2>
-              <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="mt-1 text-[13px] text-slate-700 max-w-sm mx-auto">
                 Configuring AI interviewer, compiling evaluation rubrics, and provisioning candidate pipelines.
               </p>
 
@@ -2424,14 +2424,14 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                     style={{ width: `${creationProgress}%` }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold mt-1">
+                <div className="flex justify-between items-center text-[11px] text-slate-700 font-semibold mt-1">
                   <span>Processing components</span>
                   <span>{creationProgress}%</span>
                 </div>
               </div>
 
               {/* Sequential Milestones */}
-              <div className="mt-6 text-left space-y-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3.5 text-xs text-slate-700">
+              <div className="mt-6 text-left space-y-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3.5 text-[13px] text-slate-800">
                 <div className="flex items-center gap-2">
                   <div
                     className={`flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold ${
@@ -2440,7 +2440,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   >
                     ✓
                   </div>
-                  <span className={creationMilestone >= 1 ? "font-semibold text-slate-900" : "text-slate-400"}>
+                  <span className={creationMilestone >= 1 ? "font-semibold text-slate-900" : "text-slate-500"}>
                     Synthesizing role brief & requirements
                   </span>
                 </div>
@@ -2453,7 +2453,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   >
                     ✓
                   </div>
-                  <span className={creationMilestone >= 2 ? "font-semibold text-slate-900" : "text-slate-400"}>
+                  <span className={creationMilestone >= 2 ? "font-semibold text-slate-900" : "text-slate-500"}>
                     Calibrating scoring rubric criteria
                   </span>
                 </div>
@@ -2466,7 +2466,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   >
                     ✓
                   </div>
-                  <span className={creationMilestone >= 3 ? "font-semibold text-slate-900" : "text-slate-400"}>
+                  <span className={creationMilestone >= 3 ? "font-semibold text-slate-900" : "text-slate-500"}>
                     Generating interview question set
                   </span>
                 </div>
@@ -2479,7 +2479,7 @@ export default function CreateJobModal({ isOpen, onClose, onCreated, onInspectJo
                   >
                     ✓
                   </div>
-                  <span className={creationMilestone >= 4 ? "font-semibold text-slate-900" : "text-slate-400"}>
+                  <span className={creationMilestone >= 4 ? "font-semibold text-slate-900" : "text-slate-500"}>
                     Initializing ATS pipeline & workspace
                   </span>
                 </div>

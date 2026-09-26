@@ -28,7 +28,7 @@ function useFieldA11y(explicitId, error) {
 }
 
 const fieldChrome =
-"rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 shadow-xs transition-colors duration-150 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-brand-700/20 disabled:bg-slate-100 disabled:text-slate-400";
+"rounded-xl border border-slate-300 bg-surface text-sm text-slate-900 placeholder:text-slate-400 shadow-xs transition-colors duration-150 focus:border-brand-700 focus:outline-none focus:ring-3 focus:ring-brand-700/20 disabled:bg-slate-100 disabled:text-slate-400";
 const fieldClass = `${fieldChrome} px-3.5 py-2.5`;
 const fieldCompactClass = `${fieldChrome} px-2.5 py-1.5`;
 

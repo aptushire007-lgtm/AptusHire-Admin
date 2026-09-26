@@ -7,6 +7,8 @@ import {
   CalendarCheck,
   ClipboardCheck,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Globe2,
   LayoutGrid,
@@ -83,7 +85,7 @@ function jobFunnel(job, applicants) {
 
 /** Screening → interview → offer as one thin bar; the counts sit under it in words. */
 function FunnelBar({ f }) {
-  if (!f.total) return <span className="text-[11px] text-slate-400">No applicants yet</span>;
+  if (!f.total) return <span className="text-[11px] text-slate-700">No applicants yet</span>;
   const seg = [
     { n: f.screening, cls: "bg-slate-300", label: "screening" },
     { n: f.interview, cls: "bg-violet-400", label: "interview" },
@@ -91,11 +93,11 @@ function FunnelBar({ f }) {
   ];
   const shown = f.screening + f.interview + f.offer || 1;
   return (
-    <div className="w-full min-w-[120px]">
+    <div className="w-full min-w-[70px]">
       <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${f.screening} screening, ${f.interview} interviewing, ${f.offer} at offer`}>
         {seg.map((x) => (x.n ? <span key={x.label} className={x.cls} style={{ width: `${(x.n / shown) * 100}%` }} /> : null))}
       </div>
-      <p className="mt-1 flex gap-2 text-[11px] text-slate-500" aria-hidden="true">
+      <p className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-slate-700" aria-hidden="true">
         {seg.filter((x) => x.n).map((x) => (
           <span key={x.label} className="inline-flex items-center gap-1">
             <span className={`h-1.5 w-1.5 rounded-full ${x.cls}`} />
@@ -114,6 +116,28 @@ function DepartmentChip({ name }) {
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hue.dot}`} aria-hidden="true" />
       <span className="truncate">{name || "General"}</span>
     </span>
+  );
+}
+
+/** One of the four KPI cards atop the jobs page — icon, title, an optional status
+ * badge, and the number. No decorative trend line: this page has no historical
+ * series to back one, and a squiggle that isn't backed by real data would read
+ * as a trend that was never measured. */
+function KpiCard({ icon: Icon, iconClass, label, value, badge, support }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
+      <div className="flex items-center gap-2.5">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconClass}`} aria-hidden="true">
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">{label}</span>
+      </div>
+      {badge && <div className="mt-2">{badge}</div>}
+      <div className={`flex items-baseline gap-2 ${badge ? "mt-1.5" : "mt-2.5"}`}>
+        <span className="num font-display text-2xl font-bold text-slate-900">{value}</span>
+        {support && <span className="text-xs text-slate-600">{support}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -245,7 +269,7 @@ export function PublishBoardsModal({ job, onClose }) {
                   </div>
                   {!b.enabled && <p className="mt-1.5 pl-6 text-xs text-amber-600">{b.reason}</p>}
                   {b.enabled && b.needsCredential && !b.credentialConfigured && (
-                    <p className="mt-1.5 pl-6 text-xs text-slate-500">
+                    <p className="mt-1.5 pl-6 text-xs text-slate-600">
                       Connect this board's credentials in Settings → Integrations first.
                     </p>
                   )}
@@ -259,7 +283,7 @@ export function PublishBoardsModal({ job, onClose }) {
                     </a>
                   )}
                   {b.status === "published" && (
-                    <button onClick={() => withdraw(b.board)} disabled={busy} className="mt-1.5 pl-6 text-xs font-medium text-slate-500 hover:text-red-600">
+                    <button onClick={() => withdraw(b.board)} disabled={busy} className="mt-1.5 pl-6 text-xs font-medium text-slate-600 hover:text-red-600">
                       Withdraw from this board
                     </button>
                   )}
@@ -274,7 +298,7 @@ export function PublishBoardsModal({ job, onClose }) {
                 </summary>
                 <ul className="mt-2 space-y-1.5">
                   {boards.filter((b) => !isConnected(b)).map((b) => (
-                    <li key={b.board} className="flex items-start gap-2 text-xs text-slate-500">
+                    <li key={b.board} className="flex items-start gap-2 text-xs text-slate-600">
                       <span className={`mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold ring-1 ring-inset ${boardMeta(b.board, b.name).cls}`} aria-hidden="true">
                         {boardMeta(b.board, b.name).short}
                       </span>
@@ -358,6 +382,14 @@ export default function JobList() {
     next.set("page", String(val));
     return next;
   });
+  const requestedPageSize = Number(params.get("limit") || 10);
+  const pageSize = [10, 20, 50].includes(requestedPageSize) ? requestedPageSize : 10;
+  const setPageSize = (val) => setParams(previous => {
+    const next = new URLSearchParams(previous);
+    next.set("limit", String(val));
+    next.set("page", "1");
+    return next;
+  });
 
   const [linkPickerFor, setLinkPickerFor] = useState(null);
   const [publishModalJob, setPublishModalJob] = useState(null);
@@ -433,7 +465,7 @@ export default function JobList() {
       .get("/jobs", {
         params: {
           page,
-          limit: 20,
+          limit: pageSize,
           includeCounts: "1",
         },
       })
@@ -450,7 +482,7 @@ export default function JobList() {
       })
       .catch(() => { if (version === loadVersion.current) setError("Failed to load jobs"); })
       .finally(() => { if (version === loadVersion.current) setLoading(false); });
-  }, [page]);
+  }, [page, pageSize]);
 
   useEffect(() => {
     loadJobs();
@@ -835,7 +867,7 @@ export default function JobList() {
 
   return (
     <DeptHue.Provider value={departmentHue}>
-    <div className="space-y-6 pb-12">
+    <div className="space-y-3 pb-4">
       {/* ── Page Header ───────────────────────────────────────────────────── */}
       <PageHeader
         title={
@@ -849,22 +881,21 @@ export default function JobList() {
             </span>
           </span>
         }
-        description="Manage open requisitions, review automated AI screening rubrics, and track applicants."
         action={
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={exportJobsCSV}
-              className="gap-1.5 whitespace-nowrap text-xs font-semibold shadow-xs"
+              className="gap-1.5 whitespace-nowrap text-xs font-semibold text-brand-800 shadow-xs hover:bg-brand-50"
             >
-              <Download className="h-3.5 w-3.5 text-slate-500" /> Export CSV
+              <Download className="h-3.5 w-3.5 text-brand-700" /> Export CSV
             </Button>
             <Button
               type="button"
               onClick={() => setCreateModalOpen(true)}
               size="sm"
-              className="bg-[#0E3B2E] text-white hover:bg-[#154d3d] whitespace-nowrap shadow-xs text-xs font-semibold gap-1.5 cursor-pointer"
+              className="bg-brand-800 text-white hover:bg-brand-900 whitespace-nowrap shadow-xs text-xs font-semibold gap-1.5 cursor-pointer"
             >
               <Plus className="h-4 w-4" aria-hidden="true" /> Create job
             </Button>
@@ -873,86 +904,65 @@ export default function JobList() {
       />
 
       {/* ── 4 KPI Metric Cards (Reference Layout) ─────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-100 text-brand-800" aria-hidden="true"><Briefcase className="h-3.5 w-3.5" /></span>
-              Total Requisitions
-            </span>
-            {/* Was the literal string "+1 this week" whatever had happened.
-                Counted from the jobs' own createdAt now, and drawn only when
-                there is something to say. */}
-            {kpiMetrics.createdThisWeek > 0 && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard
+          icon={Briefcase}
+          iconClass="bg-brand-100 text-brand-800"
+          label="Total Requisitions"
+          value={kpiMetrics.totalRequisitions}
+          // Was the literal string "+1 this week" whatever had happened. Counted
+          // from the jobs' own createdAt now, and drawn only when there is
+          // something to say.
+          badge={
+            kpiMetrics.createdThisWeek > 0 && (
               <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
                 +{kpiMetrics.createdThisWeek} this week
               </span>
-            )}
-          </div>
-          <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="num font-display text-3xl font-bold text-slate-900">
-              {kpiMetrics.totalRequisitions}
-            </span>
-          </div>
-        </div>
+            )
+          }
+        />
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-800" aria-hidden="true"><Users className="h-3.5 w-3.5" /></span>
-              Active Applicants
-            </span>
+        <KpiCard
+          icon={Users}
+          iconClass="bg-sky-100 text-sky-800"
+          label="Active Applicants"
+          value={kpiMetrics.activeApplicants}
+          badge={
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">
               {kpiMetrics.inReview} in review
             </span>
-          </div>
-          <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="num font-display text-3xl font-bold text-slate-900">
-              {kpiMetrics.activeApplicants}
-            </span>
-          </div>
-        </div>
+          }
+        />
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700" aria-hidden="true"><CalendarCheck className="h-3.5 w-3.5" /></span>
-              Interviews Scheduled
-            </span>
-            {/* A "Next today 3:00 PM" chip stood here as a literal string — it
-                announced a 3pm interview on every day, for every workspace.
-                There is no scheduled time in this payload to show instead. */}
-          </div>
-          <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="num font-display text-3xl font-bold text-slate-900">
-              {kpiMetrics.interviewsScheduled}
-            </span>
-          </div>
-        </div>
+        {/* A "Next today 3:00 PM" chip stood here as a literal string — it
+            announced a 3pm interview on every day, for every workspace. There
+            is no scheduled time in this payload to show instead. */}
+        <KpiCard
+          icon={CalendarCheck}
+          iconClass="bg-violet-100 text-violet-700"
+          label="Interviews Scheduled"
+          value={kpiMetrics.interviewsScheduled}
+          support="Upcoming this week"
+        />
 
-        {/* This card used to read "Avg. Time to Screen 1.8d · -65% vs manual"
-            — every character of it a literal, the figure included. It is now a
-            count this page can actually source, and the one a recruiter can act
-            on: live roles that are screening without an approved rubric. */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-800" aria-hidden="true"><ClipboardCheck className="h-3.5 w-3.5" /></span>
-              Rubrics to approve
-            </span>
-            {kpiMetrics.rubricsToApprove > 0 && (
+        {/* This card used to read "Avg. Time to Screen 1.8d · -65% vs manual" —
+            every character of it a literal, the figure included. It is now a
+            count this page can actually source, and the one a recruiter can
+            act on: live roles that are screening without an approved rubric. */}
+        <KpiCard
+          icon={ClipboardCheck}
+          iconClass="bg-amber-100 text-amber-800"
+          label="Rubrics to approve"
+          value={kpiMetrics.rubricsToApprove}
+          support="Live roles without one"
+          badge={
+            kpiMetrics.rubricsToApprove > 0 && (
               <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200/60">
                 Needs action
               </span>
-            )}
-          </div>
-          <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="num font-display text-3xl font-bold text-slate-900">
-              {kpiMetrics.rubricsToApprove}
-            </span>
-            <span className="text-xs text-slate-500">live roles without one</span>
-          </div>
-        </div>
+            )
+          }
+        />
       </div>
 
       <SetupDraftList
@@ -961,57 +971,53 @@ export default function JobList() {
           setCreateModalOpen(true);
         }}
       />
-      {/* ── Dual Search & Navigation Bar (Reference Layout) ───────────────── */}
-      <div className="rounded-2xl border border-hairline bg-white p-3 shadow-xs">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          {/* Input 1: Search by Title, Keyword, Department, Skills */}
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              aria-label="Search jobs"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by: Job title, Position, Keyword, Skill..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-3 pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
-            />
-          </div>
-
-          {/* Input 2: Location / Workplace */}
-          <div className="relative flex-1 md:max-w-xs lg:max-w-sm">
-            <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              aria-label="Filter jobs by location"
-              value={locationSearch}
-              onChange={(e) => setLocationSearch(e.target.value)}
-              placeholder="City, state, or 'Remote'..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-3 pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
-            />
-          </div>
-
-          {/* Actions: Clear / Find Button */}
-          <div className="flex items-center gap-2">
-            {activeFiltersCount > 0 && (
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-hairline bg-white px-3 text-xs font-semibold text-slate-600 hover:text-red-700 hover:border-red-200 transition-colors"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Reset all</span>
-              </button>
-            )}
-
-            <span className="text-xs text-slate-500">Filters update as you type</span>
-          </div>
+      {/* ── Dual Search & Navigation Bar ───────────────────────────────────
+          Each field is the one visible control — no outer card wrapping the
+          two inputs, which used to read as a box nested inside a box. */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        {/* Input 1: Search by Title, Keyword, Department, Skills */}
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-600" />
+          <input
+            aria-label="Search jobs"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by: Job title, Position, Keyword, Skill..."
+            className="h-10 w-full rounded-full border-2 border-brand-200 bg-white pr-4 pl-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-500 focus:border-brand-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          />
         </div>
+
+        {/* Input 2: Location / Workplace */}
+        <div className="relative flex-1 md:max-w-xs lg:max-w-sm">
+          <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-600" />
+          <input
+            type="text"
+            aria-label="Filter jobs by location"
+            value={locationSearch}
+            onChange={(e) => setLocationSearch(e.target.value)}
+            placeholder="City, state, or 'Remote'..."
+            className="h-10 w-full rounded-full border-2 border-brand-200 bg-white pr-4 pl-11 text-sm text-slate-900 shadow-xs placeholder:text-slate-500 focus:border-brand-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          />
+        </div>
+
+        {/* Actions: Clear filters */}
+        {activeFiltersCount > 0 && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border-2 border-hairline bg-white px-4 text-xs font-semibold text-slate-600 hover:text-red-700 hover:border-red-200 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Reset all</span>
+          </button>
+        )}
       </div>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
       {/* ── Main Job Listings Content (Full Width) ─────────────────────────── */}
-      <section className="space-y-4 w-full" aria-labelledby="job-filters-heading">
+      <section className="space-y-2.5 w-full" aria-labelledby="job-filters-heading">
           <div className="sr-only">
             <h2 id="job-filters-heading">Filters</h2>
             <span>Requisition Status</span>
@@ -1019,7 +1025,7 @@ export default function JobList() {
             <span>Workplace Mode</span>
           </div>
           {/* Sub-Header Toolbar: Quick Status Tabs, Sort, and View Density */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-2">
             {/* Left: Requisition Status Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
               {[
@@ -1033,17 +1039,17 @@ export default function JobList() {
                   type="button"
                   aria-pressed={statusFilter === id}
                   onClick={() => setStatusFilter(id)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`inline-flex h-10 items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-all whitespace-nowrap ${
                     statusFilter === id
-                      ? "bg-[#0E3B2E] text-white shadow-xs"
+                      ? "bg-brand-800 text-white shadow-xs"
                       : "bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200"
                   }`}
                 >
                   <span>{label}</span>
                   <span
-                    className={`num rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    className={`num rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
                       statusFilter === id
-                        ? "bg-[#195342] text-emerald-100"
+                        ? "bg-brand-900 text-brand-100"
                         : "bg-slate-100 text-slate-600"
                     }`}
                   >
@@ -1060,7 +1066,7 @@ export default function JobList() {
                   value={selectedDepartments[0] || "all"}
                   onChange={(e) => setSelectedDepartments(e.target.value === "all" ? [] : [e.target.value])}
                   aria-label="Filter by department"
-                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-10 rounded-lg border border-slate-200 bg-white py-0 pr-8 pl-3 text-sm font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="all">All Departments</option>
                   {allDepartments.map((dept) => (
@@ -1075,7 +1081,7 @@ export default function JobList() {
                 value={workplaceFilter}
                 onChange={(e) => setWorkplaceFilter(e.target.value)}
                 aria-label="Filter by workplace mode"
-                className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                className="h-10 rounded-lg border border-slate-200 bg-white py-0 pr-8 pl-3 text-sm font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
               >
                 <option value="all">All Modes</option>
                 <option value="remote">Remote ({filterCounts.remote})</option>
@@ -1088,7 +1094,7 @@ export default function JobList() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   aria-label="Sort requisitions"
-                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-7 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                  className="h-10 rounded-lg border border-slate-200 bg-white py-0 pr-8 pl-3 text-sm font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
                 >
                   <option value="newest">Sort: Newest first</option>
                   <option value="oldest">Sort: Oldest first</option>
@@ -1102,15 +1108,15 @@ export default function JobList() {
               <div
                 role="group"
                 aria-label="View mode"
-                className="inline-flex rounded-lg border border-hairline bg-slate-50 p-0.5"
+                className="inline-flex h-10 items-center rounded-lg border border-hairline bg-slate-50 p-1"
               >
                 <button
                   type="button"
                   aria-pressed={viewMode === "grid"}
                   onClick={() => setViewMode("grid")}
                   title="Grid View (Cards)"
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
-                    viewMode === "grid" ? "bg-white text-brand-800 shadow-xs" : "text-slate-500 hover:text-slate-900"
+                  className={`inline-flex h-full w-8 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
+                    viewMode === "grid" ? "bg-white text-brand-800 shadow-xs" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <LayoutGrid className="h-3.5 w-3.5" />
@@ -1120,8 +1126,8 @@ export default function JobList() {
                   aria-pressed={viewMode === "list"}
                   onClick={() => setViewMode("list")}
                   title="List View (Table)"
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
-                    viewMode === "list" ? "bg-white text-brand-800 shadow-xs" : "text-slate-500 hover:text-slate-900"
+                  className={`inline-flex h-full w-8 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
+                    viewMode === "list" ? "bg-white text-brand-800 shadow-xs" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <Rows3 className="h-3.5 w-3.5" />
@@ -1136,13 +1142,13 @@ export default function JobList() {
           </div>}
 
           {/* Showing Count & Active Filter Tokens */}
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
             <span className="font-semibold tracking-wide text-slate-600">
               Showing <span className="num font-bold text-slate-900">{sortedJobs.length}</span> of{" "}
               <span className="num font-bold text-slate-900">{jobs.length}</span> requisitions
             </span>
             {selectedDepartments.length > 0 && (
-              <span className="text-slate-500">
+              <span className="text-slate-600">
                 Filtered by {selectedDepartments.length} department
                 {selectedDepartments.length === 1 ? "" : "s"}
               </span>
@@ -1222,8 +1228,8 @@ export default function JobList() {
                           <JobTile job={job} size="h-10 w-10 text-sm" />
                           <div className="min-w-0">
                             <DepartmentChip name={job.department} />
-                            <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-500 truncate">
-                              <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
+                            <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-600 truncate">
+                              <MapPin className="h-3 w-3 shrink-0 text-slate-500" />
                               {job.location || "Remote / Anywhere"}
                             </span>
                           </div>
@@ -1255,7 +1261,7 @@ export default function JobList() {
                         >
                           {job.title}
                         </button>
-                        <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
                           {job.description || job.requirements || "No description provided."}
                         </p>
                       </div>
@@ -1272,7 +1278,7 @@ export default function JobList() {
                             </span>
                           ))}
                           {restSkills > 0 && (
-                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
+                            <span className="rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
                               +{restSkills}
                             </span>
                           )}
@@ -1286,7 +1292,7 @@ export default function JobList() {
                             <Users className="h-3.5 w-3.5 shrink-0 text-brand-700" />
                             <span className="num">{funnel.total}</span> {funnel.total === 1 ? "applicant" : "applicants"}
                           </span>
-                          <span className="text-[11px] font-medium text-slate-400">{timeAgo(job.createdAt)}</span>
+                          <span className="text-[11px] font-medium text-slate-500">{timeAgo(job.createdAt)}</span>
                         </div>
                         <FunnelBar f={funnel} />
                       </div>
@@ -1304,7 +1310,7 @@ export default function JobList() {
                           <Badge tone={rubric.tone}>{rubric.label}</Badge>
                         </button>
                         {Number(job.minExperienceYears) > 0 && (
-                          <span className="text-[11px] text-slate-500 font-medium">
+                          <span className="text-[11px] text-slate-600 font-medium">
                             {job.minExperienceYears}+ yrs exp
                           </span>
                         )}
@@ -1361,7 +1367,7 @@ export default function JobList() {
                                 <button
                                   type="button"
                                   onClick={() => handleCopyApplyLink(job)}
-                                  className="block w-full border-t border-slate-100 px-3 py-1.5 text-left text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+                                  className="block w-full border-t border-slate-100 px-3 py-1.5 text-left text-xs text-slate-600 hover:bg-slate-50 transition-colors"
                                 >
                                   Untagged link
                                 </button>
@@ -1401,27 +1407,22 @@ export default function JobList() {
           ) : (
             /* ── Dense List / Table View ─────────────────────────────────────── */
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
-                <span className="text-xs text-slate-500 hidden sm:inline">
-                  Click any row to open that job&rsquo;s workspace
-                </span>
-              </div>
-
               <TableWrap label="Job requisitions">
-                <Table className="min-w-[980px]" aria-label="Jobs">
+                <Table className="table-fixed" aria-label="Jobs">
                   <THead>
                     <TR>
-                      <TH padding="compact"><span>Position</span> & Location</TH>
-                      <TH padding="compact">Department</TH>
-                      <TH padding="compact">Status</TH>
-                      <TH padding="compact">Rubric Evaluation</TH>
-                      <TH padding="compact">Applicants</TH>
-                      <TH padding="compact">Opened</TH>
-                      <TH padding="compact" align="right">Actions</TH>
+                      <TH padding="dense" className="w-[4%]">#</TH>
+                      <TH padding="dense" className="w-[25%]">Position & Location</TH>
+                      <TH padding="dense" className="w-[11%]">Department</TH>
+                      <TH padding="dense" className="w-[10%]">Status</TH>
+                      <TH padding="dense" className="w-[16%]">Rubric Evaluation</TH>
+                      <TH padding="dense" className="w-[15%]">Applicants</TH>
+                      <TH padding="dense" className="w-[8%]">Opened</TH>
+                      <TH padding="dense" className="w-[11%]" align="right">Actions</TH>
                     </TR>
                   </THead>
                   <TBody>
-                    {sortedJobs.map((job) => {
+                    {sortedJobs.map((job, index) => {
                       const rubric = RUBRIC_STATUS_META[job.rubricStatus] || RUBRIC_STATUS_META.none;
                       const applicants = candidatesByJob?.[job._id] || [];
                       const funnel = jobFunnel(job, applicants);
@@ -1437,15 +1438,20 @@ export default function JobList() {
                           className={`cursor-pointer transition-all ${
                             isSelected
                               ? "bg-emerald-50/50 shadow-2xs relative"
-                              : "hover:bg-slate-50/80"
+                              : index % 2 === 1
+                              ? "bg-brand-100/50 hover:bg-brand-100/80"
+                              : "bg-white hover:bg-slate-50"
                           }`}
                         >
-                          <TD padding="compact">
+                          <TD padding="dense" className="text-center text-xs font-semibold text-slate-500">
+                            {index + 1}
+                          </TD>
+                          <TD padding="dense">
                             <div className="flex items-center gap-2">
                               {isSelected && (
-                                <span className="h-8 w-1 rounded-full bg-[#0E3B2E] shrink-0" />
+                                <span className="h-7 w-1 rounded-full bg-brand-800 shrink-0" />
                               )}
-                              <JobTile job={job} />
+                              <JobTile job={job} size="h-7 w-7 text-[10px]" />
                               <div className="min-w-0">
                                 <button
                                   type="button"
@@ -1453,22 +1459,22 @@ export default function JobList() {
                                     e.stopPropagation();
                                     openJob(job, "overview");
                                   }}
-                                  className="text-left font-bold text-slate-900 hover:text-brand-700 transition-colors text-sm cursor-pointer"
+                                  className="block w-full truncate text-left font-bold text-slate-900 hover:text-brand-700 transition-colors text-sm cursor-pointer"
                                 >
                                   {job.title}
                                 </button>
-                                <span className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
-                                  <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                                  {job.location || "Remote / Anywhere"}
-                                  <span className="font-mono text-slate-400">· {reqCode}</span>
+                                <span className="flex items-center gap-1 truncate text-[11px] text-slate-700 mt-0.5">
+                                  <MapPin className="h-3 w-3 text-slate-600 shrink-0" />
+                                  <span className="truncate">{job.location || "Remote / Anywhere"}</span>
+                                  <span className="shrink-0 font-mono text-slate-600">· {reqCode}</span>
                                 </span>
                               </div>
                             </div>
                           </TD>
-                          <TD padding="compact">
+                          <TD padding="dense">
                             <DepartmentChip name={job.department} />
                           </TD>
-                          <TD padding="compact">
+                          <TD padding="dense">
                             <Badge
                               tone={
                                 job.status === "published"
@@ -1482,7 +1488,7 @@ export default function JobList() {
                               • {job.status}
                             </Badge>
                           </TD>
-                          <TD padding="compact">
+                          <TD padding="dense">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1496,7 +1502,7 @@ export default function JobList() {
                               </Badge>
                             </button>
                           </TD>
-                          <TD padding="compact">
+                          <TD padding="dense">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1509,27 +1515,14 @@ export default function JobList() {
                               <FunnelBar f={funnel} />
                             </button>
                           </TD>
-                          <TD padding="compact" className="whitespace-nowrap text-xs text-slate-500 font-medium">
+                          <TD padding="dense" className="whitespace-nowrap text-xs text-slate-800 font-semibold">
                             {timeAgo(job.createdAt)}
                           </TD>
-                          <TD padding="compact" align="right" onClick={(e) => e.stopPropagation()}>
+                          <TD padding="dense" align="right" onClick={(e) => e.stopPropagation()}>
+                            {/* The standalone green Publish button was crowding the row —
+                                publishing is still one click away via the "..." menu below
+                                ("Publish job" for drafts, "Publish to job boards" once live). */}
                             <div className="flex items-center justify-end gap-1">
-                              {job.status !== "published" && (
-                                <Button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePublish(job._id);
-                                  }}
-                                  loading={publishingJobId === job._id}
-                                  size="sm"
-                                  className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer gap-1"
-                                >
-                                  <Globe2 className="h-3 w-3" />
-                                  <span>Publish</span>
-                                </Button>
-                              )}
-
                               <RowAction
                                 onClick={(e) => {
                                   e?.stopPropagation?.();
@@ -1537,6 +1530,7 @@ export default function JobList() {
                                 }}
                                 label="Edit"
                                 icon={Pencil}
+                                size="sm"
                               />
                               <ActionMenu
                                 label={`Actions for ${job.title}`}
@@ -1544,9 +1538,9 @@ export default function JobList() {
                                   <button
                                     type="button"
                                     aria-label={`More actions for ${job.title}`}
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
                                   >
-                                    <MoreHorizontal className="h-4 w-4" />
+                                    <MoreHorizontal className="h-3.5 w-3.5" />
                                   </button>
                                 }
                               >
@@ -1582,25 +1576,70 @@ export default function JobList() {
             </div>
           )}
 
-          {!loading && !error && (paging.pages > 1 || page > 1) && (
-            <nav aria-label="Job pages" className="mt-6 flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage(page - 1)}
-                className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-40"
-              >
-                Previous page
-              </button>
-              <span className="text-sm">Page {page} of {Math.max(1, paging.pages)}</span>
-              <button
-                type="button"
-                disabled={page >= paging.pages}
-                onClick={() => setPage(page + 1)}
-                className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-40"
-              >
-                Next page
-              </button>
+          {!loading && !error && jobs.length > 0 && (
+            <nav aria-label="Job pages" className="mt-3 flex flex-wrap items-center justify-between gap-4">
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                Show
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  aria-label="Requisitions per page"
+                  className="h-8 rounded-lg border border-slate-200 bg-white py-0 pr-6 pl-2.5 text-xs font-semibold text-slate-700 focus:border-brand-600 focus:outline-none"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                per page
+              </label>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Previous page"
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {Array.from({ length: Math.max(1, paging.pages) }, (_, i) => i + 1)
+                  .filter((n) => n === 1 || n === paging.pages || Math.abs(n - page) <= 1)
+                  .reduce((acc, n, i, arr) => {
+                    if (i > 0 && n - arr[i - 1] > 1) acc.push("…");
+                    acc.push(n);
+                    return acc;
+                  }, [])
+                  .map((n, i) =>
+                    n === "…" ? (
+                      <span key={`ellipsis-${i}`} className="px-1 text-xs text-slate-500">…</span>
+                    ) : (
+                      <button
+                        key={n}
+                        type="button"
+                        aria-label={`Page ${n}`}
+                        aria-current={n === page ? "page" : undefined}
+                        onClick={() => setPage(n)}
+                        className={`num inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                          n === page
+                            ? "bg-brand-600 text-white shadow-xs"
+                            : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    )
+                  )}
+                <button
+                  type="button"
+                  aria-label="Next page"
+                  disabled={page >= paging.pages}
+                  onClick={() => setPage(page + 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </nav>
           )}
 

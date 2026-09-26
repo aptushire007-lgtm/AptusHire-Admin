@@ -46,7 +46,7 @@ export default function Demo() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-canvas">
       <MarketingNavbar />
       <div className="mx-auto flex max-w-3xl flex-col items-center px-5 py-20 sm:px-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">

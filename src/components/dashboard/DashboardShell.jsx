@@ -481,7 +481,7 @@ function ShellInner({ children }) {
             compositing layer that can soften the text inside it. */}
         <aside
           className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#DCEAF5] bg-white transition-[width] duration-200 lg:flex ${
-            collapsed ? "w-[4.5rem]" : "w-[255px]"
+            collapsed ? "w-[4.5rem]" : "w-[188px]"
           }`}
         >
           <SidebarContent
@@ -517,7 +517,7 @@ function ShellInner({ children }) {
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 bg-[#F4FAFF] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 bg-[#F4FAFF] px-4 py-4 focus:outline-none sm:px-6 lg:px-8"
           >
             {children}
           </main>

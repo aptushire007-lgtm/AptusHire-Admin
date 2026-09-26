@@ -9,7 +9,7 @@ export default function ThemeToggle({ className = "", compact = false }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative inline-flex items-center justify-center rounded-xl border border-[#E5EBE7] bg-white/80 p-2 text-[#64736A] shadow-[0_1px_4px_rgba(27,67,50,0.07)] backdrop-blur transition-all duration-200 hover:border-[#E5EBE7]-mid hover:bg-[#DDECE3] hover:text-[#17221C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+      className={`relative inline-flex items-center justify-center rounded-xl border border-hairline bg-surface/80 p-2 text-slate-600 shadow-2xs backdrop-blur transition-all duration-200 hover:bg-canvas-deep hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
         compact ? "h-8 w-8" : "h-9 w-9"
       } ${className}`}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}

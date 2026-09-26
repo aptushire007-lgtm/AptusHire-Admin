@@ -19,8 +19,8 @@
  * no fake window bars (gate 47). A figure is allowed to look like a figure.
  */
 
-const PANEL = "rounded-2xl border border-[#E3EBE4] bg-white p-5 shadow-[0_1px_4px_rgba(27,67,50,0.07)] sm:p-6";
-const ROW = "grid items-baseline gap-x-4 border-b border-[#E3EBE4] py-2.5 last:border-b-0";
+const PANEL = "rounded-2xl border border-hairline bg-surface p-5 shadow-2xs sm:p-6";
+const ROW = "grid items-baseline gap-x-4 border-b border-hairline py-2.5 last:border-b-0";
 
 function Panel({ title, meta, children }) {
   return (
@@ -159,7 +159,7 @@ const PROBES = [
 
 const VERDICT_TONE = {
   emerald: "bg-emerald-100 text-emerald-800",
-  slate: "bg-[#FAFCF8] text-[#5B6B63]",
+  slate: "bg-slate-100 text-slate-600",
   red: "bg-red-100 text-red-700",
 };
 

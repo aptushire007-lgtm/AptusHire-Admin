@@ -12,7 +12,7 @@ export function Table({ children, className = "", density = "comfortable", ...pr
 
 export function THead({ children }) {
   return (
-    <thead className="border-b border-slate-200 text-xs font-semibold text-slate-600">
+    <thead className="border-b border-slate-200 text-xs font-semibold text-slate-700">
       {children}
     </thead>
   );
@@ -30,8 +30,8 @@ export function THead({ children }) {
  * row on gutters alone at that setting. See DESIGN.md § The Bring-Your-Own-
  * Surface Rule for the general form.
  */
-const thPadding = { default: "px-6 py-3", compact: "px-3 py-2.5", tight: "px-2 py-2.5", none: "px-0 py-2.5" };
-const tdPadding = { default: "px-6 py-4", compact: "px-3 py-3", tight: "px-2 py-3", none: "px-0 py-3" };
+const thPadding = { default: "px-6 py-3", compact: "px-3 py-2.5", tight: "px-2 py-2.5", dense: "px-3 py-2", none: "px-0 py-2.5" };
+const tdPadding = { default: "px-6 py-4", compact: "px-3 py-3", tight: "px-2 py-3", dense: "px-3 py-2", none: "px-0 py-3" };
 const cellAlign = { left: "", right: "text-right", center: "text-center" };
 
 export function TH({ children, align = "left", padding = "default", className = "" }) {
@@ -46,7 +46,7 @@ export function TH({ children, align = "left", padding = "default", className = 
 }
 
 export function TBody({ children }) {
-  return <tbody className="divide-y divide-slate-100">{children}</tbody>;
+  return <tbody className="divide-y divide-slate-200">{children}</tbody>;
 }
 
 export function TR({ children, className = "", ...props }) {
@@ -78,20 +78,25 @@ export function TD({ children, align = "left", padding = "default", className = 
  * focus ring, and a 16px hit target. 36px on a mouse keeps a row scannable;
  * `tap-target` takes it to 44px wherever the pointer is coarse.
  */
-export function RowAction({ as: Component = "button", label, icon: Icon, tone = "brand", className = "", ...props }) {
+export function RowAction({ as: Component = "button", label, icon: Icon, tone = "brand", size = "md", className = "", ...props }) {
   const tones = {
     brand: "hover:text-brand-700 focus-visible:outline-brand-600",
     danger: "hover:text-red-600 focus-visible:outline-red-600",
     positive: "hover:text-emerald-600 focus-visible:outline-emerald-600",
   };
+  // "sm" drops the tap-target's 44px pointer-coarse floor on purpose — for a
+  // dense table where every row already carries one of these, the reachable
+  // hit area matters less than fitting the row height the density calls for.
+  const sizes = { md: "tap-target h-9 w-9", sm: "h-7 w-7" };
+  const iconSizes = { md: "h-4 w-4", sm: "h-3.5 w-3.5" };
   return (
     <Component
       title={label}
       aria-label={label}
-      className={`tap-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors duration-150 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 ${tones[tone]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg text-slate-500 transition-colors duration-150 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 ${sizes[size]} ${tones[tone]} ${className}`}
       {...props}
     >
-      <Icon className="h-4 w-4" aria-hidden="true" />
+      <Icon className={iconSizes[size]} aria-hidden="true" />
     </Component>
   );
 }

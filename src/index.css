@@ -163,6 +163,11 @@
   --color-canvas: #F4FAFF;
   --color-canvas-deep: #EAF5FF;
 
+  /* Card/panel surface — split out from a literal `bg-white` so dark mode
+     (see `.dark` below) can invert it without touching `white` itself, which
+     stays pure white everywhere it means "text/icon on a coloured fill". */
+  --color-surface: #FFFFFF;
+
   /* Elevation & Tinted Shadows — navy-tinted, same intensity curve as before */
   --shadow-2xs: 0 1px 2px rgba(18, 59, 109, 0.04);
   --shadow-xs: 0 1px 3px rgba(18, 59, 109, 0.06), 0 1px 2px rgba(18, 59, 109, 0.04);
@@ -561,6 +566,47 @@
   .feature-pane-in { animation: none; }
 }
 
+/* ---------------------------------------------------------------------------
+   Dark mode — the marketing/public pages only (Landing, Pricing, Demo,
+   RegisterCompany, etc. — anywhere <MarketingNavbar> and its <ThemeToggle>
+   render). The authenticated dashboard never shows the toggle, so its
+   `.admin-workspace` scope intentionally keeps its own fixed light values.
+
+   This is a token-value flip, not a `dark:` utility pass: every component on
+   these pages already reads colour from `--color-slate-*` / `--color-canvas`
+   / `--color-hairline` / `--color-surface` rather than literal hex, so
+   redefining those four families here re-skins the whole surface without
+   touching a single component. The slate ramp is the light ramp's own values
+   in reverse order (50↔950, 100↔900, …) — a text/background ramp inverts
+   correctly by construction, since "the lightest step" and "the darkest
+   step" simply trade places.
+
+   What this does NOT cover: any component still holding a literal
+   `bg-[#...]`/`text-[#...]` hex (bypasses the token system entirely, same
+   trap DashboardHome.jsx hit earlier in this rebrand) and the hero photo's
+   own white overlay gradient in Landing.jsx, which is inline CSS, not a
+   token. Those need a manual pass if they look wrong in dark mode. */
+.dark {
+  --color-canvas: #0B1F38;
+  --color-canvas-deep: #071527;
+  --color-surface: #10203A;
+  --color-hairline: #24466E;
+  --color-rule: #1B3555;
+
+  --color-slate-50: #0A2647;
+  --color-slate-100: #123B6D;
+  --color-slate-200: #1E3F63;
+  --color-slate-300: #3A5578;
+  --color-slate-400: #55708F;
+  --color-slate-500: #7C91A8;
+  --color-slate-600: #9AAABD;
+  --color-slate-700: #C4D9EA;
+  --color-slate-800: #DCEAF5;
+  --color-slate-900: #EAF5FF;
+  --color-slate-950: #F4FAFF;
+}
+.dark body { background-color: var(--color-canvas); color: var(--color-slate-900); }
+
 /* Authenticated recruiting surfaces only. Public pages keep the brand theme. */
 /* The canvas used to sit at #F5F7F6 against #FFFFFF cards — a 2% luminance
    step, which is why dense screens read as one undifferentiated sheet rather
@@ -592,10 +638,10 @@
    sources — the objection that flattened this in the first place. */
 .admin-workspace .workspace-panel { border-radius: 14px; box-shadow: 0 1px 2px rgba(18, 59, 109, 0.05), 0 4px 12px -4px rgba(18, 59, 109, 0.08); }
 .admin-workspace.command-palette { padding: 0; border-radius: 12px; }
-.admin-workspace .workspace-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--color-hairline); border-radius: 10px; background: white; }
+.admin-workspace .workspace-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--color-hairline); border-radius: 14px; background: white; }
 .admin-workspace .workspace-table { font-size: 13px; }
-.admin-workspace .workspace-table thead { position: sticky; top: 0; z-index: 1; background: #EAF5FF; }
-.admin-workspace .workspace-table th { white-space: nowrap; background: #EAF5FF; }
+.admin-workspace .workspace-table thead { position: sticky; top: 0; z-index: 1; background: #123B6D; }
+.admin-workspace .workspace-table th { white-space: nowrap; background: #123B6D; color: #EAF5FF; text-transform: uppercase; letter-spacing: 0.03em; font-size: 11px; }
 .admin-workspace .workspace-table td { vertical-align: middle; }
 .admin-workspace .workspace-table tr:focus-within { background: #F4FAFF; }
 .admin-workspace .workspace-table[data-density='compact'] td { padding-top: 8px; padding-bottom: 8px; }
