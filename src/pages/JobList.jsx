@@ -57,8 +57,12 @@ const LINK_SOURCES = [
 ];
 
 function buildApplyUrl(job, src) {
-  const base = `${CANDIDATE_PORTAL_URL}/jobs/${job.slug || job._id}`;
-  return src ? `${base}?src=${encodeURIComponent(src)}` : base;
+  const fallbackBase = String(CANDIDATE_PORTAL_URL).replace(/\/+$/, "");
+  const base = job.publicUrl || `${fallbackBase}/jobs/${job.slug || job._id}`;
+  if (!src) return base;
+  const url = new URL(base);
+  url.searchParams.set("src", src);
+  return url.toString();
 }
 
 const PUB_STATUS_TONE = { published: "green", pending: "amber", failed: "red", expired: "slate", withdrawn: "slate" };

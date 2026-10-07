@@ -445,7 +445,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-4">
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-teal-100 text-lg font-bold text-teal-800" aria-hidden="true">
                     {company?.logoPath ? (
-                      <img src={company.logoPath} alt="" className="h-full w-full object-contain p-1" />
+                      <img src={company.logoPath} alt="" className="h-full w-full object-cover" />
                     ) : (
                       initialsOf(company?.name)
                     )}
@@ -493,6 +493,14 @@ export default function SettingsPage() {
         </div>
 
         <CompanyProfileCard />
+
+        <Card>
+          <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <Palette className="h-4.5 w-4.5 text-brand-600" /> Company logo
+          </h2>
+          <p className="mb-3 text-sm text-slate-500">Upload the logo shown next to your jobs throughout the candidate portal.</p>
+          <CompanyLogoUploader />
+        </Card>
 
         <div>
           <h2 className="text-sm font-bold text-slate-900">How your workspace is set up</h2>
@@ -676,14 +684,6 @@ export default function SettingsPage() {
           </section>
           <section hidden={section !== "branding"} aria-label="Branding settings" className="space-y-4">
           {/* Branding */}
-          <Card>
-            <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
-              <Palette className="h-4.5 w-4.5 text-brand-600" /> Logo
-            </h2>
-            <p className="mb-3 text-sm text-slate-500">Shown next to your jobs on the public listings and job detail page candidates see.</p>
-            <CompanyLogoUploader />
-          </Card>
-
           <Card>
             <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Palette className="h-4.5 w-4.5 text-brand-600" /> Branding

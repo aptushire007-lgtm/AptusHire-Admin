@@ -72,7 +72,7 @@ export default function CompanyLogoUploader() {
     <div className="flex items-center gap-4">
       <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-hairline bg-white">
         {logoPath ? (
-          <img src={logoPath} alt="Company logo" className="h-full w-full object-contain p-1.5" />
+          <img src={logoPath} alt="Company logo" className="h-full w-full object-cover" />
         ) : (
           <Building2 className="h-6 w-6 text-slate-300" aria-hidden="true" />
         )}
