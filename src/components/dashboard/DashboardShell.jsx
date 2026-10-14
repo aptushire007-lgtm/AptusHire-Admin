@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -7,6 +7,7 @@ import {
   KanbanSquare,
   Bot,
   BarChart3,
+  Mail,
   Bell,
   Settings,
   LogOut,
@@ -19,7 +20,9 @@ import {
   Building2,
   Sparkles,
   CreditCard,
-  Zap,
+  Search,
+  Mic2,
+  FileQuestion,
 } from "lucide-react";
 import { useAdminAuth } from "../../auth/useAdminAuth.js";
 import { clearAdminAuth, getAdminRefreshToken } from "../../auth/adminAuth.js";
@@ -29,6 +32,9 @@ import { NotificationProvider } from "../../context/NotificationContext.jsx";
 import Modal from "../ui/Modal.jsx";
 import NotificationBell from "./NotificationBell.jsx";
 import BrandLogo, { AptusMark } from "../ui/BrandLogo.jsx";
+import CommandPalette from "./CommandPalette.jsx";
+import JobSidebar, { parseJobPath, JOB_SECTIONS } from "./JobSidebar.jsx";
+import { NavItem } from "./NavItem.jsx";
 
 const SIDEBAR_COLLAPSED_KEY = "admin_sidebar_collapsed:v1";
 
@@ -41,155 +47,188 @@ function writeSidebarCollapsed(v) {
   catch { /* ignore */ }
 }
 
-const NAV_GROUPS = [
-  {
-    label: "Recruitment",
-    items: [
-      { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-      { to: "/jobs", label: "Active Jobs", icon: Briefcase },
-      { to: "/candidates", label: "Candidates", icon: Users },
-      { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
-      { to: "/review-queue", label: "Review Queue", icon: Scale },
-      { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { to: "/reports", label: "Analytics & Reports", icon: BarChart3 },
-      { to: "/notifications", label: "Notifications", icon: Bell },
-    ],
-  },
-  {
-    label: "Workspace",
-    items: [
-      { to: "/settings", label: "Settings", icon: Settings },
-    ],
-  },
+/**
+ * The company-wide sidebar holds ONLY what spans every job.
+ *
+ * It used to carry eleven destinations in four groups. Most of them — the
+ * pipeline, AI interviews, recordings, skills assessments — are about ONE job,
+ * and now live inside that job's own workspace (see JobSidebar.jsx), where a
+ * recruiter actually works them. What is left is what a recruiter needs from
+ * anywhere: where things stand, the roles, the people, what is waiting on
+ * them, and how it is going.
+ *
+ * Notifications is not here because the top bar's bell already is it.
+ */
+const NAV_MAIN = [
+  { to: "/", label: "Home", icon: LayoutDashboard, end: true },
+  { to: "/jobs", label: "Jobs", icon: Briefcase },
+  { to: "/candidates", label: "Talent Pool", icon: Users },
+  { to: "/review-queue", label: "Review queue", icon: Scale, countKey: "reviews" },
+  { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/templates", label: "Templates", icon: Mail },
 ];
+const NAV_SETTINGS = { to: "/settings", label: "Settings", icon: Settings };
+const NAV_PLATFORM = { to: "/platform", label: "Platform administration", icon: Building2 };
 
-function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
-  const { me } = useCompanyData();
+/**
+ * Everything reachable, for Ctrl+K search.
+ *
+ * Kept separate from the sidebar ON PURPOSE. The palette used to be fed the
+ * sidebar's own list, so trimming the sidebar would have silently removed the
+ * company-wide AI Interviews, Recordings and Assessments pages from search as
+ * well — stranding them. Moving a page out of the sidebar is a layout choice;
+ * making it unfindable would be a regression.
+ */
+function getPaletteGroups(user) {
+  const workspace = [...NAV_MAIN, NAV_SETTINGS];
+  if (user?.role === "super_admin") workspace.push(NAV_PLATFORM);
+  return [
+    { label: "Workspace", items: workspace },
+    {
+      label: "Across all jobs",
+      items: [
+        { to: "/pipeline", label: "Hiring Pipeline", icon: KanbanSquare },
+        { to: "/ai-interviews", label: "AI Interviews", icon: Bot },
+        { to: "/recordings", label: "Recordings", icon: Mic2 },
+        { to: "/assessments", label: "Skills Assessments", icon: FileQuestion },
+        { to: "/notifications", label: "Notifications", icon: Bell },
+      ],
+    },
+  ];
+}
+
+function getBreadcrumbs(pathname) {
+  if (pathname.startsWith("/jobs/") && pathname.includes("/rubric")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Screening rubric", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/questions")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Interview questions", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/assessment")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Skills assessment", current: true },
+    ];
+  }
+  if (pathname.startsWith("/jobs/") && pathname.includes("/post")) {
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: "Job post", current: true },
+    ];
+  }
+  // Inside a job workspace the sidebar already names the job, so the crumb
+  // only has to say which part of it you are on.
+  const jobPath = parseJobPath(pathname);
+  if (jobPath) {
+    const section = JOB_SECTIONS.find((s) => s.key === jobPath.section);
+    return [
+      { to: "/jobs", label: "Jobs" },
+      { label: section?.label || "Job", current: true },
+    ];
+  }
+  return null;
+}
+
+function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }) {
+  const { user } = useAdminAuth();
+  const { pathname } = useLocation();
+  // Inside a job, the job's own navigation replaces this one. Same shell, same
+  // mount — only the list changes — so opening a job never refetches the
+  // workspace or reconnects the socket.
+  const jobPath = parseJobPath(pathname);
 
   return (
     <div className="flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div>
-        {/* ── Brand Header ─────────────────────────────────────── */}
+        {/* ── Brand ─────────────────────────────────────────────── */}
         <div
-          className={`flex h-16 shrink-0 items-center border-b border-[#E4E4E7] px-4 ${
+          className={`flex h-[72px] shrink-0 items-center border-b border-[#D8E5F1] bg-white px-5 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
           {collapsed ? (
-            <AptusMark size={28} onClick={onNavigate} />
+            <AptusMark size={34} color="blue" />
           ) : (
-            <BrandLogo to="/" size="md" theme="light" onClick={onNavigate} />
+            <BrandLogo to="/" size="lg" theme="light" markColor="blue" onClick={onNavigate} />
           )}
         </div>
 
-        {/* ── Workspace Capsule ─────────────────────────────────── */}
-        {!collapsed && (
-          <div className="mx-3 mb-1 mt-4 flex items-center gap-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#176B45] text-white">
-              <Building2 className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-bold text-[#17221C]">
-                {me?.company?.name || "Aptus Workspace"}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* ── Navigation ────────────────────────────────────────── */}
-        <nav
-          aria-label="Dashboard Navigation"
-          className="mt-3 flex flex-1 flex-col gap-5 px-3"
-        >
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              {!collapsed && (
-                <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-widest text-[#9BAAA1]">
-                  {group.label}
-                </p>
-              )}
-              <div className="flex flex-col gap-px">
-                {group.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    onClick={onNavigate}
-                    title={collapsed ? item.label : undefined}
-                    className={({ isActive }) =>
-                      `group relative flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45] ${
-                        collapsed ? "justify-center px-2.5" : "px-3"
-                      } ${
-                        isActive
-                          ? "bg-[#F4F4F5] font-medium text-[#09090B]"
-                          : "text-[#71717A] hover:bg-[#F4F4F5] hover:text-[#09090B]"
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <item.icon
-                          className={`h-4 w-4 shrink-0 transition-colors ${
-                            isActive ? "text-[#176B45]" : "text-[#9BAAA1] group-hover:text-[#176B45]"
-                          }`}
-                          aria-hidden="true"
-                        />
-                        {!collapsed && (
-                          <span className="truncate">{item.label}</span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+        {jobPath ? (
+          <JobSidebar
+            jobId={jobPath.id}
+            section={jobPath.section}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        ) : (
+          <nav
+            aria-label="Dashboard Navigation"
+            className={`flex flex-1 flex-col gap-0.5 overflow-y-auto py-2 ${collapsed ? "px-2" : "px-3"}`}
+          >
+            {NAV_MAIN.map((item) => (
+              <div key={item.to} className="my-0.5">
+                <NavItem
+                  to={item.to}
+                  end={item.end}
+                  icon={item.icon}
+                  label={item.label}
+                  collapsed={collapsed}
+                  onClick={onNavigate}
+                  count={item.countKey ? counts[item.countKey] : null}
+                />
               </div>
-            </div>
-          ))}
-        </nav>
+            ))}
+          </nav>
+        )}
       </div>
 
-      {/* ── Sidebar Footer ────────────────────────────────────────── */}
-      <div className="space-y-2 border-t border-[#E4E4E7] p-3">
-        {!collapsed && (
-          <div className="rounded-xl border border-[#E5EBE7] bg-[#F1F7F3] p-3.5">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#176B45]">
-                <Zap className="h-3.5 w-3.5 text-[#176B45]" /> Aptus Intelligence
-              </span>
-              <span className="rounded-full bg-[#176B45] px-2 py-0.5 text-[10px] font-bold text-white">
-                Live
-              </span>
-            </div>
-            <p className="mt-1.5 text-[11px] leading-4 text-[#64736A]">
-              Rubric scoring and live interview engine active.
-            </p>
-            <NavLink
-              to="/settings"
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <div
+        className={`flex flex-col gap-0.5 border-t border-[#D8E5F1] bg-white py-3 ${
+          collapsed ? "px-2" : "px-3"
+        }`}
+      >
+        <div className="my-0.5">
+          <NavItem
+            to={NAV_SETTINGS.to}
+            icon={NAV_SETTINGS.icon}
+            label={NAV_SETTINGS.label}
+            collapsed={collapsed}
+            onClick={onNavigate}
+          />
+        </div>
+        {user?.role === "super_admin" && (
+          <div className="my-0.5">
+            <NavItem
+              to={NAV_PLATFORM.to}
+              icon={NAV_PLATFORM.icon}
+              label={NAV_PLATFORM.label}
+              collapsed={collapsed}
               onClick={onNavigate}
-              className="mt-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-[#E5EBE7] bg-white py-1.5 text-xs font-semibold text-[#176B45] transition-colors hover:bg-[#F8FAF9]"
-            >
-              <CreditCard className="h-3.5 w-3.5" />
-              <span>Workspace Plan</span>
-            </NavLink>
+            />
           </div>
         )}
-
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium text-[#9BAAA1] transition-colors hover:bg-[#F1F7F3] hover:text-[#64736A]"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={`mt-1 flex h-12 w-full items-center gap-4 rounded-xl text-[15px] font-medium text-[#526B87] transition-colors hover:bg-[#EAF3FB] hover:text-[#173B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F9CF4] ${
+              collapsed ? "justify-center px-3" : "px-4"
+            }`}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-[22px] w-[22px]" aria-hidden="true" />
             ) : (
               <>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-[22px] w-[22px]" aria-hidden="true" />
                 <span>Collapse</span>
               </>
             )}
@@ -200,10 +239,11 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate }) {
   );
 }
 
-function TopNav({ onMenuClick }) {
+function TopNav({ onMenuClick, onOpenSearch }) {
   const { user } = useAdminAuth();
   const { me } = useCompanyData();
   const navigate = useNavigate();
+  const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -215,6 +255,8 @@ function TopNav({ onMenuClick }) {
       ? "Head of Recruitment"
       : "Recruiter";
 
+  const breadcrumbs = getBreadcrumbs(location.pathname);
+
   useEffect(() => {
     if (!profileOpen) return undefined;
     function handle(e) {
@@ -225,101 +267,143 @@ function TopNav({ onMenuClick }) {
   }, [profileOpen]);
 
   return (
-    <>
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 sm:px-6">
-      {/* Left */}
-      <div className="flex min-w-0 items-center gap-3">
-        <button
-          className="tap-target inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#DDECE3] hover:text-[#176B45] lg:hidden"
-          onClick={onMenuClick}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold text-[#09090B]">{companyName}</h2>
-          <p className="truncate text-[11px] tabular-nums text-[#9BAAA1]">
-            {me?.company?.companyCode || "APT-01"}
-          </p>
-        </div>
-      </div>
-
-      {/* Right */}
-      <div className="flex shrink-0 items-center gap-2">
-        <NotificationBell />
-
-        <div className="relative" ref={profileRef}>
+    <header className="sticky top-0 z-40 border-b border-[#C8D9ED] bg-white shadow-[0_1px_4px_rgba(18,59,109,0.08)] backdrop-blur-md">
+      <div className="flex h-[64px] items-center justify-between gap-3 px-5 sm:px-8">
+        {/* Left */}
+        <div className="flex min-w-0 items-center gap-3">
           <button
-            onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs font-medium text-[#18181B] shadow-sm transition-colors hover:bg-[#F4F4F5]"
-            aria-expanded={profileOpen}
-            aria-haspopup="true"
-            aria-label="User menu"
+            className="tap-target -ml-1.5 inline-flex items-center justify-center rounded-xl p-1.5 text-[#55708F] transition-colors hover:bg-[#EAF3FB] hover:text-[#123B6D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F9CF4]/40 lg:hidden"
+            onClick={onMenuClick}
+            aria-label="Open navigation menu"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#176B45] text-[11px] font-bold text-white">
-              {(user?.name || "A")[0].toUpperCase()}
-            </span>
-            <span className="hidden max-w-[7rem] truncate sm:block">
-              {user?.name || "Recruiter"}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 text-[#9BAAA1]" />
+            <Menu className="h-6 w-6" />
           </button>
 
-          {profileOpen && (
-            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-[#E4E4E7] bg-white p-1.5 shadow-lift">
-              <div className="border-b border-[#E5EBE7] px-3 py-2.5">
-                <p className="truncate text-[13px] font-bold text-[#17221C]">{user?.name}</p>
-                <p className="truncate text-[11px] text-[#64736A]">{user?.email}</p>
-                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#E8F2EC] px-2 py-0.5 text-[10px] font-semibold text-[#176B45]">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  {roleName}
+          {breadcrumbs ? (
+            <nav aria-label="Workspace breadcrumb" className="flex items-center gap-2 text-[13.5px] font-medium">
+              {breadcrumbs.map((b, i) => (
+                <span key={i} className="flex items-center gap-2">
+                  {i > 0 && <span className="text-[#B0C4D8]">/</span>}
+                  {b.current ? (
+                    <span aria-current="page" className="font-semibold text-[#123B6D]">{b.label}</span>
+                  ) : (
+                    <NavLink to={b.to} className="text-[#5A7FA0] hover:text-[#123B6D] transition-colors">{b.label}</NavLink>
+                  )}
                 </span>
-              </div>
-
-              <div className="py-1">
-                <button
-                  onClick={() => { setProfileOpen(false); navigate("/settings"); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
-                >
-                  <Settings className="h-4 w-4 text-[#9BAAA1]" />
-                  Workspace Settings
-                </button>
-                <button
-                  onClick={() => { setProfileOpen(false); navigate("/ai-interviews"); }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#64736A] transition-colors hover:bg-[#DDECE3] hover:text-[#176B45]"
-                >
-                  <Bot className="h-4 w-4 text-[#9BAAA1]" />
-                  AI Interviews
-                </button>
-              </div>
-
-              <div className="border-t border-[#E5EBE7] pt-1">
-                <button
-                  onClick={() => {
-                    const refreshToken = getAdminRefreshToken();
-                    if (refreshToken) api.post("/auth/logout", { refreshToken }).catch(() => {});
-                    clearAdminAuth();
-                    navigate("/login");
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-[#C95C5C] transition-colors hover:bg-[#F8EAEA]"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Log Out
-                </button>
-              </div>
+              ))}
+            </nav>
+          ) : (
+            <div className="min-w-0">
+              <h2 className="truncate text-[15px] font-bold leading-tight text-[#0B2648]">{companyName}</h2>
+              <p className="truncate text-[11.5px] font-medium text-[#5A7FA0]">
+                {me?.company?.companyCode || "APT-01"}
+              </p>
             </div>
           )}
         </div>
+
+        {/* Right */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          {/* Search — blue-tinted pill */}
+          <button
+            type="button"
+            aria-label="Search workspace"
+            onClick={onOpenSearch}
+            className="hidden h-9 items-center gap-2.5 rounded-full border border-[#C4D8EC] bg-[#EAF3FB] px-3.5 text-[13px] text-[#5A7FA0] transition-all hover:border-[#A8C8E8] hover:bg-[#DCEEf9] hover:text-[#123B6D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F9CF4]/50 sm:flex sm:w-[220px]"
+          >
+            <Search className="h-4 w-4 shrink-0 text-[#7FA8C8]" strokeWidth={1.75} />
+            <span className="hidden flex-1 text-left sm:block">Search…</span>
+            <span className="ml-auto hidden shrink-0 rounded border border-[#C4D8EC] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#7FA8C8] sm:inline">
+              ⌘K
+            </span>
+          </button>
+
+          <NotificationBell />
+
+          {/* Profile button */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((v) => !v)}
+              className="flex items-center gap-2.5 rounded-full border border-[#C4D8EC] bg-white py-1.5 pl-1.5 pr-3 text-[13.5px] font-semibold text-[#123B6D] shadow-sm transition-all hover:border-[#A8C8E8] hover:bg-[#EAF3FB] hover:shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F9CF4]/50"
+              aria-expanded={profileOpen}
+              aria-haspopup="true"
+              aria-label="Account options"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-tr from-[#1560A8] to-[#2F9CF4] text-[12px] font-bold text-white shadow-sm">
+                {user?.photoPath ? (
+                  <img src={user.photoPath} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  String(user?.name || "Admin").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
+                )}
+              </span>
+              <span className="hidden max-w-[9rem] truncate sm:block">
+                {user?.name || "Recruiter"}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-[#7FA8C8]" />
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#C4D8EC] bg-white shadow-[0_8px_32px_rgba(18,59,109,0.14)]">
+                <div className="flex items-center gap-3 border-b border-[#DCE9F5] bg-[#EAF3FB] px-4 py-3.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#1560A8] to-[#2F9CF4] text-[13px] font-bold text-white shadow-sm">
+                    {String(user?.name || "A").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13.5px] font-bold text-[#0B2648]">{user?.name}</p>
+                    <p className="truncate text-[11px] text-[#5A7FA0]">{user?.email}</p>
+                  </div>
+                </div>
+
+                <div className="p-1.5">
+                  <span className="mx-3 mb-2 mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#EAF3FB] px-2.5 py-1 text-[10.5px] font-semibold text-[#1560A8] border border-[#C4D8EC]">
+                    <Sparkles className="h-3 w-3" />
+                    {roleName}
+                  </span>
+                  {[
+                    { label: "Plan and billing", icon: CreditCard, to: "/subscription" },
+                    { label: "Workspace Settings", icon: Settings, to: "/settings" },
+                    { label: "AI Interviews", icon: Bot, to: "/ai-interviews" },
+                  ].map(({ label, icon: Icon, to }) => (
+                    <button
+                      key={to}
+                      role="menuitem"
+                      onClick={() => { setProfileOpen(false); navigate(to); }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium text-[#2E5070] transition-colors hover:bg-[#EAF3FB] hover:text-[#123B6D]"
+                    >
+                      <Icon className="h-4 w-4 text-[#7FA8C8]" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-t border-[#DCE9F5] p-1.5">
+                  <button
+                    onClick={() => {
+                      const refreshToken = getAdminRefreshToken();
+                      if (refreshToken) api.post("/auth/logout", { refreshToken }).catch(() => {});
+                      clearAdminAuth();
+                      navigate("/login");
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </header>
-    </>
   );
 }
 
 function ShellInner({ children }) {
+  const { user } = useAdminAuth();
   const [collapsed, setCollapsed] = useState(readSidebarCollapsed);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const { pathname } = useLocation();
   const viewAs = getViewAsCompany();
   const mainRef = useRef(null);
@@ -331,6 +415,17 @@ function ShellInner({ children }) {
       writeSidebarCollapsed(next);
       return next;
     });
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -347,17 +442,27 @@ function ShellInner({ children }) {
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname]);
 
+  const paletteGroups = getPaletteGroups(user);
+
+  // The review badge comes from the workspace context, like every other figure
+  // in the shell: the shell itself fetches nothing, so it never has its own
+  // loading or failure state to get wrong.
+  const { reviewCount } = useCompanyData();
+  // A zero is a real count, but an empty queue does not need a badge shouting
+  // "0" beside it — only a non-zero count is drawn.
+  const counts = { reviews: reviewCount > 0 ? reviewCount : null };
+
   return (
-    <div className="admin-portal flex min-h-screen flex-col bg-[#FAFAFA] text-[#09090B]">
+    <div className="admin-portal flex min-h-screen flex-col bg-[#E2EBF5] text-slate-900">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#176B45] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-60 focus:rounded-xl focus:bg-[#123B6D] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lift"
       >
         Skip to main content
       </a>
 
       {viewAs && (
-        <div className="flex items-center justify-between gap-3 bg-[#176B45] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(27,67,50,0.07)]">
+        <div className="flex items-center justify-between gap-3 bg-[#123B6D] px-4 py-2 text-sm font-medium text-white shadow-[0_1px_4px_rgba(18,59,109,0.15)]">
           <span>
             Viewing as tenant <span className="font-bold">{viewAs.name}</span> — read-only mode.
           </span>
@@ -371,15 +476,17 @@ function ShellInner({ children }) {
       )}
 
       <div className="flex min-h-0 flex-1">
-        {/* Desktop sidebar — white, matches user UI */}
+        {/* Desktop sidebar — white, 280px, matching Candidate Portal */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#E4E4E7] bg-white transition-[width] duration-200 lg:flex ${
-            collapsed ? "w-[4.5rem]" : "w-64"
+          id="app-sidebar"
+          className={`sticky top-0 hidden h-screen shrink-0 self-start flex-col border-r border-[#C8D9ED] bg-white shadow-[1px_0_0_0_#C8D9ED] transition-[width] duration-200 lg:flex ${
+            collapsed ? "w-[4.5rem]" : "w-[17.5rem]"
           }`}
         >
           <SidebarContent
             collapsed={collapsed}
             onToggleCollapse={toggleCollapsed}
+            counts={counts}
           />
         </aside>
 
@@ -389,39 +496,41 @@ function ShellInner({ children }) {
           onClose={() => setMobileOpen(false)}
           placement="left"
           label="Navigation menu"
-          panelClassName="w-72 border-r border-[#E5EBE7] bg-white"
+          panelClassName="w-[17.5rem] border-r border-[#E2E8F0] bg-white"
         >
           <button
-            className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-[#64736A] hover:bg-[#F1F7F3] hover:text-[#176B45] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B45]"
+            className="tap-target absolute right-3 top-4 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#123B6D]"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
-          <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} />
+          <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} counts={counts} />
         </Modal>
 
         {/* Main content */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopNav onMenuClick={() => setMobileOpen(true)} />
+          <TopNav onMenuClick={() => setMobileOpen(true)} onOpenSearch={() => setCommandOpen(true)} />
           <main
             key={pathname}
             ref={mainRef}
             id="main-content"
             tabIndex={-1}
-            className="min-w-0 flex-1 bg-[#FAFAFA] px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
+            className={`min-w-0 flex-1 px-5 py-6 focus:outline-none sm:px-8 sm:py-8 ${pathname === "/" ? "dashboard-main" : "bg-[#E2EBF5]"}`}
           >
             {children}
           </main>
         </div>
       </div>
+
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} groups={paletteGroups} />
     </div>
   );
 }
 
 export default function DashboardShell({ children }) {
   return (
-    <CompanyDataProvider>
+    <CompanyDataProvider includeCandidates={false}>
       <NotificationProvider>
         <ShellInner>{children}</ShellInner>
       </NotificationProvider>
