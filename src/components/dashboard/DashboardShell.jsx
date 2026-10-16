@@ -65,10 +65,16 @@ const NAV_MAIN = [
   { to: "/candidates", label: "Talent Pool", icon: Users },
   { to: "/review-queue", label: "Review queue", icon: Scale, countKey: "reviews" },
   { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/recruiter-analytics", label: "Recruiter Analytics", icon: BarChart3, adminOnly: true },
   { to: "/templates", label: "Templates", icon: Mail },
+  { to: "/team", label: "Team Management", icon: Users, adminOnly: true },
 ];
-const NAV_SETTINGS = { to: "/settings", label: "Settings", icon: Settings };
+const NAV_SETTINGS = { to: "/settings", label: "Settings", icon: Settings, adminOnly: true };
 const NAV_PLATFORM = { to: "/platform", label: "Platform administration", icon: Building2 };
+
+export function getVisibleMainNavigation(user) {
+  return NAV_MAIN.filter((item) => !item.adminOnly || user?.role === "admin");
+}
 
 /**
  * Everything reachable, for Ctrl+K search.
@@ -80,7 +86,10 @@ const NAV_PLATFORM = { to: "/platform", label: "Platform administration", icon: 
  * making it unfindable would be a regression.
  */
 function getPaletteGroups(user) {
-  const workspace = [...NAV_MAIN, NAV_SETTINGS];
+  const workspace = [
+    ...getVisibleMainNavigation(user),
+    ...(user?.role === "admin" ? [NAV_SETTINGS] : []),
+  ];
   if (user?.role === "super_admin") workspace.push(NAV_PLATFORM);
   return [
     { label: "Workspace", items: workspace },
@@ -171,7 +180,7 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }
             aria-label="Dashboard Navigation"
             className={`flex flex-1 flex-col gap-0.5 overflow-y-auto py-2 ${collapsed ? "px-2" : "px-3"}`}
           >
-            {NAV_MAIN.map((item) => (
+            {getVisibleMainNavigation(user).map((item) => (
               <div key={item.to} className="my-0.5">
                 <NavItem
                   to={item.to}
@@ -194,15 +203,17 @@ function SidebarContent({ collapsed, onToggleCollapse, onNavigate, counts = {} }
           collapsed ? "px-2" : "px-3"
         }`}
       >
-        <div className="my-0.5">
-          <NavItem
-            to={NAV_SETTINGS.to}
-            icon={NAV_SETTINGS.icon}
-            label={NAV_SETTINGS.label}
-            collapsed={collapsed}
-            onClick={onNavigate}
-          />
-        </div>
+        {user?.role === "admin" && (
+          <div className="my-0.5">
+            <NavItem
+              to={NAV_SETTINGS.to}
+              icon={NAV_SETTINGS.icon}
+              label={NAV_SETTINGS.label}
+              collapsed={collapsed}
+              onClick={onNavigate}
+            />
+          </div>
+        )}
         {user?.role === "super_admin" && (
           <div className="my-0.5">
             <NavItem
@@ -360,8 +371,12 @@ function TopNav({ onMenuClick, onOpenSearch }) {
                     {roleName}
                   </span>
                   {[
-                    { label: "Plan and billing", icon: CreditCard, to: "/subscription" },
-                    { label: "Workspace Settings", icon: Settings, to: "/settings" },
+                    ...(user?.role === "admin"
+                      ? [
+                          { label: "Plan and billing", icon: CreditCard, to: "/subscription" },
+                          { label: "Workspace Settings", icon: Settings, to: "/settings" },
+                        ]
+                      : []),
                     { label: "AI Interviews", icon: Bot, to: "/ai-interviews" },
                   ].map(({ label, icon: Icon, to }) => (
                     <button

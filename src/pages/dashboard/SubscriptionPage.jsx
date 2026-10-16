@@ -12,6 +12,16 @@ function formatPrice(amount) {
 export default function SubscriptionPage() {
   const { subscription, loading } = useCompanyData();
   const plan = subscription?.plan;
+  const planLimits = plan?.limits
+    ? [
+        ["Active Jobs", plan.limits.maxJobs],
+        ...(Number.isFinite(plan.limits.maxAdmins) ? [["Admin Seats", plan.limits.maxAdmins]] : []),
+        ["Recruiter Seats", plan.limits.maxRecruiters],
+        ["AI Interviews / mo", plan.limits.maxAiInterviews],
+        ["Resume Parses / mo", plan.limits.maxResumeParsing],
+        ["Storage", `${(plan.limits.storageLimitMb / 1000).toFixed(1)} GB`],
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -60,17 +70,11 @@ export default function SubscriptionPage() {
             </div>
           </Card>
 
-          {plan?.limits && (
+          {planLimits.length > 0 && (
             <Card>
               <h2 className="mb-4 text-base font-semibold text-[#17221C]">Plan Limits</h2>
               <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  ["Active Jobs", plan.limits.maxJobs],
-                  ["Recruiter Seats", plan.limits.maxRecruiters],
-                  ["AI Interviews / mo", plan.limits.maxAiInterviews],
-                  ["Resume Parses / mo", plan.limits.maxResumeParsing],
-                  ["Storage", `${(plan.limits.storageLimitMb / 1000).toFixed(1)} GB`],
-                ].map(([label, value]) => (
+                {planLimits.map(([label, value]) => (
                   <div key={label} className="rounded-xl bg-[#E8F2EC] p-4">
                     <p className="text-xs font-medium text-[#64736A]">{label}</p>
                     <p className="mt-1 text-lg font-bold text-[#17221C]">{value?.toLocaleString?.() ?? value}</p>

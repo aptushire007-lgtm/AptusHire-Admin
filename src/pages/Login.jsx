@@ -29,8 +29,8 @@ export default function Login() {
     setSubmitting(true);
     try {
       const res = await api.post("/auth/login", form);
-      if (res.data.user.role !== "admin" && res.data.user.role !== "superadmin") {
-        setError("This account does not have admin access.");
+      if (!["admin", "recruiter", "superadmin"].includes(res.data.user.role)) {
+        setError("This account does not have workspace access.");
         return;
       }
       saveAdminAuth({ token: res.data.token, refreshToken: res.data.refreshToken, user: res.data.user });
@@ -73,7 +73,7 @@ export default function Login() {
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo to="/welcome" size="lg" className="mb-4" />
           <h1 className="text-2xl font-bold tracking-tight text-[#17221C] [overflow-wrap:anywhere]">Welcome back</h1>
-          <p className="mt-1 text-sm text-[#64736A]">Log in to your admin workspace</p>
+          <p className="mt-1 text-sm text-[#64736A]">Log in to your company workspace</p>
         </div>
 
         <Card className="rounded-3xl border border-[#E5EBE7] bg-white p-6 shadow-soft sm:p-8">

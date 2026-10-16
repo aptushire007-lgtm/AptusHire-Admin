@@ -4,7 +4,9 @@ import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import DashboardShell from "./components/dashboard/DashboardShell.jsx";
 import RequireAdmin from "./auth/RequireAdmin.jsx";
+import RequireAdminOnly from "./auth/RequireAdminOnly.jsx";
 import RequirePlatform from "./auth/RequirePlatform.jsx";
+import RecruiterIdleTimeout from "./auth/RecruiterIdleTimeout.jsx";
 import { useAdminAuth } from "./auth/useAdminAuth.js";
 import SmoothScroll from "./motion/SmoothScroll.jsx";
 
@@ -37,6 +39,8 @@ const CandidatesAll = lazy(() => import("./pages/dashboard/CandidatesAll.jsx"));
 const HiringPipeline = lazy(() => import("./pages/dashboard/HiringPipeline.jsx"));
 const AIInterviews = lazy(() => import("./pages/dashboard/AIInterviews.jsx"));
 const Reports = lazy(() => import("./pages/dashboard/Reports.jsx"));
+const TeamManagement = lazy(() => import("./pages/dashboard/TeamManagement.jsx"));
+const RecruiterAnalytics = lazy(() => import("./pages/dashboard/RecruiterAnalytics.jsx"));
 const SubscriptionPage = lazy(() => import("./pages/dashboard/SubscriptionPage.jsx"));
 const Notifications = lazy(() => import("./pages/dashboard/Notifications.jsx"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage.jsx"));
@@ -96,6 +100,7 @@ export default function App() {
 
   return (
     <>
+      <RecruiterIdleTimeout />
       <SmoothScroll allowRoot={!isAuthenticated} />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
@@ -139,9 +144,39 @@ export default function App() {
             <Route path="recordings" element={<Recordings />} />
             <Route path="ai-interviews" element={<AIInterviews />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="subscription" element={<SubscriptionPage />} />
+            <Route
+              path="recruiter-analytics"
+              element={
+                <RequireAdminOnly>
+                  <RecruiterAnalytics />
+                </RequireAdminOnly>
+              }
+            />
+            <Route
+              path="team"
+              element={
+                <RequireAdminOnly>
+                  <TeamManagement />
+                </RequireAdminOnly>
+              }
+            />
+            <Route
+              path="subscription"
+              element={
+                <RequireAdminOnly>
+                  <SubscriptionPage />
+                </RequireAdminOnly>
+              }
+            />
             <Route path="notifications" element={<Notifications />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route
+              path="settings"
+              element={
+                <RequireAdminOnly>
+                  <SettingsPage />
+                </RequireAdminOnly>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
